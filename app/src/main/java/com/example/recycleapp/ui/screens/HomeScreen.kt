@@ -22,7 +22,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
         ) {
             Spacer(Modifier.height(24.dp))
             Text(
@@ -35,7 +35,7 @@ fun HomeScreen(
             Spacer(Modifier.height(24.dp))
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SquareAction(title = "Tire uma foto", onClick = onOpenCamera)
                 SquareAction(title = "Use da galeria", onClick = onOpenGallery)
@@ -51,12 +51,15 @@ private fun RowScope.SquareAction(title: String, onClick: () -> Unit) { // <- Ro
         modifier = Modifier.weight(1f).aspectRatio(1f),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primary
         ),
         elevation = CardDefaults.elevatedCardElevation(6.dp)
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
