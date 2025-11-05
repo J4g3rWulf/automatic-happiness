@@ -1,16 +1,15 @@
 package com.example.recycleapp.util
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import java.io.File
 
 /**
- * Apaga o arquivo gerado pela câmera quando ele foi salvo em cacheDir/images
- * e o Uri veio do nosso FileProvider.
+ * Apaga o arquivo gerado pela câmera quando foi salvo em cacheDir/images
+ * (via FileProvider). Funciona para Uris "file://" e "content://<pkg>.fileprovider".
  */
 fun String.tryDeleteCapturedCacheFile(context: Context) {
     runCatching {
-        val u = Uri.parse(this)
-
+        val u = this.toUri()
         when (u.scheme) {
             "file" -> {
                 // Ex.: file:///data/user/0/.../cache/images/photo_123.jpg
@@ -18,13 +17,11 @@ fun String.tryDeleteCapturedCacheFile(context: Context) {
             }
             "content" -> {
                 // Ex.: content://<pkg>.fileprovider/cache/images/photo_123.jpg
-                val name = u.lastPathSegment?.substringAfterLast('/') ?: return@runCatching
-                val f = File(File(context.cacheDir, "images"), name)
-                f.delete()
+                val last = u.lastPathSegment ?: return@runCatching
+                val name = last.substringAfterLast('/') // "photo_123.jpg"
+                File(File(context.cacheDir, "images"), name).delete()
             }
             else -> Unit
         }
     }
 }
-
-// Onde for usar adicione o import -> import com.example.recycleapp.util.tryDeleteIfFilePath
