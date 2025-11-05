@@ -22,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import com.example.recycleapp.R
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,12 +72,12 @@ fun CameraCaptureScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {}, // sem Text, evita import extra
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }

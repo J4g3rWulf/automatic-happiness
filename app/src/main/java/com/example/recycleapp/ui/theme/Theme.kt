@@ -1,7 +1,5 @@
 package com.example.recycleapp.ui.theme
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
@@ -27,19 +25,11 @@ private val LightColorScheme = lightColorScheme(
     onSurface = WhiteText
 )
 
-/*private val DarkColorScheme = darkColorScheme(
-    primary = GreenPrimary,
-    onPrimary = WhiteText,
-    background = Color(0xFF0E0F0E),
-    onBackground = WhiteText,
-)*/
 
 // ====== Font Poppins ======
 private val Poppins = FontFamily(
     Font(R.font.poppins_regular, FontWeight.Normal),
-    Font(R.font.poppins_semibold, FontWeight.SemiBold),
-    // Font(R.font.poppins_medium, FontWeight.Medium),
-    // Font(R.font.poppins_bold, FontWeight.Bold),
+    Font(R.font.poppins_semibold, FontWeight.SemiBold)
 )
 
 // ====== Typography ======
@@ -66,10 +56,9 @@ val AppTypography = androidx.compose.material3.Typography(
 
 @Composable
 fun RecycleAppTheme(
-    //darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = LightColorScheme;
+    val colorScheme = LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

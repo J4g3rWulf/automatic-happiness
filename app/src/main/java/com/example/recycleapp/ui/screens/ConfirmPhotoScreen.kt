@@ -17,8 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.recycleapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +35,8 @@ fun ConfirmPhotoScreen(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -45,7 +48,7 @@ fun ConfirmPhotoScreen(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth()
-                ) { Text("Enviar") }
+                ) { Text(text = stringResource(R.string.send)) }
             }
         }
     ) { inner ->

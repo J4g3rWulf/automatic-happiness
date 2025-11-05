@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -160,7 +161,7 @@ fun HomeScreen(
                     val titleMax = if (titleMaxWidth < pairWidth) titleMaxWidth else pairWidth
 
                     Text(
-                        text = "Identifique o tipo\nde lixo assim:",
+                        text = stringResource(R.string.title_home),
                         color = WhiteText,
                         style = scaledTitle,
                         modifier = Modifier
@@ -180,7 +181,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ActionButtonWithLabel(
-                            title = "Tire uma foto",
+                            title = stringResource(R.string.btn_camera),
                             size = cardSize,
                             corner = buttonCorner,
                             container = MaterialTheme.colorScheme.primaryContainer,
@@ -190,7 +191,7 @@ fun HomeScreen(
                             onClick = onOpenCamera
                         )
                         ActionButtonWithLabel(
-                            title = "Use da galeria",
+                            title = stringResource(R.string.btn_gallery),
                             size = cardSize,
                             corner = buttonCorner,
                             container = MaterialTheme.colorScheme.secondaryContainer,
@@ -231,7 +232,7 @@ fun HomeScreen(
 
                         val baseBody = MaterialTheme.typography.bodyMedium
                         Text(
-                            text = "Certifique-se que o recipiente não possui nenhum resíduo!",
+                            text = stringResource(R.string.notice_text),
                             style = baseBody.copy(
                                 fontSize  = (baseBody.fontSize.value  * noticeTextScale).sp,
                                 lineHeight = (baseBody.lineHeight.value * noticeTextScale).sp

@@ -1,5 +1,6 @@
 package com.example.recycleapp.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,7 +15,8 @@ sealed class Screen(val route: String) {
     data object Home : Screen("home")
     data object Camera : Screen("camera")
     data object ConfirmPhoto : Screen("confirm_photo/{photoUri}") {
-        fun build(photoUri: String) = "confirm_photo/$photoUri"
+        // Encoda a URI para caber na rota sem quebrar
+        fun build(photoUri: String) = "confirm_photo/${Uri.encode(photoUri)}"
     }
 }
 
@@ -45,7 +47,10 @@ fun AppNavHost() {
             route = Screen.ConfirmPhoto.route,
             arguments = listOf(navArgument("photoUri") { type = NavType.StringType })
         ) { backStackEntry ->
-            val uri = backStackEntry.arguments?.getString("photoUri").orEmpty()
+            // Decoda para usar a URI original
+            val encoded = backStackEntry.arguments?.getString("photoUri").orEmpty()
+            val uri = Uri.decode(encoded)
+
             ConfirmPhotoScreen(
                 photoUri = uri,
                 onBack = { nav.navigate(Screen.Camera.route) { popUpTo(Screen.Home.route) } },
