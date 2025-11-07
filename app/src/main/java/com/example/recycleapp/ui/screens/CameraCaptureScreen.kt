@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
 import com.example.recycleapp.R
 import com.example.recycleapp.util.tryDeleteCapturedCacheFile
+import com.example.recycleapp.util.resolveCapturedCacheFile
 import java.io.File
 import android.util.Log
 
@@ -60,10 +61,11 @@ fun CameraCaptureScreen(
         Log.d("CAM", "takePicture success=$success, uri=$u")
 
         if (success && u != null) {
-            // cheque existência e tamanho
-            val f = File(u.path ?: "")
-            Log.d("CAM", "exists=${f.exists()} length=${f.length()}")
+            // Loga o arquivo REAL do cache (funciona p/ file:// e content://)
+            val real = u.toString().resolveCapturedCacheFile(ctx)
+            Log.d("CAM", "realFile=${real?.absolutePath} exists=${real?.exists()} len=${real?.length()}")
             onPhotoTaken(u.toString())
+
         } else {
             // cancelou/falhou: limpa o temporário criado antes do launch
             u?.toString()?.tryDeleteCapturedCacheFile(ctx)
