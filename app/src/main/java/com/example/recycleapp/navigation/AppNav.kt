@@ -54,7 +54,10 @@ fun AppNavHost() {
             ConfirmPhotoScreen(
                 photoUri = uri,
                 onBack = { nav.navigate(Screen.Camera.route) { popUpTo(Screen.Home.route) } },
-                onSend = { /* TODO próxima etapa */ }
+                onSend = {
+                    // volta para a Home removendo as telas acima dela
+                    nav.popBackStack(Screen.Home.route, inclusive = false)
+                }
             )
         }
     }

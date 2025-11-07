@@ -1,6 +1,7 @@
 package com.example.recycleapp.ui.screens
 
 import androidx.core.net.toUri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.recycleapp.R
 import com.example.recycleapp.util.tryDeleteCapturedCacheFile
+import com.example.recycleapp.util.resolveCapturedCacheFile
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,15 +35,34 @@ fun ConfirmPhotoScreen(
     onSend: () -> Unit
 ) {
     val ctx = LocalContext.current
+
+    BackHandler {
+        photoUri.tryDeleteCapturedCacheFile(context = ctx)
+        onBack()
+    }
+
+    // Log inicial: mostra exatamente qual arquivo em cache estamos tratando
+    runCatching {
+        val f = photoUri.resolveCapturedCacheFile(ctx)
+        Log.d(
+            "CONFIRM",
+            "Resolveu arquivo: ${f?.absolutePath} exists=${f?.exists()} length=${f?.length()}"
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (photoUri.isNotBlank()) {
-                            photoUri.tryDeleteCapturedCacheFile(ctx) // apaga o temp
-                        }
+                        // Log e deleção ao voltar
+                        val toDel = photoUri.resolveCapturedCacheFile(ctx)
+                        Log.d(
+                            "CONFIRM",
+                            "Back: apagar ${toDel?.absolutePath} exists=${toDel?.exists()} len=${toDel?.length()}"
+                        )
+                        photoUri.tryDeleteCapturedCacheFile(ctx)
                         onBack()
                     }) {
                         Icon(
@@ -55,13 +77,21 @@ fun ConfirmPhotoScreen(
             BottomAppBar {
                 Button(
                     onClick = {
-                        onSend()                                // (futuro upload)
-                        photoUri.tryDeleteCapturedCacheFile(ctx) // apaga após enviar
+                        onSend() // (futuro upload)
+                        // Log e deleção ao enviar
+                        val toDel = photoUri.resolveCapturedCacheFile(ctx)
+                        Log.d(
+                            "CONFIRM",
+                            "Send: apagar ${toDel?.absolutePath} exists=${toDel?.exists()} len=${toDel?.length()}"
+                        )
+                        photoUri.tryDeleteCapturedCacheFile(ctx)
                     },
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth()
-                ) { Text(text = stringResource(R.string.send)) }
+                ) {
+                    Text(text = stringResource(R.string.send))
+                }
             }
         }
     ) { inner ->
