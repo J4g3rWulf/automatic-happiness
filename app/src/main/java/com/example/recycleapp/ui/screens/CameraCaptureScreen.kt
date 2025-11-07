@@ -3,34 +3,23 @@ package com.example.recycleapp.ui.screens
 import android.Manifest
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
-import com.example.recycleapp.R
-import com.example.recycleapp.util.tryDeleteCapturedCacheFile
 import com.example.recycleapp.util.resolveCapturedCacheFile
+import com.example.recycleapp.util.tryDeleteCapturedCacheFile
 import java.io.File
-import android.util.Log
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraCaptureScreen(
     onBack: () -> Unit,
@@ -39,7 +28,7 @@ fun CameraCaptureScreen(
     val pendingUri = remember { mutableStateOf<Uri?>(null) }
     val ctx = LocalContext.current
 
-    // helper declarado antes de usar (evita forward reference)
+    // helper para abrir a câmera já com um arquivo temporário no cache
     fun launchCamera(context: Context, launcher: ActivityResultLauncher<Uri>) {
         val imagesDir = File(context.cacheDir, "images").apply { mkdirs() }
         val image = File.createTempFile("photo_", ".jpg", imagesDir)
@@ -61,14 +50,16 @@ fun CameraCaptureScreen(
         Log.d("CAM", "takePicture success=$success, uri=$u")
 
         if (success && u != null) {
-            // Loga o arquivo REAL do cache (funciona p/ file:// e content://)
             val real = u.toString().resolveCapturedCacheFile(ctx)
-            Log.d("CAM", "realFile=${real?.absolutePath} exists=${real?.exists()} len=${real?.length()}")
+            Log.d(
+                "CAM",
+                "realFile=${real?.absolutePath} exists=${real?.exists()} len=${real?.length()}"
+            )
             onPhotoTaken(u.toString())
-
         } else {
-            // cancelou/falhou: limpa o temporário criado antes do launch
+            // Usuário apertou VOLTAR na câmera (ou falhou): limpa e volta pra Home
             u?.toString()?.tryDeleteCapturedCacheFile(ctx)
+            onBack()
         }
         pendingUri.value = null
     }
@@ -79,32 +70,11 @@ fun CameraCaptureScreen(
         if (granted) launchCamera(ctx, takePictureLauncher) else onBack()
     }
 
-    // abre a câmera imediatamente ao entrar
+    // Abre a câmera imediatamente ao entrar
     LaunchedEffect(Unit) {
         requestCamera.launch(Manifest.permission.CAMERA)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                }
-            )
-        }
-    ) { inner ->
-        Box(
-            modifier = Modifier
-                .padding(inner)
-                .fillMaxSize()
-        ) {
-            // espaço para preview no futuro
-        }
-    }
+    // Headless: não desenha UI/fundo para evitar "flash" ao retornar
+    Box(modifier = Modifier.fillMaxSize()) { /* intencionalmente vazio */ }
 }
