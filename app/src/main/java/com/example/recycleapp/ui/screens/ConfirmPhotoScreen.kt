@@ -47,24 +47,19 @@ fun ConfirmPhotoScreen(
 
     BackHandler {
         val f = photoUri.resolveCapturedCacheFile(ctx)
-        Log.d(
-            "CONFIRM",
-            "system back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}"
-        )
+        Log.d("CONFIRM", "system back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
         photoUri.tryDeleteCapturedCacheFile(context = ctx)
         onBack()
     }
 
-    // ===== Descobrir proporção real da imagem (sem carregar a imagem toda) =====
+    // ===== Proporção real da imagem (ler bounds sem decodificar inteira) =====
     var imageAspect by remember(photoUri) { mutableStateOf<Float?>(null) }
-
     LaunchedEffect(photoUri) {
         runCatching {
             val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             ctx.contentResolver.openInputStream(photoUri.toUri())?.use {
                 BitmapFactory.decodeStream(it, null, opts)
             }
-
             if (opts.outWidth > 0 && opts.outHeight > 0) {
                 imageAspect = opts.outHeight.toFloat() / opts.outWidth.toFloat() // H/W
                 Log.d("CONFIRM", "calculated aspect = $imageAspect (h/w) from bounds")
@@ -77,25 +72,18 @@ fun ConfirmPhotoScreen(
     }
 
     val buttonWidth = 158.dp
-    val buttonHeight = 64.dp
-    val buttonBottomOffset = 70.dp
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            val f = photoUri.resolveCapturedCacheFile(ctx)
-                            Log.d(
-                                "CONFIRM",
-                                "appbar back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}"
-                            )
-                            photoUri.tryDeleteCapturedCacheFile(ctx)
-                            onBack()
-                        }
-                    ) {
+                    IconButton(onClick = {
+                        val f = photoUri.resolveCapturedCacheFile(ctx)
+                        Log.d("CONFIRM", "appbar back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
+                        photoUri.tryDeleteCapturedCacheFile(ctx)
+                        onBack()
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
@@ -103,9 +91,7 @@ fun ConfirmPhotoScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = Color(0xFF60AE1D) // GreenPrimary
@@ -115,10 +101,18 @@ fun ConfirmPhotoScreen(
                 .padding(inner)
                 .fillMaxSize()
         ) {
-            // Altura máxima para a imagem considerando o botão elevado
-            val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 24.dp)
-            val imageOffsetY = (-70).dp
 
+            // ===== Responsividade por ALTURA útil da tela =====
+            val (buttonHeight, buttonBottomOffset, imageOffsetY) = when {
+                maxHeight < 620.dp -> Triple(56.dp, 56.dp, (-40).dp)
+                maxHeight < 740.dp -> Triple(64.dp, 70.dp, (-64).dp)
+                else               -> Triple(72.dp, 88.dp, (-96).dp)
+            }
+
+            // Altura máxima para a imagem considerando espaço do botão
+            val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 24.dp)
+
+            // ===== Moldura da foto =====
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -142,13 +136,11 @@ fun ConfirmPhotoScreen(
                 )
             }
 
+            // ===== Botão Enviar =====
             Button(
                 onClick = {
                     val f = photoUri.resolveCapturedCacheFile(ctx)
-                    Log.d(
-                        "CONFIRM",
-                        "send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}"
-                    )
+                    Log.d("CONFIRM", "send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
                     onSend()
                     photoUri.tryDeleteCapturedCacheFile(ctx)
                 },
