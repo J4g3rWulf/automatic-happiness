@@ -1,6 +1,5 @@
 package com.example.recycleapp.ui.screens
 
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -10,7 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,39 +35,17 @@ fun ConfirmPhotoScreen(
 ) {
     val ctx = LocalContext.current
 
-    // ===== Logs de diagnóstico =====
+    // Logs
     runCatching {
         val f = photoUri.resolveCapturedCacheFile(ctx)
-        Log.d(
-            "CONFIRM",
-            "opened uri=$photoUri | file=${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}"
-        )
+        Log.d("CONFIRM","opened uri=$photoUri | file=${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
     }
 
     BackHandler {
         val f = photoUri.resolveCapturedCacheFile(ctx)
-        Log.d("CONFIRM", "system back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
+        Log.d("CONFIRM","system back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
         photoUri.tryDeleteCapturedCacheFile(context = ctx)
         onBack()
-    }
-
-    // ===== Proporção real da imagem (ler bounds sem decodificar inteira) =====
-    var imageAspect by remember(photoUri) { mutableStateOf<Float?>(null) }
-    LaunchedEffect(photoUri) {
-        runCatching {
-            val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            ctx.contentResolver.openInputStream(photoUri.toUri())?.use {
-                BitmapFactory.decodeStream(it, null, opts)
-            }
-            if (opts.outWidth > 0 && opts.outHeight > 0) {
-                imageAspect = opts.outHeight.toFloat() / opts.outWidth.toFloat() // H/W
-                Log.d("CONFIRM", "calculated aspect = $imageAspect (h/w) from bounds")
-            } else {
-                Log.d("CONFIRM", "could not read image bounds; fallback aspect will be used")
-            }
-        }.onFailure { e ->
-            Log.w("CONFIRM", "error reading image bounds", e)
-        }
     }
 
     val buttonWidth = 158.dp
@@ -80,7 +57,7 @@ fun ConfirmPhotoScreen(
                 navigationIcon = {
                     IconButton(onClick = {
                         val f = photoUri.resolveCapturedCacheFile(ctx)
-                        Log.d("CONFIRM", "appbar back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
+                        Log.d("CONFIRM","appbar back -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
                         photoUri.tryDeleteCapturedCacheFile(ctx)
                         onBack()
                     }) {
@@ -101,27 +78,29 @@ fun ConfirmPhotoScreen(
                 .padding(inner)
                 .fillMaxSize()
         ) {
-
             // ===== Responsividade por ALTURA útil da tela =====
+            // Em telas pequenas, o botão fica MAIS PERTO da borda inferior (bottomOffset menor).
             val (buttonHeight, buttonBottomOffset, imageOffsetY) = when {
-                maxHeight < 620.dp -> Triple(56.dp, 56.dp, (-40).dp)
-                maxHeight < 740.dp -> Triple(64.dp, 70.dp, (-64).dp)
-                else               -> Triple(72.dp, 88.dp, (-96).dp)
+                maxHeight < 620.dp -> Triple(56.dp, 20.dp, (-40).dp)
+                maxHeight < 740.dp -> Triple(64.dp, 50.dp, (-64).dp)
+                else               -> Triple(72.dp, 104.dp, (-96).dp)
             }
 
-            // Altura máxima para a imagem considerando espaço do botão
+            // Espaço útil para a foto considerando o botão
             val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 24.dp)
 
-            // ===== Moldura da foto =====
+            // Tamanho FIXO desejado
+            val desiredW = 320.dp
+            val desiredH = 480.dp
+
+            // Garantir que não estoure em telas muito pequenas
+            val frameW = minOf(desiredW, maxWidth - 48.dp)      // 24dp de padding em cada lado
+            val frameH = minOf(desiredH, maxImageHeight)
+
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
-                    .fillMaxWidth()
-                    .heightIn(max = maxImageHeight)
-                    .let { base ->
-                        val aspect = imageAspect ?: (3f / 4f)
-                        base.aspectRatio(aspect, matchHeightConstraintsFirst = false)
-                    }
+                    .size(width = frameW, height = frameH)
                     .align(Alignment.Center)
                     .offset(y = imageOffsetY),
                 shape = RoundedCornerShape(10.dp),
@@ -131,16 +110,15 @@ fun ConfirmPhotoScreen(
                 Image(
                     painter = rememberAsyncImagePainter(model = photoUri.toUri()),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.Fit, // a imagem se adapta ao retângulo fixo
                     modifier = Modifier.fillMaxSize()
                 )
             }
 
-            // ===== Botão Enviar =====
             Button(
                 onClick = {
                     val f = photoUri.resolveCapturedCacheFile(ctx)
-                    Log.d("CONFIRM", "send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
+                    Log.d("CONFIRM","send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
                     onSend()
                     photoUri.tryDeleteCapturedCacheFile(ctx)
                 },
