@@ -1,19 +1,23 @@
 <resources>
     <string name="app_name">RecycleApp</string>
+
+    <!-- Home -->
     <string name="title_home">Identifique o tipo\nde lixo assim:</string>
     <string name="btn_camera">Tire uma foto</string>
     <string name="btn_gallery">Use da galeria</string>
     <string name="notice_text">Certifique-se que o recipiente não possui nenhum resíduo!</string>
+
+    <!-- Fluxo de captura / envio -->
     <string name="back">Voltar</string>
     <string name="send">Enviar</string>
-    <!-- NOVO: loading -->
+
+    <!-- Loading -->
     <string name="loading_title">Analisando imagem</string>
     <string name="loading_message">Aguarde enquanto identificamos o tipo de lixo!</string>
 
-    <!-- NOVO: resultado -->
-    <string name="result_title">Resultado</string>
-    <string name="result_intro">A imagem foi identificada como:</string>
-    <string name="result_button_home">Voltar para o início</string>
-    <!-- texto de exemplo; %1$s = label -->
-    <string name="result_hint_example">Por ser %1$s, descarte no coletor adequado para esse tipo de material.</string>
+    <!-- Resultado -->
+    <string name="result_head">O material é</string>
+    <string name="result_head_dots">. . .</string>
+    <string name="result_button_new">Novo Lixo</string>
+    <string name="result_dispose_hint">Descarte no local adequado\npara esse tipo de material</string>
 </resources>
