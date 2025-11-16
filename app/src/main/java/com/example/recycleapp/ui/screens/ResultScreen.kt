@@ -58,28 +58,28 @@ private fun paletteForLabel(label: String): ResultPalette {
             background = Color(0xFF60AE1D),
             tone       = Color(0xFF297B19),
             accent     = Color(0xFF5AAC48),
-            binIcon    = R.drawable.ic_green_trash
+            binIcon    = R.drawable.ic_green_trashh
         )
         // Plástico
         "plástico", "plastico" -> ResultPalette(
             background = Color(0xFFEB555F),
             tone       = Color(0xFFB12B2A),
             accent     = RedAccent,
-            binIcon    = R.drawable.ic_red_trash
+            binIcon    = R.drawable.ic_red_trashh
         )
         // Papel
         "papel" -> ResultPalette(
             background = Color(0xFF3EAFC8),
             tone       = Color(0xFF333AB5),
             accent     = Color(0xFF333AB5),
-            binIcon    = R.drawable.ic_blue_trash
+            binIcon    = R.drawable.ic_blue_trashh
         )
         // Metal
         "metal" -> ResultPalette(
             background = Color(0xFFF0C753),
             tone       = Color(0xFFA87B32),
             accent     = Color(0xFFF0C753),
-            binIcon    = R.drawable.ic_yellow_trash
+            binIcon    = R.drawable.ic_yellow_trashh
         )
         // Fallback
         else -> ResultPalette(
