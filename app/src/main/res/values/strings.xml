@@ -8,7 +8,7 @@
     <string name="send">Enviar</string>
     <!-- NOVO: loading -->
     <string name="loading_title">Analisando imagem</string>
-    <string name="loading_message">Aguarde enquanto identificamos o tipo de lixo.</string>
+    <string name="loading_message">Aguarde enquanto identificamos o tipo de lixo!</string>
 
     <!-- NOVO: resultado -->
     <string name="result_title">Resultado</string>
