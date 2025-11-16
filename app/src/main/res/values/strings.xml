@@ -6,4 +6,14 @@
     <string name="notice_text">Certifique-se que o recipiente não possui nenhum resíduo!</string>
     <string name="back">Voltar</string>
     <string name="send">Enviar</string>
+    <!-- NOVO: loading -->
+    <string name="loading_title">Analisando imagem</string>
+    <string name="loading_message">Aguarde enquanto identificamos o tipo de lixo.</string>
+
+    <!-- NOVO: resultado -->
+    <string name="result_title">Resultado</string>
+    <string name="result_intro">A imagem foi identificada como:</string>
+    <string name="result_button_home">Voltar para o início</string>
+    <!-- texto de exemplo; %1$s = label -->
+    <string name="result_hint_example">Por ser %1$s, descarte no coletor adequado para esse tipo de material.</string>
 </resources>

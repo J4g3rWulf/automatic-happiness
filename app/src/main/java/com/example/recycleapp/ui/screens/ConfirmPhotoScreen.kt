@@ -31,7 +31,7 @@ import com.example.recycleapp.util.tryDeleteCapturedCacheFile
 fun ConfirmPhotoScreen(
     photoUri: String,
     onBack: () -> Unit,
-    onSend: () -> Unit
+    onSend: (String) -> Unit
 ) {
     val ctx = LocalContext.current
 
@@ -119,8 +119,14 @@ fun ConfirmPhotoScreen(
                 onClick = {
                     val f = photoUri.resolveCapturedCacheFile(ctx)
                     Log.d("CONFIRM","send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}")
-                    onSend()
-                    photoUri.tryDeleteCapturedCacheFile(ctx)
+
+                    // Navega para a próxima etapa (Loading)
+                    onSend(photoUri)
+
+                    // IMPORTANTE: não apagar aqui.
+                    // A próxima tela (loading/API) ainda vai precisar desse arquivo.
+                    // A limpeza a gente faz na ResultScreen ou quando o usuário voltar.
+                    // photoUri.tryDeleteCapturedCacheFile(ctx)
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
