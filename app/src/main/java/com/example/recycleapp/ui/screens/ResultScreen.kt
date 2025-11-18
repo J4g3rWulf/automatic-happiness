@@ -6,7 +6,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,51 +36,46 @@ import androidx.compose.ui.unit.sp
 import com.example.recycleapp.R
 import com.example.recycleapp.ui.theme.GreenDark
 import com.example.recycleapp.ui.theme.GreenPrimary
+import com.example.recycleapp.ui.theme.RecycleAppTheme
 import com.example.recycleapp.ui.theme.RedAccent
 import com.example.recycleapp.ui.theme.WhiteText
-import com.example.recycleapp.ui.theme.RecycleAppTheme
 import com.example.recycleapp.util.tryDeleteCapturedCacheFile
 
 // ========= PALETA POR MATERIAL =========
 
 private data class ResultPalette(
-    val background: Color,   // fundo da tela
-    val tone: Color,         // texto do card, botão "Novo Lixo", borda dos botões do mapa
-    val accent: Color,       // detalhes (pin do mapa, etc.)
+    val background: Color,
+    val tone: Color,     // texto do card, botão "Novo Lixo", borda dos botões do mapa
+    val accent: Color,   // detalhes (pin do mapa, etc.)
     @DrawableRes val binIcon: Int
 )
 
 private fun paletteForLabel(label: String): ResultPalette {
     return when (label.trim().lowercase()) {
-        // Vidro
         "vidro" -> ResultPalette(
             background = Color(0xFF60AE1D),
             tone       = Color(0xFF297B19),
             accent     = Color(0xFF5AAC48),
             binIcon    = R.drawable.ic_green_trashh
         )
-        // Plástico
         "plástico", "plastico" -> ResultPalette(
             background = Color(0xFFEB555F),
             tone       = Color(0xFFB12B2A),
             accent     = RedAccent,
             binIcon    = R.drawable.ic_red_trashh
         )
-        // Papel
         "papel" -> ResultPalette(
             background = Color(0xFF3EAFC8),
             tone       = Color(0xFF333AB5),
             accent     = Color(0xFF333AB5),
             binIcon    = R.drawable.ic_blue_trashh
         )
-        // Metal
         "metal" -> ResultPalette(
             background = Color(0xFFF0C753),
             tone       = Color(0xFFA87B32),
             accent     = Color(0xFFF0C753),
             binIcon    = R.drawable.ic_yellow_trashh
         )
-        // Fallback
         else -> ResultPalette(
             background = GreenPrimary,
             tone       = GreenDark,
@@ -99,12 +93,19 @@ fun ResultScreen(
     label: String,
     onBackToHome: () -> Unit,
 
-    // CONTROLES DO TÍTULO
+    // Título (valores base; fatores variam por altura)
+    headFontSize: Float = 35f,
+    labelFontSize: Float = 40f,
     titleTopPadding: Dp = 80.dp,
     titleBetweenLines: Dp = 8.dp,
     titleToCardSpacing: Dp = 10.dp,
-    headFontSize: Float = 35f,
-    labelFontSize: Float = 40f
+
+    // Texto do card (base)
+    cardTextFontSize: Float = 14.5f,
+    cardTextLineHeight: Float = 19f,
+
+    // Espaço entre "O material é" e ". . ."
+    dotSpacingBase: Dp = 19.dp
 ) {
     val ctx = LocalContext.current
     val palette = remember(label) { paletteForLabel(label) }
@@ -123,134 +124,247 @@ fun ResultScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
         ) {
+            val h = maxHeight
+            val w = maxWidth
 
-            // ===== TOPO: TÍTULO + CARD + LIXEIRA =====
-            Column(modifier = Modifier.fillMaxWidth()) {
+            // Alturas de referência:
+            // - smallH: Small Phone
+            // - mediumH: Medium Phone / Pixel 8a / Pixel 9
+            // - tallH: região dos Pixels grandes
+            val smallH  = 640.dp
+            val mediumH = 870.dp
+            val tallH   = 950.dp
 
-                Spacer(modifier = Modifier.height(titleTopPadding))
+            val isSmall  = h < smallH
+            val isMedium = !isSmall && h < mediumH
+            // Muito alto + mais largo → Pixel 8 Pro
+            val isSuperTallWide = h >= tallH && w >= 440.dp
 
-                // Estilos das duas linhas do título
-                val headStyle = MaterialTheme.typography.headlineLarge.copy(
-                    fontSize = headFontSize.sp,
-                    lineHeight = 34.sp
-                )
-                val labelStyle = MaterialTheme.typography.headlineLarge.copy(
-                    fontSize = labelFontSize.sp,
-                    lineHeight = 44.sp
-                )
-
-                // Parâmetros da lixeira e da reserva de texto
-                val binSize: Dp = 92.dp
-                val binOffsetX: Dp = 1.7.dp
-                val binOffsetY: Dp = (-40).dp
-                val textReserveFactor = 0.6f
-                val reserveRightForBin: Dp = binSize * textReserveFactor
-
-                // ---- TÍTULO EM DUAS LINHAS ----
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Linha 1: "O material é" + " . . ."
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 5.dp)
-                            .wrapContentWidth(Alignment.Start),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.result_head),
-                            color = WhiteText,
-                            style = headStyle
-                        )
-
-                        Spacer(modifier = Modifier.width(19.dp))
-
-                        Text(
-                            text = stringResource(R.string.result_head_dots),
-                            color = WhiteText,
-                            style = headStyle
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(titleBetweenLines))
-
-                    // Linha 2: "Plástico"/"Vidro"/"Papel"/"Metal"
-                    val formattedLabel = label.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase() else it.toString()
-                    }
-
-                    val labelPaddingEnd = 16.dp + reserveRightForBin + 30.dp
-
-                    Text(
-                        text = formattedLabel,
-                        color = WhiteText,
-                        style = labelStyle,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = 16.dp,
-                                end = labelPaddingEnd
-                            )
-                            .wrapContentWidth(Alignment.CenterHorizontally)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(titleToCardSpacing))
-
-                // ---- CARD + LIXEIRA SOBREPOSTA ----
-                Box(modifier = Modifier.fillMaxWidth()) {
-
-                    ResultMapCard(
-                        accentColor = palette.accent,
-                        toneColor = palette.tone,
-                        description = stringResource(R.string.result_dispose_hint),
-                        reserveRightForBin = reserveRightForBin
-                    )
-
-                    Image(
-                        painter = painterResource(id = palette.binIcon),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = binOffsetX, y = binOffsetY)
-                            .size(binSize),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+            // ----- Espaços verticais -----
+            val titleTopEff: Dp = when {
+                isSmall  -> titleTopPadding * 0.8f
+                isMedium -> titleTopPadding * 1.15f
+                else     -> titleTopPadding * 1.3f
             }
 
-            // ===== BOTÃO "NOVO LIXO" =====
-            Button(
-                onClick = { clearAndBack() },
+            val titleToCardEff: Dp = when {
+                isSmall  -> titleToCardSpacing * 0.8f
+                isMedium -> titleToCardSpacing * 1.1f
+                else     -> titleToCardSpacing * 1.3f
+            }
+
+            // Botão: quanto maior o paddingBottom, mais pra cima ele fica
+            val buttonBottomBase = 65.dp
+            val buttonBottomEff: Dp = when {
+                isSmall         -> buttonBottomBase * 0.20f
+                isMedium        -> buttonBottomBase * 1.30f
+                isSuperTallWide -> buttonBottomBase * 1.00f   // 8 Pro
+                else            -> buttonBottomBase * 1.20f   // 9 / 9 Pro
+            }
+
+            // ----- Lixeira -----
+            val binSize: Dp = when {
+                isSmall  -> 80.dp
+                isMedium -> 92.dp
+                else     -> 100.dp
+            }
+            val binOffsetX: Dp = 1.7.dp
+            val binOffsetY: Dp = when {
+                isSmall  -> (-32).dp
+                isMedium -> (-40).dp
+                else     -> (-44).dp
+            }
+
+            val reserveRightForBin: Dp = binSize * 0.6f
+
+            // ----- Altura do mapa -----
+            val mapMin = 220.dp
+            val mapMax = 380.dp
+
+            val mapHeightFraction: Float = when {
+                isSmall         -> 0.32f
+                isMedium        -> 0.40f   // Medium Phone / 8a / 9
+                isSuperTallWide -> 0.42f   // 8 Pro
+                else            -> 0.38f   // 9 Pro
+            }
+
+            val mapHeight: Dp = (h * mapHeightFraction).coerceIn(mapMin, mapMax)
+
+            // ----- Tamanho do botão -----
+            val buttonWidthBase  = 158.dp
+            val buttonHeightBase = 64.dp
+
+            val buttonWidth: Dp = when {
+                isSmall         -> buttonWidthBase
+                isMedium        -> buttonWidthBase
+                isSuperTallWide -> buttonWidthBase * 1.15f
+                else            -> buttonWidthBase * 1.08f
+            }
+
+            val buttonHeight: Dp = when {
+                isSmall         -> buttonHeightBase
+                isMedium        -> buttonHeightBase
+                isSuperTallWide -> buttonHeightBase * 1.12f
+                else            -> buttonHeightBase * 1.06f
+            }
+
+            // ----- Fontes escaladas -----
+            val headFontEff: Float = when {
+                isSmall         -> headFontSize * 1.04f
+                isMedium        -> headFontSize * 1.20f
+                isSuperTallWide -> headFontSize * 1.25f
+                else            -> headFontSize * 1.30f
+            }
+
+            val labelFontEff: Float = when {
+                isSmall  -> labelFontSize * 1.04f
+                isMedium -> labelFontSize * 1.15f
+                else     -> labelFontSize * 1.30f
+            }
+
+            val cardFontEff: Float = when {
+                isSmall  -> cardTextFontSize * 1.04f
+                isMedium -> cardTextFontSize * 1.20f
+                else     -> cardTextFontSize * 1.30f
+            }
+
+            val cardLineHeightEff: Float = when {
+                isSmall         -> cardTextLineHeight * 0.95f
+                isMedium        -> cardTextLineHeight * 1.00f
+                isSuperTallWide -> cardTextLineHeight * 1.06f
+                else            -> cardTextLineHeight * 1.03f
+            }
+
+            // ----- Espaço entre "O material é" e ". . ." -----
+            val dotSpacing: Dp = when {
+                isSmall         -> dotSpacingBase * 0.9f
+                isMedium        -> dotSpacingBase * 1.0f
+                isSuperTallWide -> dotSpacingBase * 0.5f
+                else            -> dotSpacingBase * 1.4f
+            }
+
+            val headStyle = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = headFontEff.sp,
+                lineHeight = 34.sp
+            )
+            val labelStyle = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = labelFontEff.sp,
+                lineHeight = 44.sp
+            )
+
+            Column(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = 65.dp)
-                    .size(width = 158.dp, height = 64.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = palette.tone,
-                    contentColor = WhiteText
-                ),
-                shape = RoundedCornerShape(12.dp),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 10.dp
-                )
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = stringResource(R.string.result_button_new),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontSize = 22.sp,
-                        lineHeight = 22.sp
+                // ===== TOPO: TÍTULO + CARD + LIXEIRA =====
+                Column(modifier = Modifier.fillMaxWidth()) {
+
+                    Spacer(modifier = Modifier.height(titleTopEff))
+
+                    // Título em duas linhas
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 5.dp)
+                                .wrapContentWidth(Alignment.Start),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.result_head),
+                                color = WhiteText,
+                                style = headStyle
+                            )
+
+                            Spacer(modifier = Modifier.width(dotSpacing))
+
+                            Text(
+                                text = stringResource(R.string.result_head_dots),
+                                color = WhiteText,
+                                style = headStyle
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(titleBetweenLines))
+
+                        val formattedLabel = label.replaceFirstChar {
+                            if (it.isLowerCase()) it.titlecase() else it.toString()
+                        }
+
+                        val labelPaddingEnd = 16.dp + reserveRightForBin + 30.dp
+
+                        Text(
+                            text = formattedLabel,
+                            color = WhiteText,
+                            style = labelStyle,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    start = 16.dp,
+                                    end = labelPaddingEnd
+                                )
+                                .wrapContentWidth(Alignment.CenterHorizontally)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(titleToCardEff))
+
+                    // Card + lixeira sobreposta
+                    Box(modifier = Modifier.fillMaxWidth()) {
+
+                        ResultMapCard(
+                            accentColor = palette.accent,
+                            toneColor = palette.tone,
+                            description = stringResource(R.string.result_dispose_hint),
+                            reserveRightForBin = reserveRightForBin,
+                            mapHeight = mapHeight,
+                            hintFontSizeSp = cardFontEff,
+                            hintLineHeightSp = cardLineHeightEff
+                        )
+
+                        Image(
+                            painter = painterResource(id = palette.binIcon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = binOffsetX, y = binOffsetY)
+                                .size(binSize),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
+
+                // ===== BOTÃO "NOVO LIXO" =====
+                Button(
+                    onClick = { clearAndBack() },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = buttonBottomEff)
+                        .size(width = buttonWidth, height = buttonHeight),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = palette.tone,
+                        contentColor = WhiteText
                     ),
-                    textAlign = TextAlign.Center
-                )
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 10.dp,
+                        pressedElevation = 14.dp
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.result_button_new),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontSize = 22.sp,
+                            lineHeight = 22.sp
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -260,10 +374,13 @@ fun ResultScreen(
 
 @Composable
 private fun ResultMapCard(
-    accentColor: Color,      // cor do pin / detalhes
-    toneColor: Color,        // cor principal (texto, botões do mapa)
+    accentColor: Color,
+    toneColor: Color,
     description: String,
-    reserveRightForBin: Dp
+    reserveRightForBin: Dp,
+    mapHeight: Dp,
+    hintFontSizeSp: Float,
+    hintLineHeightSp: Float
 ) {
     val cardCorner = 12.dp
 
@@ -276,8 +393,8 @@ private fun ResultMapCard(
             modifier = Modifier.padding(16.dp)
         ) {
             val hintStyle = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 14.5.sp,
-                lineHeight = 19.sp
+                fontSize = hintFontSizeSp.sp,
+                lineHeight = hintLineHeightSp.sp
             )
 
             val parts = description.split('\n')
@@ -310,7 +427,7 @@ private fun ResultMapCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(mapHeight)
                     .clip(RoundedCornerShape(cardCorner))
                     .background(Color(0xFFEFEFEF)),
                 contentAlignment = Alignment.Center
@@ -366,7 +483,7 @@ private fun MapNavButton(
     }
 }
 
-// ================= PREVIEWS (PODEM SER APAGADOS DEPOIS) =================
+// ================= PREVIEWS =================
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
