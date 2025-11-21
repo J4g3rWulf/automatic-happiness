@@ -13,7 +13,7 @@
 
     <!-- Loading -->
     <string name="loading_title">Analisando imagem</string>
-    <string name="loading_message">Aguarde enquanto identificamos o tipo de lixo!</string>
+    <string name="loading_message">Aguarde enquanto identificamos\no tipo de lixo!</string>
 
     <!-- Resultado -->
     <string name="result_head">O material é</string>
