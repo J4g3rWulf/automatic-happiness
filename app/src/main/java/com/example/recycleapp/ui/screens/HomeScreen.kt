@@ -17,10 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -95,11 +96,11 @@ fun HomeScreen(
 
                 // Breakpoints de altura para evitar rolagem em telas menores
                 val bpSmallH = 700.dp
-                val bpTinyH  = 630.dp
+                val bpTinyH = 630.dp
                 val hScale: Float = when {
-                    boxMaxH < bpTinyH  -> 0.80f
+                    boxMaxH < bpTinyH -> 0.80f
                     boxMaxH < bpSmallH -> 0.90f
-                    else               -> 1.00f
+                    else -> 1.00f
                 }
                 val isSmallH = hScale < 1f
 
@@ -108,38 +109,38 @@ fun HomeScreen(
                     boxMaxW > 500.dp -> 1.20f
                     boxMaxW > 440.dp -> 1.10f
                     boxMaxW > 390.dp -> 1.05f
-                    else             -> 1.00f
+                    else -> 1.00f
                 }
 
                 // Escalas separadas: título e botões têm políticas diferentes
                 val scaleForButtons = hScale * wScale
-                val scaleForTitle   = if (isSmallH) 0.95f else wScale
+                val scaleForTitle = if (isSmallH) 0.95f else wScale
 
                 // Espaçamentos derivados da escala vertical
-                val titleTopEff       = titleTop       * hScale
+                val titleTopEff = titleTop * hScale
                 val titleToButtonsEff = titleToButtons * hScale
                 // Aviso: em telas realmente baixas, mantemos um valor fixo mais curto
-                val warningTopEff     = if (isSmallH) 25.dp else warningTop
+                val warningTopEff = if (isSmallH) 25.dp else warningTop
 
                 // Dimensão do par de botões e recuo esquerdo para alinhar título/aviso
                 val effectiveTarget = buttonTargetSize * scaleForButtons
                 val cardSize: Dp = ((boxMaxW - buttonGap) / 2).coerceAtMost(effectiveTarget)
-                val pairWidth = (cardSize * 2 + buttonGap)     // largura total do par
-                val leftInset = (boxMaxW - pairWidth) / 2      // mesmo recuo do primeiro botão
+                val pairWidth = (cardSize * 2 + buttonGap)
+                val leftInset = (boxMaxW - pairWidth) / 2
 
                 // Texto do aviso: escala adaptativa para caber em 2 linhas na largura dos botões
                 val noticeTextScale = when {
                     pairWidth < 280.dp -> 0.86f
                     pairWidth < 320.dp -> 0.92f
-                    else               -> 1.00f
+                    else -> 1.00f
                 }
 
                 // Reserva de espaço sobre a ilustração considerando a altura efetiva dela
                 val illusHeight = boxMaxW / aspectRatio
                 val guardFactor = when {
                     hScale <= 0.80f -> bottomGuardFactor * 0.55f
-                    hScale <  1.00f -> bottomGuardFactor * 0.70f
-                    else            -> bottomGuardFactor
+                    hScale < 1.00f -> bottomGuardFactor * 0.70f
+                    else -> bottomGuardFactor
                 }
                 val contentBottomPadding = illusHeight * guardFactor
 
@@ -155,7 +156,7 @@ fun HomeScreen(
                     // Título: escala de tamanho + lineHeight, largura limitada ao par de botões
                     val baseTitle = MaterialTheme.typography.headlineLarge
                     val scaledTitle = baseTitle.copy(
-                        fontSize  = (baseTitle.fontSize.value * scaleForTitle).sp,
+                        fontSize = (baseTitle.fontSize.value * scaleForTitle).sp,
                         lineHeight = (titleLineHeight * scaleForTitle).sp
                     )
                     val titleMax = if (titleMaxWidth < pairWidth) titleMaxWidth else pairWidth
@@ -165,13 +166,13 @@ fun HomeScreen(
                         color = WhiteText,
                         style = scaledTitle,
                         modifier = Modifier
-                            .padding(start = leftInset)     // alinhado ao 1º botão
+                            .padding(start = leftInset)
                             .widthIn(max = titleMax)
                     )
 
                     Spacer(Modifier.height(titleToButtonsEff))
 
-                    // Botões: par centralizado, tamanho proporcional ao contexto
+                    // Botões
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(
@@ -204,7 +205,7 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(warningTopEff))
 
-                    // Aviso: mesma largura do par de botões; texto limitado a 2 linhas
+                    // Aviso
                     Row(
                         modifier = Modifier
                             .padding(start = leftInset)
@@ -234,7 +235,7 @@ fun HomeScreen(
                         Text(
                             text = stringResource(R.string.notice_text),
                             style = baseBody.copy(
-                                fontSize  = (baseBody.fontSize.value  * noticeTextScale).sp,
+                                fontSize = (baseBody.fontSize.value * noticeTextScale).sp,
                                 lineHeight = (baseBody.lineHeight.value * noticeTextScale).sp
                             ),
                             maxLines = 2,
@@ -252,13 +253,16 @@ private fun ActionButtonWithLabel(
     title: String,
     size: Dp,
     corner: Dp,
-    container: androidx.compose.ui.graphics.Color,
+    container: Color,
     iconPainter: Painter,
-    iconTint: androidx.compose.ui.graphics.Color,
+    iconTint: Color,
     iconSize: Dp,
     onClick: () -> Unit,
 ) {
-    Column(modifier = Modifier.width(size), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.width(size),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         ActionSquareOnlyIcon(
             size = size,
             corner = corner,
@@ -282,9 +286,9 @@ private fun ActionButtonWithLabel(
 private fun ActionSquareOnlyIcon(
     size: Dp,
     corner: Dp,
-    container: androidx.compose.ui.graphics.Color,
+    container: Color,
     iconPainter: Painter,
-    iconTint: androidx.compose.ui.graphics.Color,
+    iconTint: Color,
     iconSize: Dp,
     onClick: () -> Unit
 ) {
