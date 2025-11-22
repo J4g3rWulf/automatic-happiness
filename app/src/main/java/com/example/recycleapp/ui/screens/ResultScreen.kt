@@ -83,6 +83,13 @@ private fun paletteForLabel(label: String): ResultPalette {
             binIcon = R.drawable.ic_yellow_trashh
         )
 
+        "desconhecido", "indefinido", "unknown" -> ResultPalette(
+            background = Color(0xFF9E9E9E),
+            tone       = Color(0xFF424242),
+            accent     = Color(0xFFBDBDBD),
+            binIcon    = R.drawable.ic_gray_trashh
+        )
+
         else -> ResultPalette(
             background = GreenPrimary,
             tone = GreenDark,
@@ -277,12 +284,24 @@ fun ResultScreen(
                             if (it.isLowerCase()) it.titlecase() else it.toString()
                         }
 
+                        // Se for o caso "Desconhecido", usa uma fonte um pouco menor
+                        val isUnknown = formattedLabel.equals("Desconhecido", ignoreCase = true)
+                        val effectiveLabelStyle = if (isUnknown) {
+                            labelStyle.copy(
+                                fontSize = (labelFontSp.value * 0.65f).sp,
+                                lineHeight = (44f * scaleForTitle * 0.85f).sp
+                            )
+                        } else {
+                            labelStyle
+                        }
+
+                        // Deixa espaço à direita para a lixeira
                         val labelPaddingEnd = 16.dp + reserveRightForBin + 30.dp
 
                         Text(
                             text = formattedLabel,
                             color = WhiteText,
-                            style = labelStyle,
+                            style = effectiveLabelStyle,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
@@ -291,15 +310,28 @@ fun ResultScreen(
                                 )
                                 .wrapContentWidth(Alignment.CenterHorizontally)
                         )
+
                     }
 
                     Spacer(modifier = Modifier.height(titleToCardEff))
 
                     Box(modifier = Modifier.fillMaxWidth()) {
+                        // Normaliza o label para decidir a mensagem do card
+                        val normalizedLabel = label.trim().lowercase()
+                        val cardDescription = if (
+                            normalizedLabel == "desconhecido" ||
+                            normalizedLabel == "indefinido"   ||
+                            normalizedLabel == "unknown"
+                        ) {
+                            stringResource(R.string.result_unknown_hint)
+                        } else {
+                            stringResource(R.string.result_dispose_hint)
+                        }
+
                         ResultMapCard(
                             accentColor = palette.accent,
                             toneColor = palette.tone,
-                            description = stringResource(R.string.result_dispose_hint),
+                            description = cardDescription,
                             reserveRightForBin = reserveRightForBin,
                             mapHeight = mapHeight,
                             hintFontSizeSp = cardFontSp.value,
@@ -503,6 +535,18 @@ private fun ResultScreenPreviewMetal() {
         ResultScreen(
             photoUri = "",
             label = "Metal",
+            onBackToHome = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Resultado - Desconhecido")
+@Composable
+private fun ResultScreenPreviewUnknown() {
+    RecycleAppTheme {
+        ResultScreen(
+            photoUri = "",
+            label = "Desconhecido",
             onBackToHome = {}
         )
     }

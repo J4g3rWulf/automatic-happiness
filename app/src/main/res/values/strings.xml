@@ -20,4 +20,7 @@
     <string name="result_head_dots">. . .</string>
     <string name="result_button_new">Novo Lixo</string>
     <string name="result_dispose_hint">Descarte no local adequado\npara esse tipo de material</string>
+
+    <!-- Resultado - caso desconhecido -->
+    <string name="result_unknown_hint">Não foi possível identificar\no material do lixo.</string>
 </resources>

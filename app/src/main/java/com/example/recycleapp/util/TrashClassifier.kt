@@ -188,7 +188,8 @@ class TrashClassifier(private val context: Context) {
                 "metal" -> "Metal"
                 "paper" -> "Papel"
                 "plastic" -> "Plástico"
-                else -> "Indefinido"
+                "unknown" -> "Desconhecido"
+                else -> "Desconhecido"
             }
     }
 }
