@@ -217,9 +217,20 @@ fun ResultScreen(
             val mapHeight: Dp = (boxMaxH * mapHeightFraction)
                 .coerceIn(220.dp, 420.dp)
 
-            // Fontes do título
+            // --- Fontes do título ---
+
+            // Mantém o título sempre igual
             val headFontSp = (headFontSize * scaleForTitle).sp
-            val labelFontSp = (labelFontSize * scaleForTitle).sp
+
+            // Para o caso "Indefinido", usa uma fonte um pouco menor
+            val isUnknownLabel = label.trim().equals("Indefinido", ignoreCase = true)
+            val adjustedLabelFontSize = if (isUnknownLabel) {
+                labelFontSize * 0.82f   // ~18% menor, pode ajustar esse fator depois
+            } else {
+                labelFontSize
+            }
+
+            val labelFontSp = (adjustedLabelFontSize * scaleForTitle).sp
 
             // Fontes do card
             val cardFontSp = (cardTextFontSize * scaleForCard).sp

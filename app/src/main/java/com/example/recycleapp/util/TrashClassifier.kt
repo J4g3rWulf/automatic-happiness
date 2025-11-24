@@ -21,7 +21,7 @@ class TrashClassifier(private val context: Context) {
     // Interpreter lazy para só carregar o modelo quando for realmente usar
     private val interpreter: Interpreter by lazy {
         Interpreter(
-            loadModelFile(), // <- agora sem argumento
+            loadModelFile(),
             Interpreter.Options().apply {
                 setNumThreads(4) // ajusta se quiser
             }
@@ -157,39 +157,49 @@ class TrashClassifier(private val context: Context) {
     companion object {
         private const val TAG = "TrashClassifier"
         private const val IMG_SIZE = 256
-        private const val NUM_CLASSES = 7
-        private const val MODEL_NAME = "model_v02.tflite"
+        private const val NUM_CLASSES = 10
+        private const val MODEL_NAME = "model_v03.tflite"
 
-        // Índices do modelo -> classes finas
+        // Índices do modelo -> classes finas (seguir a MESMA ordem do treino)
         private val FINE_LABELS = arrayOf(
-            "glass_bottle",   // 0
-            "metal_can",      // 1
-            "paper_bag",      // 2
-            "paper_ball",     // 3
-            "paper_package",  // 4
-            "plastic_bottle", // 5
-            "plastic_cup"     // 6
+            "glass_bottle",           // 0
+            "glass_cup",              // 1
+            "metal_can",              // 2
+            "paper_bag",              // 3
+            "paper_ball",             // 4
+            "paper_milk_package",     // 5
+            "paper_package",          // 6
+            "plastic_bottle",         // 7
+            "plastic_cup",            // 8
+            "plastic_transparent_cup" // 9
         )
 
         // Classe fina -> material (4 grupos)
         private fun fineToMaterial(fineLabel: String): String =
             when (fineLabel) {
-                "glass_bottle" -> "glass"
-                "metal_can" -> "metal"
-                "paper_bag", "paper_ball", "paper_package" -> "paper"
-                "plastic_bottle", "plastic_cup" -> "plastic"
+                "glass_bottle", "glass_cup" ->
+                    "glass"
+
+                "metal_can" ->
+                    "metal"
+
+                "paper_bag", "paper_ball", "paper_package", "paper_milk_package" ->
+                    "paper"
+
+                "plastic_bottle", "plastic_cup", "plastic_transparent_cup" ->
+                    "plastic"
+
                 else -> "unknown"
             }
 
-        // Material -> label para UI (PT-BR), compatível com sua ResultScreen
+        // Material -> label para UI (PT-BR)
         fun materialKeyToDisplay(materialKey: String): String =
             when (materialKey) {
-                "glass" -> "Vidro"
-                "metal" -> "Metal"
-                "paper" -> "Papel"
+                "glass"   -> "Vidro"
+                "metal"   -> "Metal"
+                "paper"   -> "Papel"
                 "plastic" -> "Plástico"
-                "unknown" -> "Desconhecido"
-                else -> "Desconhecido"
+                else      -> "Indefinido"
             }
     }
 }
