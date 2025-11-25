@@ -22,5 +22,5 @@
     <string name="result_dispose_hint">Descarte no local adequado\npara esse tipo de material</string>
 
     <!-- Resultado - caso desconhecido -->
-    <string name="result_unknown_hint">Não foi possível identificar\no material do lixo.</string>
+    <string name="result_unknown_hint">Não foi possível identificar\no material do lixo</string>
 </resources>
