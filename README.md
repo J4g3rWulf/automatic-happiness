@@ -128,7 +128,7 @@ app/
      
 2. Clonar o repositório
    ```bash
-   ➜ git clone https://github.com/SEU-USUARIO/automatic-happiness.git<br>
+   ➜ git clone https://github.com/SEU-USUARIO/automatic-happiness.git
    ➜ cd automatic-happiness
    
 4. Abrir no Android Studio
