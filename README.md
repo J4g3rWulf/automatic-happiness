@@ -164,7 +164,7 @@ Baixe o arquivo app-release.apk da última release e instale no dispositivo Andr
 Projeto desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
 
 - **Desenvolvimento do aplicativo (Android + IA)**
-  🧑‍💻 Gianluca do Nascimento Paz
+  - 🧑‍💻 Gianluca do Nascimento Paz
 
 - **Apoio ao projeto (documentação, testes, validação e revisões)**
   - 🧑‍💻 Caio Marcelino Gomes
