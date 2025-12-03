@@ -54,6 +54,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.material)
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.support)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

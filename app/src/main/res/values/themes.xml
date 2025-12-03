@@ -6,7 +6,7 @@
         <!-- Fundo da splash -->
         <item name="windowSplashScreenBackground">@color/green1</item>
         <!-- Ícone/Logo (PNG/SVG simples) -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ralogo1</item>
         <!-- Tema aplicado após a splash -->
         <item name="postSplashScreenTheme">@style/Theme.RecycleApp</item>
     </style>

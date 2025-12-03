@@ -26,11 +26,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +42,13 @@ import com.example.recycleapp.R
 import com.example.recycleapp.ui.theme.GreenDark
 import com.example.recycleapp.ui.theme.GreenPrimary
 import com.example.recycleapp.ui.theme.WhiteText
+import com.example.recycleapp.util.TrashClassifier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+
+// Tempo mínimo de exibição da tela de loading (efeito só visual/UX)
+private const val MIN_LOADING_MS = 1800L
 
 @Composable
 fun LoadingScreen(
@@ -48,18 +56,31 @@ fun LoadingScreen(
     onBack: () -> Unit,
     onResult: (String) -> Unit
 ) {
+    val context = LocalContext.current
+
+    // Reutiliza a mesma instância do modelo enquanto a tela estiver na árvore
+    val classifier = remember { TrashClassifier(context) }
+
     BackHandler { onBack() }
 
-    // Label fake enquanto a API não existe
-    val fakeLabel = "Plástico"
-
-    // Simula o tempo de processamento antes de ir para o resultado
+    // Classificação em background + garantia de tempo mínimo na tela
     LaunchedEffect(photoUri) {
-        delay(4200)
-        onResult(fakeLabel)
+        val start = System.currentTimeMillis()
+
+        // Roda o TFLite fora da main thread
+        val material = withContext(Dispatchers.Default) {
+            classifier.classifyMaterial(photoUri)
+        }
+
+        val elapsed = System.currentTimeMillis() - start
+        if (elapsed < MIN_LOADING_MS) {
+            delay(MIN_LOADING_MS - elapsed)
+        }
+
+        onResult(material)
     }
 
-    // Animação de rotação do círculo
+    // Animação do círculo de loading
     val infiniteTransition = rememberInfiniteTransition(label = "loading_rotation")
     val rotation = infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -88,8 +109,7 @@ fun LoadingScreen(
         ) {
             val maxW = maxWidth
 
-            // Pequena correção para telas bem estreitas:
-            // reduz levemente o tamanho do texto para evitar quebra feia.
+            // Ajuste leve de fonte em telas bem estreitas
             val isNarrow = maxW < 340.dp
             val baseTextStyle = MaterialTheme.typography.bodyMedium
             val textScale = if (isNarrow) 0.92f else 1f
@@ -99,7 +119,7 @@ fun LoadingScreen(
                 lineHeight = (baseTextStyle.lineHeight.value * textScale).sp
             )
 
-            // Limita a largura do texto para controlar melhor onde ele quebra
+            // Limita a largura do texto para controlar melhor a quebra de linha
             val textMaxWidth = maxW.coerceAtMost(360.dp)
 
             Column(
@@ -111,7 +131,6 @@ fun LoadingScreen(
                     modifier = Modifier.size(160.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Círculo girando
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -124,7 +143,6 @@ fun LoadingScreen(
                         )
                     }
 
-                    // Ícone central
                     Surface(
                         modifier = Modifier
                             .size(90.dp)
