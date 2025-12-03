@@ -127,10 +127,11 @@ app/
    - Emulador Android ou dispositivo físico (API 24+).
      
 2. Clonar o repositório
-   ➜ git clone https://github.com/SEU-USUARIO/automatic-happiness.git
+   ```bash
+   ➜ git clone https://github.com/SEU-USUARIO/automatic-happiness.git<br>
    ➜ cd automatic-happiness
    
-3. Abrir no Android Studio
+4. Abrir no Android Studio
    - File > Open... e selecione a pasta do projeto;
    - Aguarde o Gradle sincronizar.
      
@@ -166,7 +167,7 @@ Projeto desenvolvido como parte do TCC do curso de Cinência da Computação –
   🧑‍💻 Gianluca do Nascimento Paz
 
 - **Apoio ao projeto (documentação, testes, validação e revisões)**
-  🧑‍💻 Caio Marcelino Gomes
-  🧑‍💻 Davi Millan Alves
-  🧑‍💻 Diogo Garofe Tumiati
-  🧑‍💻 Gabriel Mesquita Gusmão
+  - 🧑‍💻 Caio Marcelino Gomes
+  - 🧑‍💻 Davi Millan Alves<br>
+  - 🧑‍💻 Diogo Garofe Tumiati<br>
+  - 🧑‍💻 Gabriel Mesquita Gusmão<br>
