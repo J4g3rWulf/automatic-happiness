@@ -127,8 +127,8 @@ app/
    - Emulador Android ou dispositivo físico (API 24+).
      
 2. Clonar o repositório
-   --> git clone https://github.com/SEU-USUARIO/automatic-happiness.git
-   --> cd automatic-happiness
+   ➜ git clone https://github.com/SEU-USUARIO/automatic-happiness.git
+   ➜ cd automatic-happiness
    
 3. Abrir no Android Studio
    - File > Open... e selecione a pasta do projeto;
@@ -163,10 +163,10 @@ Baixe o arquivo app-release.apk da última release e instale no dispositivo Andr
 Projeto desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
 
 - **Desenvolvimento do aplicativo (Android + IA)**
-  --> Gianluca do Nascimento Paz
+  🧑‍💻 Gianluca do Nascimento Paz
 
 - **Apoio ao projeto (documentação, testes, validação e revisões)**
-  --> Caio Marcelino Gomes
-  --> Davi Millan Alves
-  --> Diogo Garofe Tumiati
-  --> Gabriel Mesquita Gusmão
+  🧑‍💻 Caio Marcelino Gomes
+  🧑‍💻 Davi Millan Alves
+  🧑‍💻 Diogo Garofe Tumiati
+  🧑‍💻 Gabriel Mesquita Gusmão
