@@ -34,22 +34,19 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 ## ✨ Funcionalidades principais
 
 - Tela inicial com duas ações principais:
-  
   - **Tirar foto** (câmera);
   - **Usar da galeria** (seletor nativo de imagens).
     
 - Fluxo completo de captura:
-  
   - Permissão de câmera quando necessário;
   - Criação de arquivo temporário via `FileProvider`;
   - Tratamento do cancelamento (volta para a Home e apaga arquivos temporários).
     
-- Tela de **confirmação da foto** antes de enviar para a IA.
+- Tela de **confirmação da foto** antes de enviar para a análise da IA.
   
 - Tela de **carregamento** com animação, enquanto o modelo de rede neural é executado em background.
   
 - Integração com modelo **TensorFlow Lite (`model_v03.tflite`)**:
-  
   - Redimensiona a imagem para 256×256;
   - Converte pixels para `ByteBuffer`;
   - Executa o modelo e obtém as probabilidades;
@@ -59,10 +56,9 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
   - Frase “O material é…” com o tipo identificado;
   - Paleta de cores e ícone de lixeira específicos para cada material;
   - Mensagem de orientação para descarte correto;
-  - Layout de “mapa” (mock) para futuros pontos de descarte;
+  - Layout de “mapa” (não funcional) para futuros pontos de descarte;
   - Tratamento de erro com o material **“Indefinido”**.
-    
-- Botão **“Novo Lixo”** que limpa o fluxo e retorna para a tela inicial.
+  -  Botão **“Novo Lixo”** que limpa o fluxo e retorna para a tela inicial.
 
 ---
 
@@ -79,6 +75,7 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
   - Plástico  
 
 - O arquivo `TrashClassifier.kt` cuida de:
+  
   - Ler a imagem a partir da URI;
   - Redimensionar e montar o `ByteBuffer`;
   - Rodar o `Interpreter` do TensorFlow Lite;
@@ -95,23 +92,30 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ## ⚙️ Tecnologias e bibliotecas utilizadas
 
-- **Linguagem:** Kotlin  
+- **Linguagem:** Kotlin
+  
 - **Interface:** Jetpack Compose + Material 3  
   - Tema em `ui/theme/Theme.kt`  
   - Telas em `ui/screens/*`
+    
 - **Navegação:** Navigation Compose  
   - Arquivo `navigation/AppNav.kt` com o `NavHost` e as rotas.
+    
 - **Carregamento de imagens:** [Coil](https://coil-kt.github.io/coil/)  
   - Ex.: exibição da foto em `ConfirmPhotoScreen.kt` com `rememberAsyncImagePainter`.
+    
 - **IA local:** TensorFlow Lite  
   - Dependências `tensorflow-lite` e `tensorflow-lite-support` declaradas em `build.gradle.kts`.
   - Integração em `util/TrashClassifier.kt`.
+    
 - **Câmera e galeria:** Activity Result API  
   - Câmera com `ActivityResultContracts.TakePicture()` em `CameraCaptureScreen.kt`;  
   - Galeria com `ActivityResultContracts.PickVisualMedia()` (Photo Picker) em `GalleryPickerScreen.kt`.
+    
 - **Gerenciamento de arquivos temporários:** `FileProvider` + funções utilitárias  
   - Configuração em `AndroidManifest.xml` + `xml/file_paths.xml`;  
   - Helpers em `util/UriUtils.kt`.
+    
 - **Splash screen nativa:** `androidx.core.splashscreen`  
   - Tema configurado em `res/values/themes.xml`.
 
