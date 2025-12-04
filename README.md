@@ -83,13 +83,6 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ---
 
-## 📎 Projeto relacionado
-
-**Rede Neural – Classificador de Lixo (TensorFlow / TensorFlow Lite)**  
-👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
-
----
-
 ## ⚙️ Tecnologias e bibliotecas utilizadas
 
 - **Linguagem:** [Kotlin](https://kotlinlang.org/)
@@ -180,6 +173,13 @@ app/
    - Armazenar histórico de classificações no dispositivo;
    - Suporte a mais tipos de resíduos e modelos de IA mais robustos;
    - Internacionalização (tradução para outros idiomas).
+
+---
+
+## 📎 Projeto relacionado
+
+**Rede Neural – Classificador de Lixo (TensorFlow / TensorFlow Lite)**  
+👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
 
 ---
 
