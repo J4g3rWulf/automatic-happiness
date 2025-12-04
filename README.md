@@ -1,6 +1,19 @@
-# RecycleApp ♻️
+# ♻️ RecycleApp
 
 > Este repositório (`automatic-happiness`) contém o código do **RecycleApp**, um aplicativo Android que usa **rede neural (TensorFlow Lite)** para identificar o tipo de lixo a partir de uma foto e orientar o descarte correto do material.
+
+> Os scripts de **treinamento, avaliação e conversão do modelo de IA** utilizado neste app estão em um repositório separado:  
+> 👉 [Rede Neural – Classificador de Lixo](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
+
+---
+
+## 📦 Download do APK
+
+Para instalar diretamente no celular, sem precisar abrir o projeto no Android Studio:
+
+👉 [Download do APK (Release v1.0.0)](../../releases/latest)
+
+Baixe o arquivo app-release.apk da última release e instale no dispositivo Android.
 
 ---
 
@@ -43,7 +56,7 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ---
 
-## 🧠 Como funciona a IA (resumo)
+## 🧠 Como funciona a IA
 
 - O modelo `model_v03.tflite` recebe uma imagem **256×256 RGB**.
 - Ele foi treinado para 10 classes finas, por exemplo:
@@ -63,7 +76,14 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ---
 
-## 🧱 Tecnologias e bibliotecas utilizadas
+## 📎 Projeto relacionado
+
+**Rede Neural – Classificador de Lixo (TensorFlow / TensorFlow Lite)**  
+👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
+
+---
+
+## ⚙️ Tecnologias e bibliotecas utilizadas
 
 - **Linguagem:** Kotlin  
 - **Interface:** Jetpack Compose + Material 3  
@@ -87,7 +107,7 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ---
 
-## 🗂 Estrutura simplificada do projeto
+## 🧱 Estrutura simplificada do projeto
 
 ```text
 app/
@@ -138,16 +158,6 @@ app/
 7. Executar
    - Escolha um dispositivo (emulador ou físico);
    - Clique em Run ▶ na MainActivity ou no módulo app.
-
----
-
-## 📦 Download do APK
-
-Para instalar diretamente no celular, sem precisar abrir o projeto no Android Studio:
-
-👉 [Download do APK (Release v1.0.0)](../../releases/latest)
-
-Baixe o arquivo app-release.apk da última release e instale no dispositivo Android.
 
 ---
 
