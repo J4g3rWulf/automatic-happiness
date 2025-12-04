@@ -3,7 +3,7 @@
 > Este repositório contém o código do **RecycleApp**, um aplicativo Android que usa **rede neural (TensorFlow Lite)** para identificar o tipo de lixo a partir de uma foto e orientar o descarte correto do material.
 
 > Os scripts de **treinamento, avaliação e conversão do modelo de IA** utilizado neste app estão em um repositório separado:  
-> 👉 [Rede Neural – Classificador de Lixo](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
+> 👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
 
 ---
 
