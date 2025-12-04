@@ -92,9 +92,9 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 
 ## ⚙️ Tecnologias e bibliotecas utilizadas
 
-- **Linguagem:** Kotlin
+- **Linguagem:** [Kotlin](https://kotlinlang.org/)
   
-- **Interface:** Jetpack Compose + Material 3  
+- **Interface:** [Jetpack Compose](https://developer.android.com/compose) + [Material 3](https://developer.android.com/develop/ui/compose/designsystems/material3?hl=pt-br)  
   - Tema em `ui/theme/Theme.kt`  
   - Telas em `ui/screens/*`
     
@@ -104,7 +104,7 @@ Toda a classificação é feita **localmente no aparelho**, sem enviar a imagem 
 - **Carregamento de imagens:** [Coil](https://coil-kt.github.io/coil/)  
   - Ex.: exibição da foto em `ConfirmPhotoScreen.kt` com `rememberAsyncImagePainter`.
     
-- **IA local:** TensorFlow Lite  
+- **IA local:** [TensorFlow Lite](https://www.tensorflow.org/lite/guide?hl=pt-br)  
   - Dependências `tensorflow-lite` e `tensorflow-lite-support` declaradas em `build.gradle.kts`.
   - Integração em `util/TrashClassifier.kt`.
     
