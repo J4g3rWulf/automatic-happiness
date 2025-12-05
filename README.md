@@ -4,7 +4,7 @@
 
 > Os scripts de **treinamento, avaliação e conversão do modelo de IA** utilizado neste app estão em um repositório separado:
 
-> 👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
+> 👉 [Repositório da Rede Neural](https://github.com/J4g3rWulf/solid-dollop)
 
 ---
 
@@ -179,7 +179,7 @@ app/
 ## 📎 Projeto relacionado
 
 **Rede Neural – Classificador de Lixo (TensorFlow / TensorFlow Lite)**  
-👉 [Repositório da Rede Neural](URL_DO_REPOSITORIO_DA_REDE_NEURAL)
+👉 [Repositório da Rede Neural](https://github.com/J4g3rWulf/solid-dollop)
 
 ---
 
