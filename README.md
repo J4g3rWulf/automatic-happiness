@@ -188,9 +188,10 @@ app/
 Projeto desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
 
 - **Desenvolvimento do aplicativo:**
-  - 🧑‍💻 Gianluca do Nascimento Paz
+
+  - 🧑‍💻 Caio Marcelino Gomes
   - 🧑‍💻 Davi Millan Alves<br>
-  - 🧑‍💻 Gabriel Mesquita Gusmão<br>
-  - 🧑‍💻 Caio Marcelino Gomes<br>
   - 🧑‍💻 Diogo Garofe Tumiati<br>
+  - 🧑‍💻 Gabriel Mesquita Gusmão<br>
+  - 🧑‍💻 Gianluca do Nascimento Paz<br>
   
