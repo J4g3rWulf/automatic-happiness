@@ -6,6 +6,8 @@
 
 > 👉 [Repositório da Rede Neural](https://github.com/J4g3rWulf/solid-dollop)
 
+> Este projeto foi desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
+
 ---
 
 ## 📦 Download do APK
@@ -184,11 +186,6 @@ app/
 ---
 
 ## 👥 Equipe
-
-Projeto desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
-
-- **Desenvolvimento do aplicativo:**
-
   - 🧑‍💻 Caio Marcelino Gomes
   - 🧑‍💻 Davi Millan Alves<br>
   - 🧑‍💻 Diogo Garofe Tumiati<br>
