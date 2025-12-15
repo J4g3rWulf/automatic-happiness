@@ -187,7 +187,7 @@ app/
 
 Projeto desenvolvido como parte do TCC do curso de Cinência da Computação – Universidade Veiga de Almeida.
 
-- **Desenvolvimento do aplicativo**
+- **Desenvolvimento do aplicativo:**
   - 🧑‍💻 Gianluca do Nascimento Paz
   - 🧑‍💻 Davi Millan Alves<br>
   - 🧑‍💻 Gabriel Mesquita Gusmão<br>
