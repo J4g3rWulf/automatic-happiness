@@ -189,9 +189,8 @@ Projeto desenvolvido como parte do TCC do curso de Cinência da Computação –
 
 - **Desenvolvimento do aplicativo (Android + IA)**
   - 🧑‍💻 Gianluca do Nascimento Paz
-
-- **Apoio ao projeto (documentação, testes, validação e revisões)**
-  - 🧑‍💻 Caio Marcelino Gomes
   - 🧑‍💻 Davi Millan Alves<br>
-  - 🧑‍💻 Diogo Garofe Tumiati<br>
   - 🧑‍💻 Gabriel Mesquita Gusmão<br>
+  - 🧑‍💻 Caio Marcelino Gomes<br>
+  - 🧑‍💻 Diogo Garofe Tumiati<br>
+  
