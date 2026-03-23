@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
@@ -38,11 +38,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.recycleapp.R
-import com.example.recycleapp.ui.theme.GreenDark
-import com.example.recycleapp.ui.theme.GreenPrimary
-import com.example.recycleapp.ui.theme.WhiteText
-import com.example.recycleapp.util.TrashClassifier
+import br.recycleapp.R
+import br.recycleapp.ui.theme.GreenDark
+import br.recycleapp.ui.theme.GreenPrimary
+import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.util.TrashClassifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

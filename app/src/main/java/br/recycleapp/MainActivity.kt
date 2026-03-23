@@ -1,4 +1,4 @@
-package com.example.recycleapp
+package br.recycleapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import com.example.recycleapp.navigation.AppNavHost
-import com.example.recycleapp.ui.theme.RecycleAppTheme
+import br.recycleapp.navigation.AppNavHost
+import br.recycleapp.ui.theme.RecycleAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

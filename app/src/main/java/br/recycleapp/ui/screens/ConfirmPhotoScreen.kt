@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -35,11 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
-import com.example.recycleapp.R
-import com.example.recycleapp.ui.theme.GreenDark
-import com.example.recycleapp.ui.theme.WhiteText
-import com.example.recycleapp.util.resolveCapturedCacheFile
-import com.example.recycleapp.util.tryDeleteCapturedCacheFile
+import br.recycleapp.R
+import br.recycleapp.ui.theme.GreenDark
+import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.util.resolveCapturedCacheFile
+import br.recycleapp.util.tryDeleteCapturedCacheFile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

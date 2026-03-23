@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,10 +26,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.recycleapp.R
-import com.example.recycleapp.ui.theme.GreenDark
-import com.example.recycleapp.ui.theme.GreenLight
-import com.example.recycleapp.ui.theme.WhiteText
+import br.recycleapp.R
+import br.recycleapp.ui.theme.GreenDark
+import br.recycleapp.ui.theme.GreenLight
+import br.recycleapp.ui.theme.WhiteText
 
 @Composable
 fun HomeScreen(

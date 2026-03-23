@@ -1,4 +1,4 @@
-package com.example.recycleapp.util
+package br.recycleapp.util
 
 import android.content.Context
 import android.graphics.Bitmap

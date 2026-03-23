@@ -1,4 +1,4 @@
-package com.example.recycleapp.util
+package br.recycleapp.util
 import android.content.Context
 import androidx.core.net.toUri
 import java.io.File

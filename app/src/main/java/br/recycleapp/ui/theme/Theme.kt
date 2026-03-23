@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.theme
+package br.recycleapp.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.recycleapp.R
+import br.recycleapp.R
 
 private val LightColorScheme = lightColorScheme(
     primary = GreenPrimary,

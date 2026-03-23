@@ -1,4 +1,4 @@
-package com.example.recycleapp
+package br.recycleapp
 
 import org.junit.Test
 
