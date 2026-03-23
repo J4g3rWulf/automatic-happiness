@@ -35,9 +35,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
+import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
 import br.recycleapp.ui.theme.WhiteText
@@ -156,5 +159,17 @@ fun LoadingScreen(
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Loading — em andamento", device = Devices.PIXEL_5)
+@Composable
+private fun LoadingScreenPreview() {
+    RecycleAppTheme {
+        LoadingScreen(
+            uiState  = ClassificationViewModel.UiState.Loading,
+            onBack   = {},
+            onResult = {}
+        )
     }
 }
