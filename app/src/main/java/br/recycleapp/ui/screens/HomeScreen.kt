@@ -1,5 +1,6 @@
 package br.recycleapp.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,7 +27,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Devices
 import br.recycleapp.R
+import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
 import br.recycleapp.ui.theme.WhiteText
@@ -310,5 +314,20 @@ private fun ActionSquareOnlyIcon(
                 modifier = Modifier.size(iconSize)
             )
         }
+    }
+}
+
+@Preview(name = "Pixel 5 — Light", device = Devices.PIXEL_5)
+@Preview(name = "Pixel 5 — Dark",  device = Devices.PIXEL_5,
+    uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Pequeno (360dp)", widthDp = 360, heightDp = 640)
+@Preview(name = "Tablet",          widthDp = 840, heightDp = 1024)
+@Composable
+private fun HomeScreenPreview() {
+    RecycleAppTheme {
+        HomeScreen(
+            onOpenCamera  = {},
+            onOpenGallery = {}
+        )
     }
 }
