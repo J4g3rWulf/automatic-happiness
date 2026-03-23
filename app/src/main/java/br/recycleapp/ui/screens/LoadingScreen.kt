@@ -42,7 +42,7 @@ import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
 import br.recycleapp.ui.theme.WhiteText
-import br.recycleapp.util.TrashClassifier
+import br.recycleapp.data.classifier.TrashClassifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

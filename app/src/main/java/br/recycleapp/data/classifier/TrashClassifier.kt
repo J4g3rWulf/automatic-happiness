@@ -1,4 +1,4 @@
-package br.recycleapp.util
+package br.recycleapp.data.classifier
 
 import android.content.Context
 import android.graphics.Bitmap
