@@ -1,4 +1,4 @@
-package com.example.recycleapp.navigation
+package br.recycleapp.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
@@ -7,12 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.recycleapp.ui.screens.CameraCaptureScreen
-import com.example.recycleapp.ui.screens.ConfirmPhotoScreen
-import com.example.recycleapp.ui.screens.GalleryPickerScreen
-import com.example.recycleapp.ui.screens.HomeScreen
-import com.example.recycleapp.ui.screens.LoadingScreen   // NOVO
-import com.example.recycleapp.ui.screens.ResultScreen    // NOVO
+import br.recycleapp.ui.screens.CameraCaptureScreen
+import br.recycleapp.ui.screens.ConfirmPhotoScreen
+import br.recycleapp.ui.screens.GalleryPickerScreen
+import br.recycleapp.ui.screens.HomeScreen
+import br.recycleapp.ui.screens.LoadingScreen   // NOVO
+import br.recycleapp.ui.screens.ResultScreen    // NOVO
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")

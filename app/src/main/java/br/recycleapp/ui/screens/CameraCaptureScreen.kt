@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import android.Manifest
 import android.content.Context
@@ -16,8 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import com.example.recycleapp.util.resolveCapturedCacheFile
-import com.example.recycleapp.util.tryDeleteCapturedCacheFile
+import br.recycleapp.util.resolveCapturedCacheFile
+import br.recycleapp.util.tryDeleteCapturedCacheFile
 import java.io.File
 
 @Composable

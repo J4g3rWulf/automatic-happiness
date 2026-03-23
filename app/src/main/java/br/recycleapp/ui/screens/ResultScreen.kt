@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
@@ -33,13 +33,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.recycleapp.R
-import com.example.recycleapp.ui.theme.GreenDark
-import com.example.recycleapp.ui.theme.GreenPrimary
-import com.example.recycleapp.ui.theme.RecycleAppTheme
-import com.example.recycleapp.ui.theme.RedAccent
-import com.example.recycleapp.ui.theme.WhiteText
-import com.example.recycleapp.util.tryDeleteCapturedCacheFile
+import br.recycleapp.R
+import br.recycleapp.ui.theme.GreenDark
+import br.recycleapp.ui.theme.GreenPrimary
+import br.recycleapp.ui.theme.RecycleAppTheme
+import br.recycleapp.ui.theme.RedAccent
+import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.util.tryDeleteCapturedCacheFile
 
 // Dimensões base usadas como referência para a responsividade
 private const val BASE_HEIGHT_DP = 800f

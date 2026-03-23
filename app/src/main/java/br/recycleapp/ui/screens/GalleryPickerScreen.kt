@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.screens
+package br.recycleapp.ui.screens
 
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult

@@ -1,4 +1,4 @@
-package com.example.recycleapp.ui.theme
+package br.recycleapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
