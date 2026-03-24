@@ -1,6 +1,8 @@
 package br.recycleapp.navigation
 
 import android.net.Uri
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,9 +25,9 @@ import br.recycleapp.ui.screens.ResultScreen
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
 
 sealed class Screen(val route: String) {
-    data object Home        : Screen("home")
-    data object Camera      : Screen("camera")
-    data object Gallery     : Screen("gallery")
+    data object Home         : Screen("home")
+    data object Camera       : Screen("camera")
+    data object Gallery      : Screen("gallery")
     data object ConfirmPhoto : Screen("confirm_photo/{photoUri}") {
         fun build(photoUri: String) = "confirm_photo/${Uri.encode(photoUri)}"
     }
@@ -33,8 +35,9 @@ sealed class Screen(val route: String) {
     data object Result  : Screen("result")
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-fun AppNavHost() {
+fun AppNavHost(windowSizeClass: WindowSizeClass) {
     val nav = rememberNavController()
     val viewModel: ClassificationViewModel = viewModel()
 
@@ -42,8 +45,9 @@ fun AppNavHost() {
 
         composable(Screen.Home.route) {
             HomeScreen(
-                onOpenCamera  = { nav.navigate(Screen.Camera.route) },
-                onOpenGallery = { nav.navigate(Screen.Gallery.route) }
+                windowSizeClass = windowSizeClass,
+                onOpenCamera    = { nav.navigate(Screen.Camera.route) },
+                onOpenGallery   = { nav.navigate(Screen.Gallery.route) }
             )
         }
 
@@ -66,16 +70,17 @@ fun AppNavHost() {
         }
 
         composable(
-            route = Screen.ConfirmPhoto.route,
+            route     = Screen.ConfirmPhoto.route,
             arguments = listOf(navArgument("photoUri") { type = NavType.StringType })
         ) { backStackEntry ->
             val encoded = backStackEntry.arguments?.getString("photoUri").orEmpty()
             val uri = Uri.decode(encoded)
 
             ConfirmPhotoScreen(
-                photoUri = uri,
-                onBack   = { nav.navigateUp() },
-                onSend   = { photo ->
+                windowSizeClass = windowSizeClass,
+                photoUri        = uri,
+                onBack          = { nav.navigateUp() },
+                onSend          = { photo ->
                     viewModel.classify(Uri.parse(photo))
                     nav.navigate(Screen.Loading.route)
                 }
@@ -99,7 +104,6 @@ fun AppNavHost() {
         composable(Screen.Result.route) {
             val uiState by viewModel.uiState.collectAsState()
 
-            // Guarda o último label válido — evita flash de "Indefinido" durante a navegação
             var cachedLabel by remember { mutableStateOf("Indefinido") }
             if (uiState is ClassificationViewModel.UiState.Result) {
                 cachedLabel = when (
@@ -112,11 +116,12 @@ fun AppNavHost() {
             }
 
             ResultScreen(
-                photoUri     = viewModel.imageUri.toString(),
-                label        = cachedLabel,
-                onBackToHome = {
+                windowSizeClass = windowSizeClass,
+                photoUri        = viewModel.imageUri.toString(),
+                label           = cachedLabel,
+                onBackToHome    = {
                     nav.popBackStack(Screen.Home.route, inclusive = false)
-                    viewModel.reset() // reseta DEPOIS de iniciar a navegação
+                    viewModel.reset()
                 }
             )
         }

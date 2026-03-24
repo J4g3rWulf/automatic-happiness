@@ -18,6 +18,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -99,12 +102,13 @@ private fun paletteForLabel(label: String): ResultPalette {
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun ResultScreen(
+    windowSizeClass: WindowSizeClass,
     photoUri: String,
     label: String,
     onBackToHome: () -> Unit,
-    // Valores base que podem ser ajustados se o layout de referência mudar
     headFontSize: Float = 40f,
     labelFontSize: Float = 45f,
     titleTopPadding: Dp = 80.dp,
@@ -148,8 +152,9 @@ fun ResultScreen(
             val uniformBase: Float =
                 if (rawUniform in 0.97f..1.03f) 1f else rawUniform
 
-            val isSmallH = boxMaxH < 700.dp   // phones mais baixos
-            val isLargeH = boxMaxH > 900.dp   // phones bem altos
+            // WindowHeightSizeClass substitui as comparações manuais de dp
+            val isSmallH = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+            val isLargeH = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Expanded
 
             // Escalas separadas por grupo de elementos
             val scaleForTitle: Float = when {
@@ -503,61 +508,81 @@ private fun MapNavButton(
 
 // Previews por tipo de material
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Plástico")
 @Composable
 private fun ResultScreenPreviewPlastic() {
     RecycleAppTheme {
         ResultScreen(
-            photoUri = "",
-            label = "Plástico",
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri     = "",
+            label        = "Plástico",
             onBackToHome = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Vidro")
 @Composable
 private fun ResultScreenPreviewGlass() {
     RecycleAppTheme {
         ResultScreen(
-            photoUri = "",
-            label = "Vidro",
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri     = "",
+            label        = "Vidro",
             onBackToHome = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Papel")
 @Composable
 private fun ResultScreenPreviewPaper() {
     RecycleAppTheme {
         ResultScreen(
-            photoUri = "",
-            label = "Papel",
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri     = "",
+            label        = "Papel",
             onBackToHome = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Metal")
 @Composable
 private fun ResultScreenPreviewMetal() {
     RecycleAppTheme {
         ResultScreen(
-            photoUri = "",
-            label = "Metal",
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri     = "",
+            label        = "Metal",
             onBackToHome = {}
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Desconhecido")
 @Composable
 private fun ResultScreenPreviewUnknown() {
     RecycleAppTheme {
         ResultScreen(
-            photoUri = "",
-            label = "Desconhecido",
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri     = "",
+            label        = "Desconhecido",
             onBackToHome = {}
         )
     }

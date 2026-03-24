@@ -1,6 +1,5 @@
 package br.recycleapp.ui.screens
 
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +11,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,43 +26,45 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.Devices
 import br.recycleapp.R
-import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
+import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun HomeScreen(
+    windowSizeClass: WindowSizeClass,
     onOpenCamera: () -> Unit,
     onOpenGallery: () -> Unit,
 
-    // ---- Controles visuais (ajustes rápidos sem mexer no layout) ----
     titleTop: Dp = 60.dp,
     titleMaxWidth: Dp = 353.dp,
     titleLineHeight: Float = 48f,
     titleToButtons: Dp = 45.dp,
-
     buttonTargetSize: Dp = 167.dp,
     buttonCorner: Dp = 12.dp,
     buttonGap: Dp = 20.dp,
-
     cameraIconSize: Dp = 80.dp,
     galleryIconSize: Dp = 70.dp,
-
     warningTop: Dp = 50.dp,
-
     illustrationOffsetY: Dp = 48.dp,
     horizontalPadding: Dp = 20.dp,
-
-    // Fração de “folga” reservada acima da ilustração de fundo
     bottomGuardFactor: Float = 0.30f
 ) {
+    // Substitui os breakpoints manuais de largura pelo WindowSizeClass
+    val wScale: Float = when (windowSizeClass.widthSizeClass) {
+        WindowWidthSizeClass.Compact  -> 1.00f
+        WindowWidthSizeClass.Medium   -> 1.10f
+        else                          -> 1.20f  // Expanded (tablet)
+    }
+
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Box(
             modifier = Modifier
@@ -68,8 +72,6 @@ fun HomeScreen(
                 .padding(inner)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-
-            // ============= Camada de fundo (ilustração) ============
             val bottomPainter = painterResource(id = R.drawable.home_illustration)
             val aspectRatio = remember(bottomPainter) {
                 val s = bottomPainter.intrinsicSize
@@ -88,7 +90,6 @@ fun HomeScreen(
                 alignment = Alignment.BottomCenter
             )
 
-            // ============= Conteúdo (título, botões e aviso) ============
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
@@ -98,53 +99,39 @@ fun HomeScreen(
                 val boxMaxW = this.maxWidth
                 val boxMaxH = this.maxHeight
 
-                // Breakpoints de altura para evitar rolagem em telas menores
+                // Mantém os breakpoints de altura (dependem da altura física, não do WindowSizeClass)
                 val bpSmallH = 700.dp
-                val bpTinyH = 630.dp
+                val bpTinyH  = 630.dp
                 val hScale: Float = when {
-                    boxMaxH < bpTinyH -> 0.80f
+                    boxMaxH < bpTinyH  -> 0.80f
                     boxMaxH < bpSmallH -> 0.90f
-                    else -> 1.00f
+                    else               -> 1.00f
                 }
                 val isSmallH = hScale < 1f
 
-                // Breakpoints de largura: crescendo progressivo em telas maiores
-                val wScale: Float = when {
-                    boxMaxW > 500.dp -> 1.20f
-                    boxMaxW > 440.dp -> 1.10f
-                    boxMaxW > 390.dp -> 1.05f
-                    else -> 1.00f
-                }
-
-                // Escalas separadas: título e botões têm políticas diferentes
                 val scaleForButtons = hScale * wScale
-                val scaleForTitle = if (isSmallH) 0.95f else wScale
+                val scaleForTitle   = if (isSmallH) 0.95f else wScale
 
-                // Espaçamentos derivados da escala vertical
-                val titleTopEff = titleTop * hScale
-                val titleToButtonsEff = titleToButtons * hScale
-                // Aviso: em telas realmente baixas, mantemos um valor fixo mais curto
-                val warningTopEff = if (isSmallH) 25.dp else warningTop
+                val titleTopEff        = titleTop * hScale
+                val titleToButtonsEff  = titleToButtons * hScale
+                val warningTopEff      = if (isSmallH) 25.dp else warningTop
 
-                // Dimensão do par de botões e recuo esquerdo para alinhar título/aviso
                 val effectiveTarget = buttonTargetSize * scaleForButtons
-                val cardSize: Dp = ((boxMaxW - buttonGap) / 2).coerceAtMost(effectiveTarget)
-                val pairWidth = (cardSize * 2 + buttonGap)
-                val leftInset = (boxMaxW - pairWidth) / 2
+                val cardSize: Dp    = ((boxMaxW - buttonGap) / 2).coerceAtMost(effectiveTarget)
+                val pairWidth       = (cardSize * 2 + buttonGap)
+                val leftInset       = (boxMaxW - pairWidth) / 2
 
-                // Texto do aviso: escala adaptativa para caber em 2 linhas na largura dos botões
                 val noticeTextScale = when {
                     pairWidth < 280.dp -> 0.86f
                     pairWidth < 320.dp -> 0.92f
-                    else -> 1.00f
+                    else               -> 1.00f
                 }
 
-                // Reserva de espaço sobre a ilustração considerando a altura efetiva dela
-                val illusHeight = boxMaxW / aspectRatio
-                val guardFactor = when {
+                val illusHeight          = boxMaxW / aspectRatio
+                val guardFactor          = when {
                     hScale <= 0.80f -> bottomGuardFactor * 0.55f
-                    hScale < 1.00f -> bottomGuardFactor * 0.70f
-                    else -> bottomGuardFactor
+                    hScale <  1.00f -> bottomGuardFactor * 0.70f
+                    else            -> bottomGuardFactor
                 }
                 val contentBottomPadding = illusHeight * guardFactor
 
@@ -157,18 +144,17 @@ fun HomeScreen(
                 ) {
                     Spacer(Modifier.height(titleTopEff))
 
-                    // Título: escala de tamanho + lineHeight, largura limitada ao par de botões
-                    val baseTitle = MaterialTheme.typography.headlineLarge
+                    val baseTitle   = MaterialTheme.typography.headlineLarge
                     val scaledTitle = baseTitle.copy(
-                        fontSize = (baseTitle.fontSize.value * scaleForTitle).sp,
+                        fontSize   = (baseTitle.fontSize.value * scaleForTitle).sp,
                         lineHeight = (titleLineHeight * scaleForTitle).sp
                     )
                     val titleMax = if (titleMaxWidth < pairWidth) titleMaxWidth else pairWidth
 
                     Text(
-                        text = stringResource(R.string.title_home),
-                        color = WhiteText,
-                        style = scaledTitle,
+                        text     = stringResource(R.string.title_home),
+                        color    = WhiteText,
+                        style    = scaledTitle,
                         modifier = Modifier
                             .padding(start = leftInset)
                             .widthIn(max = titleMax)
@@ -176,40 +162,37 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(titleToButtonsEff))
 
-                    // Botões
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(
-                            buttonGap,
-                            alignment = Alignment.CenterHorizontally
+                            buttonGap, alignment = Alignment.CenterHorizontally
                         ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ActionButtonWithLabel(
-                            title = stringResource(R.string.btn_camera),
-                            size = cardSize,
-                            corner = buttonCorner,
-                            container = MaterialTheme.colorScheme.primaryContainer,
+                            title       = stringResource(R.string.btn_camera),
+                            size        = cardSize,
+                            corner      = buttonCorner,
+                            container   = MaterialTheme.colorScheme.primaryContainer,
                             iconPainter = painterResource(R.drawable.ic_camera),
-                            iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            iconSize = (cameraIconSize.value * scaleForButtons).dp,
-                            onClick = onOpenCamera
+                            iconTint    = MaterialTheme.colorScheme.onPrimaryContainer,
+                            iconSize    = (cameraIconSize.value * scaleForButtons).dp,
+                            onClick     = onOpenCamera
                         )
                         ActionButtonWithLabel(
-                            title = stringResource(R.string.btn_gallery),
-                            size = cardSize,
-                            corner = buttonCorner,
-                            container = MaterialTheme.colorScheme.secondaryContainer,
+                            title       = stringResource(R.string.btn_gallery),
+                            size        = cardSize,
+                            corner      = buttonCorner,
+                            container   = MaterialTheme.colorScheme.secondaryContainer,
                             iconPainter = painterResource(R.drawable.ic_gallery),
-                            iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            iconSize = (galleryIconSize.value * scaleForButtons).dp,
-                            onClick = onOpenGallery
+                            iconTint    = MaterialTheme.colorScheme.onSecondaryContainer,
+                            iconSize    = (galleryIconSize.value * scaleForButtons).dp,
+                            onClick     = onOpenGallery
                         )
                     }
 
                     Spacer(Modifier.height(warningTopEff))
 
-                    // Aviso
                     Row(
                         modifier = Modifier
                             .padding(start = leftInset)
@@ -227,23 +210,23 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_warning),
+                                painter           = painterResource(R.drawable.ic_warning),
                                 contentDescription = "Aviso",
-                                tint = GreenDark,
-                                modifier = Modifier.size(14.dp)
+                                tint              = GreenDark,
+                                modifier          = Modifier.size(14.dp)
                             )
                         }
                         Spacer(Modifier.width(8.dp))
 
                         val baseBody = MaterialTheme.typography.bodyMedium
                         Text(
-                            text = stringResource(R.string.notice_text),
-                            style = baseBody.copy(
-                                fontSize = (baseBody.fontSize.value * noticeTextScale).sp,
+                            text     = stringResource(R.string.notice_text),
+                            style    = baseBody.copy(
+                                fontSize   = (baseBody.fontSize.value * noticeTextScale).sp,
                                 lineHeight = (baseBody.lineHeight.value * noticeTextScale).sp
                             ),
                             maxLines = 2,
-                            color = GreenDark
+                            color    = GreenDark
                         )
                     }
                 }
@@ -252,6 +235,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun ActionButtonWithLabel(
     title: String,
@@ -264,24 +248,24 @@ private fun ActionButtonWithLabel(
     onClick: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.width(size),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier              = Modifier.width(size),
+        horizontalAlignment   = Alignment.CenterHorizontally
     ) {
         ActionSquareOnlyIcon(
-            size = size,
-            corner = corner,
-            container = container,
+            size        = size,
+            corner      = corner,
+            container   = container,
             iconPainter = iconPainter,
-            iconTint = iconTint,
-            iconSize = iconSize,
-            onClick = onClick
+            iconTint    = iconTint,
+            iconSize    = iconSize,
+            onClick     = onClick
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
+            text      = title,
+            style     = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier  = Modifier.fillMaxWidth()
         )
     }
 }
@@ -297,35 +281,67 @@ private fun ActionSquareOnlyIcon(
     onClick: () -> Unit
 ) {
     ElevatedCard(
-        onClick = onClick,
-        shape = RoundedCornerShape(corner),
-        colors = CardDefaults.elevatedCardColors(containerColor = container),
+        onClick   = onClick,
+        shape     = RoundedCornerShape(corner),
+        colors    = CardDefaults.elevatedCardColors(containerColor = container),
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = 8.dp,
-            pressedElevation = 12.dp
+            defaultElevation  = 8.dp,
+            pressedElevation  = 12.dp
         ),
-        modifier = Modifier.size(size)
+        modifier  = Modifier.size(size)
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(
-                painter = iconPainter,
+                painter           = iconPainter,
                 contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(iconSize)
+                tint              = iconTint,
+                modifier          = Modifier.size(iconSize)
             )
         }
     }
 }
 
-@Preview(name = "Pixel 5 — Light", device = Devices.PIXEL_5)
-@Preview(name = "Pixel 5 — Dark",  device = Devices.PIXEL_5,
-    uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "Pequeno (360dp)", widthDp = 360, heightDp = 640)
-@Preview(name = "Tablet",          widthDp = 840, heightDp = 1024)
+// ===== Previews =====
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Compact — Pixel 5", device = Devices.PIXEL_5)
 @Composable
-private fun HomeScreenPreview() {
+private fun HomeScreenPreviewCompact() {
     RecycleAppTheme {
         HomeScreen(
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            onOpenCamera  = {},
+            onOpenGallery = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Medium — Tablet pequeno", widthDp = 700, heightDp = 900)
+@Composable
+private fun HomeScreenPreviewMedium() {
+    RecycleAppTheme {
+        HomeScreen(
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(700.dp, 900.dp)
+            ),
+            onOpenCamera  = {},
+            onOpenGallery = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Expanded — Tablet", widthDp = 1000, heightDp = 800)
+@Composable
+private fun HomeScreenPreviewExpanded() {
+    RecycleAppTheme {
+        HomeScreen(
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(1000.dp, 800.dp)
+            ),
             onOpenCamera  = {},
             onOpenGallery = {}
         )
