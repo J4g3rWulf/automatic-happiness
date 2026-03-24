@@ -22,6 +22,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,29 +34,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import br.recycleapp.R
-import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.GreenDark
+import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
 import br.recycleapp.util.resolveCapturedCacheFile
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun ConfirmPhotoScreen(
+    windowSizeClass: WindowSizeClass,
     photoUri: String,
     onBack: () -> Unit,
     onSend: (String) -> Unit
 ) {
     val ctx = LocalContext.current
 
-    // Log inicial só pra conferência do arquivo
     runCatching {
         val f = photoUri.resolveCapturedCacheFile(ctx)
         Log.d(
@@ -62,7 +66,6 @@ fun ConfirmPhotoScreen(
         )
     }
 
-    // Botão físico de voltar: apaga a foto temporária e volta pra tela anterior
     BackHandler {
         val f = photoUri.resolveCapturedCacheFile(ctx)
         Log.d(
@@ -71,6 +74,29 @@ fun ConfirmPhotoScreen(
         )
         photoUri.tryDeleteCapturedCacheFile(ctx)
         onBack()
+    }
+
+    // Substitui os breakpoints manuais de altura pelo WindowHeightSizeClass
+    val buttonHeight: Dp
+    val buttonBottomOffset: Dp
+    val imageOffsetY: Dp
+
+    when (windowSizeClass.heightSizeClass) {
+        WindowHeightSizeClass.Compact -> {
+            buttonHeight       = 56.dp
+            buttonBottomOffset = 20.dp
+            imageOffsetY       = (-40).dp
+        }
+        WindowHeightSizeClass.Medium -> {
+            buttonHeight       = 64.dp
+            buttonBottomOffset = 50.dp
+            imageOffsetY       = (-64).dp
+        }
+        else -> {
+            buttonHeight       = 72.dp
+            buttonBottomOffset = 104.dp
+            imageOffsetY       = (-96).dp
+        }
     }
 
     val buttonWidth = 158.dp
@@ -92,9 +118,9 @@ fun ConfirmPhotoScreen(
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
-                            tint = Color.White
+                            tint               = Color.White
                         )
                     }
                 },
@@ -103,51 +129,39 @@ fun ConfirmPhotoScreen(
                 )
             )
         },
-        containerColor = Color(0xFF60AE1D) // GreenPrimary
+        containerColor = Color(0xFF60AE1D)
     ) { innerPadding ->
         BoxWithConstraints(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // Responsividade por altura útil da tela
-            val (buttonHeight, buttonBottomOffset, imageOffsetY) = when {
-                maxHeight < 620.dp -> Triple(56.dp, 20.dp, (-40).dp)
-                maxHeight < 740.dp -> Triple(64.dp, 50.dp, (-64).dp)
-                else               -> Triple(72.dp, 104.dp, (-96).dp)
-            }
-
-            // Espaço disponível para a foto considerando botão + margem inferior
             val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 24.dp)
 
-            // Tamanho “ideal” do frame da foto
             val desiredW = 320.dp
             val desiredH = 480.dp
 
-            // Garante que não estoure em telas pequenas
-            val frameW = minOf(desiredW, maxWidth - 48.dp)  // 24dp de cada lado
+            val frameW = minOf(desiredW, maxWidth - 48.dp)
             val frameH = minOf(desiredH, maxImageHeight)
 
-            // Moldura da foto
             Surface(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
                     .size(width = frameW, height = frameH)
                     .align(Alignment.Center)
                     .offset(y = imageOffsetY),
-                shape = RoundedCornerShape(10.dp),
-                color = Color.Transparent,
+                shape  = RoundedCornerShape(10.dp),
+                color  = Color.Transparent,
                 border = BorderStroke(3.dp, Color.White)
             ) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = photoUri.toUri()),
+                    painter            = rememberAsyncImagePainter(model = photoUri.toUri()),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
+                    contentScale       = ContentScale.Fit,
+                    modifier           = Modifier.fillMaxSize()
                 )
             }
 
-            // Botão "Enviar"
             Button(
                 onClick = {
                     val f = photoUri.resolveCapturedCacheFile(ctx)
@@ -155,9 +169,6 @@ fun ConfirmPhotoScreen(
                         "CONFIRM",
                         "send -> delete ${f?.absolutePath} | exists=${f?.exists()} | len=${f?.length()}"
                     )
-
-                    // Vai para a próxima etapa (Loading). A foto ainda será usada lá,
-                    // por isso NÃO apagamos aqui.
                     onSend(photoUri)
                 },
                 modifier = Modifier
@@ -166,33 +177,54 @@ fun ConfirmPhotoScreen(
                     .size(width = buttonWidth, height = buttonHeight),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GreenDark,
-                    contentColor = WhiteText
+                    contentColor   = WhiteText
                 ),
-                shape = RoundedCornerShape(12.dp),
+                shape     = RoundedCornerShape(12.dp),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 6.dp,
                     pressedElevation = 10.dp
                 )
             ) {
                 Text(
-                    text = stringResource(R.string.send),
-                    fontSize = 22.sp,
+                    text       = stringResource(R.string.send),
+                    fontSize   = 22.sp,
                     lineHeight = 22.sp,
                     fontFamily = FontFamily(Font(R.font.poppins_semibold)),
-                    color = WhiteText
+                    color      = WhiteText
                 )
             }
         }
     }
 }
 
+// ===== Previews =====
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(name = "Confirm — Pixel 5", device = Devices.PIXEL_5)
-@Preview(name = "Confirm — Pequeno", widthDp = 360, heightDp = 640)
 @Composable
 private fun ConfirmPhotoScreenPreview() {
     RecycleAppTheme {
         ConfirmPhotoScreen(
-            photoUri = "", // imagem não aparece no preview — comportamento esperado
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri = "",
+            onBack   = {},
+            onSend   = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Confirm — Compacto altura", widthDp = 360, heightDp = 500)
+@Composable
+private fun ConfirmPhotoScreenPreviewCompact() {
+    RecycleAppTheme {
+        ConfirmPhotoScreen(
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 500.dp)
+            ),
+            photoUri = "",
             onBack   = {},
             onSend   = {}
         )

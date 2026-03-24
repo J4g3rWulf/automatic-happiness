@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import br.recycleapp.navigation.AppNavHost
@@ -12,12 +14,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        // instala a splash do sistema ANTES do super.onCreate
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // só aplica delay se for o 1º launch (não em recriações)
         val shouldDelay = savedInstanceState == null
         var keep = shouldDelay
         splash.setKeepOnScreenCondition { keep }
@@ -30,8 +32,12 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            // Calcula o tamanho da janela uma única vez aqui
+            // e passa para todas as telas via AppNavHost
+            val windowSizeClass = calculateWindowSizeClass(this)
+
             RecycleAppTheme {
-                AppNavHost() // startDestination = Home
+                AppNavHost(windowSizeClass = windowSizeClass)
             }
         }
     }
