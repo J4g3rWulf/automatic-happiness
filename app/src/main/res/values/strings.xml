@@ -12,9 +12,11 @@
     <string name="back">Voltar</string>
     <string name="send">Enviar</string>
 
-    <!-- Loading -->
-    <string name="loading_title">Analisando imagem</string>
-    <string name="loading_message">Aguarde enquanto identificamos\no tipo de lixo!</string>
+    <!-- Loading — mensagens rotativas -->
+    <string name="loading_msg_1">Analisando a imagem…</string>
+    <string name="loading_msg_2">Identificando o material…</string>
+    <string name="loading_msg_3">Verificando o resultado…</string>
+    <string name="loading_msg_4">Quase lá…</string>
 
     <!-- Resultado -->
     <string name="result_head">O material é</string>
