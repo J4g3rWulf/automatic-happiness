@@ -1,13 +1,11 @@
 package br.recycleapp.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,35 +17,40 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
-import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
-import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 
-private const val MIN_LOADING_MS = 1800L
+/** Tempo mínimo que a tela de loading fica visível — garante UX fluida
+ *  mesmo quando a IA termina muito rápido. */
+private const val MIN_LOADING_MS = 8000L
+
+/** Intervalo entre cada troca de mensagem (em ms). */
+private const val MSG_INTERVAL_MS = 2000L
 
 @Composable
 fun LoadingScreen(
@@ -55,31 +58,44 @@ fun LoadingScreen(
     onBack: () -> Unit,
     onResult: () -> Unit
 ) {
-    // Marca o momento em que a tela apareceu para garantir tempo mínimo
+    // Marca o momento de entrada para garantir o tempo mínimo de exibição
     val startTime = remember { System.currentTimeMillis() }
 
     BackHandler { onBack() }
 
-    // Quando o ViewModel terminar, garante o tempo mínimo e navega
+    // Quando a IA terminar, espera o tempo mínimo antes de navegar
     LaunchedEffect(uiState) {
         if (uiState is ClassificationViewModel.UiState.Result) {
             val elapsed = System.currentTimeMillis() - startTime
-            if (elapsed < MIN_LOADING_MS) {
-                delay(MIN_LOADING_MS - elapsed)
-            }
+            if (elapsed < MIN_LOADING_MS) delay(MIN_LOADING_MS - elapsed)
             onResult()
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "loading_rotation")
-    val rotation = infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "loading_rotation_angle"
+    // ── Mensagens rotativas — param na última ─────────────────────────
+    val messages = listOf(
+        R.string.loading_msg_1,
+        R.string.loading_msg_2,
+        R.string.loading_msg_3,
+        R.string.loading_msg_4
+    )
+    var messageIndex by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (messageIndex < messages.size - 1) {
+            delay(MSG_INTERVAL_MS)
+            messageIndex++
+        }
+        // Para na última mensagem ("Quase lá…") e não avança mais
+    }
+
+    // ── Animação Lottie ───────────────────────────────────────────────
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.loading_animation)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations  = LottieConstants.IterateForever,
+        speed       = 1.5f  // aumente para mais rápido, diminua para mais lento
     )
 
     Box(
@@ -94,73 +110,55 @@ fun LoadingScreen(
                 .padding(horizontal = 32.dp)
                 .offset(y = 24.dp)
         ) {
-            val maxW = maxWidth
-            val isNarrow = maxW < 340.dp
-            val baseTextStyle = MaterialTheme.typography.bodyMedium
-            val textScale = if (isNarrow) 0.92f else 1f
-            val loadingTextStyle = baseTextStyle.copy(
-                fontSize = (baseTextStyle.fontSize.value * textScale).sp,
-                lineHeight = (baseTextStyle.lineHeight.value * textScale).sp
+            val maxW         = maxWidth
+            val isNarrow     = maxW < 340.dp
+            val textScale    = if (isNarrow) 0.92f else 1f
+            val baseStyle    = MaterialTheme.typography.bodyMedium
+            val textStyle    = baseStyle.copy(
+                fontSize   = (baseStyle.fontSize.value * textScale).sp,
+                lineHeight = (baseStyle.lineHeight.value * textScale).sp
             )
             val textMaxWidth = maxW.coerceAtMost(360.dp)
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.align(Alignment.Center)
+                modifier            = Modifier.align(Alignment.Center)
             ) {
-                Box(
-                    modifier = Modifier.size(160.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer { rotationZ = rotation.value }
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.fillMaxSize(),
-                            strokeWidth = 14.dp,
-                            color = GreenPrimary
-                        )
-                    }
-
-                    Surface(
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(CircleShape),
-                        color = WhiteText.copy(alpha = 0.9f),
-                        shadowElevation = 0.dp
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_recycle_loading),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(54.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(R.string.loading_message),
-                    style = loadingTextStyle,
-                    color = GreenDark,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(horizontal = 8.dp)
-                        .widthIn(max = textMaxWidth)
+                // ── Animação Lottie no lugar do spinner ───────────────
+                LottieAnimation(
+                    composition = composition,
+                    progress    = { progress },
+                    modifier    = Modifier.size(180.dp)
                 )
+
+                Spacer(Modifier.height(24.dp))
+
+                // ── Texto dinâmico com fade entre mensagens ───────────
+                // Troca suavemente entre as mensagens a cada MSG_INTERVAL_MS
+                // e para na última ("Quase lá…")
+                AnimatedContent(
+                    targetState  = messages[messageIndex],
+                    transitionSpec = {
+                        fadeIn(tween(400)) togetherWith fadeOut(tween(400))
+                    },
+                    label = "loading_text"
+                ) { msgRes ->
+                    Text(
+                        text      = stringResource(msgRes),
+                        style     = textStyle,
+                        color     = GreenDark,
+                        textAlign = TextAlign.Center,
+                        modifier  = Modifier
+                            .padding(horizontal = 8.dp)
+                            .widthIn(max = textMaxWidth)
+                    )
+                }
             }
         }
     }
 }
+
+// ── Preview ───────────────────────────────────────────────────────────────────
 
 @Preview(name = "Loading — em andamento", device = Devices.PIXEL_5)
 @Composable
