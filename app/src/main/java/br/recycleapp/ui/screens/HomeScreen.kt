@@ -45,56 +45,82 @@ import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
 import kotlinx.coroutines.delay
 
+/**
+ * Tela inicial do RecycleApp.
+ *
+ * Exibe título, subtítulo, dois botões de ação (câmera e galeria),
+ * um card de dica e duas artes decorativas (topo e base).
+ *
+ * Todos os parâmetros com valores padrão são ajustáveis para
+ * afinar o layout sem mexer na lógica — útil para diferentes tamanhos
+ * de tela ou ajustes de design futuros.
+ *
+ * A animação de entrada só roda na primeira abertura do app,
+ * controlada por [HomeAnimationState].
+ */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun HomeScreen(
     windowSizeClass: WindowSizeClass,
     onOpenCamera: () -> Unit,
     onOpenGallery: () -> Unit,
-    // Espaçamentos — ajuste aqui para mover elementos verticalmente
-    titleTop: Dp        = 74.dp,
-    titleMaxWidth: Dp   = 353.dp,
-    titleLineHeight: Float = 40f,
-    titleToSubtitle: Dp = 30.dp,
-    subtitleToButtons: Dp = 24.dp,
-    warningTop: Dp      = 40.dp,
-    // Botões
-    buttonTargetSize: Dp = 167.dp,
-    buttonCorner: Dp     = 12.dp,
-    buttonGap: Dp        = 20.dp,
-    cameraIconSize: Dp   = 80.dp,
-    galleryIconSize: Dp  = 70.dp,
-    // Arte inferior
-    illustrationOffsetY: Dp  = 52.dp,
-    illustrationHeight: Dp   = 200.dp,
-    horizontalPadding: Dp    = 20.dp,
-    bottomGuardFactor: Float = 0.10f
+
+    // ── Espaçamentos verticais ────────────────────────────────────────
+    // Ajuste esses valores para mover os elementos para cima ou para baixo
+    titleTop: Dp          = 74.dp,   // distância do topo até o título
+    titleToSubtitle: Dp   = 30.dp,   // espaço entre título e subtítulo
+    subtitleToButtons: Dp = 24.dp,   // espaço entre subtítulo e botões
+    warningTop: Dp        = 40.dp,   // espaço entre botões e card de dica
+
+    // ── Tipografia ────────────────────────────────────────────────────
+    titleMaxWidth: Dp      = 353.dp, // largura máxima do bloco de título
+    titleLineHeight: Float = 40f,    // altura de linha do título (em sp antes da escala)
+
+    // ── Botões de ação ────────────────────────────────────────────────
+    buttonTargetSize: Dp = 167.dp,   // tamanho ideal de cada card quadrado
+    buttonCorner: Dp     = 12.dp,    // arredondamento dos cards
+    buttonGap: Dp        = 20.dp,    // espaço entre os dois cards
+    cameraIconSize: Dp   = 80.dp,    // tamanho do ícone de câmera
+    galleryIconSize: Dp  = 70.dp,    // tamanho do ícone de galeria
+
+    // ── Arte decorativa inferior ──────────────────────────────────────
+    illustrationHeight: Dp  = 200.dp, // altura fixa da arte (ignora espaço transparente do PNG)
+    illustrationOffsetY: Dp = 52.dp,  // desloca a arte para baixo (valores maiores = mais abaixo)
+
+    // ── Layout geral ──────────────────────────────────────────────────
+    horizontalPadding: Dp = 20.dp    // padding lateral do conteúdo
 ) {
-    // Escala por tamanho de janela
+
+    // ── Escala de largura via WindowSizeClass ─────────────────────────
+    // Aplicada a botões e título para aproveitar melhor telas maiores
     val wScale: Float = when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Compact -> 1.00f
-        WindowWidthSizeClass.Medium  -> 1.10f
-        else                         -> 1.20f
+        WindowWidthSizeClass.Compact -> 1.00f  // celular normal
+        WindowWidthSizeClass.Medium  -> 1.10f  // tablet pequeno / foldable
+        else                         -> 1.20f  // tablet grande
     }
 
-    // Animação de entrada — só roda na primeira abertura do app
+    // ── Animação de entrada em cascata ────────────────────────────────
+    // Cada elemento aparece com fadeIn + deslizamento, em sequência.
+    // O flag [HomeAnimationState.hasAnimated] garante que a animação
+    // só roda na primeira abertura — retornar para a Home não anima.
     var visible by remember { mutableStateOf(HomeAnimationState.hasAnimated) }
     LaunchedEffect(Unit) {
         if (!HomeAnimationState.hasAnimated) {
-            delay(1100)
+            delay(1100) // aguarda a splash screen terminar
             visible = true
             HomeAnimationState.hasAnimated = true
         }
     }
 
-    val titleAlpha      by animateFloatAsState(if (visible) 1f else 0f, tween(600),       label = "ta")
-    val titleOffsetY    by animateFloatAsState(if (visible) 0f else 60f, tween(600),       label = "to")
-    val subtitleAlpha   by animateFloatAsState(if (visible) 1f else 0f, tween(600, 150),   label = "sa")
-    val subtitleOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 150),  label = "so")
-    val buttonsAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 300),   label = "ba")
-    val buttonsOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 300),  label = "bo")
-    val warningAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 450),   label = "wa")
-    val warningOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 450),  label = "wo")
+    // Cada par (alpha + offsetY) anima um elemento com delay crescente
+    val titleAlpha      by animateFloatAsState(if (visible) 1f else 0f, tween(600),      label = "ta")
+    val titleOffsetY    by animateFloatAsState(if (visible) 0f else 60f, tween(600),      label = "to")
+    val subtitleAlpha   by animateFloatAsState(if (visible) 1f else 0f, tween(600, 150),  label = "sa")
+    val subtitleOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 150), label = "so")
+    val buttonsAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 300),  label = "ba")
+    val buttonsOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 300), label = "bo")
+    val warningAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 450),  label = "wa")
+    val warningOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 450), label = "wo")
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Box(
@@ -103,14 +129,13 @@ fun HomeScreen(
                 .padding(inner)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Arte inferior
-            val bottomPainter = painterResource(id = R.drawable.bottom_art)
-            val aspectRatio = remember(bottomPainter) {
-                val s = bottomPainter.intrinsicSize
-                if (s.width > 0 && s.height > 0) s.height / s.width else (9f / 16f)
-            }
+
+            // ── Arte decorativa inferior ──────────────────────────────
+            // Fica atrás de todo o conteúdo, ancorada na base da tela.
+            // A altura fixa evita que o espaço transparente do PNG
+            // interfira no posicionamento dos elementos acima.
             Image(
-                painter            = bottomPainter,
+                painter            = painterResource(id = R.drawable.bottom_art),
                 contentDescription = null,
                 modifier           = Modifier
                     .align(Alignment.BottomCenter)
@@ -121,7 +146,9 @@ fun HomeScreen(
                 alignment    = Alignment.BottomCenter
             )
 
-            // Arte superior
+            // ── Arte decorativa superior ──────────────────────────────
+            // Fica atrás do título, criando o padrão visual de ondas
+            // no topo da tela. Não tem offset — sempre no topo.
             Image(
                 painter            = painterResource(id = R.drawable.top_art),
                 contentDescription = null,
@@ -132,24 +159,22 @@ fun HomeScreen(
                 alignment    = Alignment.TopCenter
             )
 
-            // Conteúdo principal
+            // ── Conteúdo principal ────────────────────────────────────
+            // BoxWithConstraints expõe maxWidth/maxHeight para o cálculo
+            // de dimensões responsivas em HomeScreenDimensions.kt
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
                     .padding(horizontal = horizontalPadding)
             ) {
-                // Cálculos de dimensão extraídos para HomeScreenDimensions.kt
                 val dims = rememberHomeScreenDimensions(
                     boxMaxW          = maxWidth,
                     boxMaxH          = maxHeight,
                     wScale           = wScale,
                     titleTop         = titleTop,
                     buttonTargetSize = buttonTargetSize,
-                    buttonGap        = buttonGap,
-                    warningTop       = warningTop,
-                    bottomGuardFactor = bottomGuardFactor,
-                    aspectRatio      = aspectRatio
+                    buttonGap        = buttonGap
                 )
 
                 Column(
@@ -157,9 +182,10 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ) {
+
                     Spacer(Modifier.height(dims.titleTopEff))
 
-                    // Título
+                    // Título principal
                     Text(
                         text  = stringResource(R.string.title_home),
                         color = WhiteText,
@@ -178,7 +204,7 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(titleToSubtitle))
 
-                    // Subtítulo
+                    // Subtítulo — instrução resumida para o usuário
                     Text(
                         text      = stringResource(R.string.btn_subtitle_home),
                         color     = WhiteText,
@@ -194,7 +220,7 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(subtitleToButtons))
 
-                    // Botões
+                    // Botões de ação: câmera (primário) e galeria (secundário)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -229,9 +255,9 @@ fun HomeScreen(
                         )
                     }
 
-                    Spacer(Modifier.height(dims.warningTopEff))
+                    Spacer(Modifier.height(warningTop))
 
-                    // Card de dica
+                    // Card de dica — orienta o usuário sobre como tirar a foto
                     Row(
                         modifier = Modifier
                             .padding(start = dims.leftInset)
@@ -245,6 +271,7 @@ fun HomeScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Ícone circular de aviso
                         Box(
                             modifier = Modifier
                                 .size(22.dp)
@@ -260,6 +287,7 @@ fun HomeScreen(
                             )
                         }
                         Spacer(Modifier.width(8.dp))
+                        // Texto da dica — máximo 2 linhas
                         Text(
                             text  = stringResource(R.string.notice_text),
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -276,7 +304,14 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+// ─────────────────────────────────────────────────────────────────────────────
+// Componentes privados — usados apenas dentro desta tela
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Card quadrado com ícone centralizado e rótulo de texto abaixo.
+ * Usado para os botões de câmera e galeria.
+ */
 @Composable
 private fun ActionButtonWithLabel(
     title: String,
@@ -311,6 +346,10 @@ private fun ActionButtonWithLabel(
     }
 }
 
+/**
+ * Card quadrado elevado contendo apenas um ícone centralizado.
+ * Responsável pelo visual e pelo clique — o rótulo fica em [ActionButtonWithLabel].
+ */
 @Composable
 private fun ActionSquareOnlyIcon(
     size: Dp,
@@ -342,7 +381,9 @@ private fun ActionSquareOnlyIcon(
     }
 }
 
-// ===== Previews =====
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews — visíveis no painel de Preview do Android Studio
+// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(name = "Compact — Pixel 5", device = Devices.PIXEL_5)
