@@ -9,8 +9,10 @@
     <string name="notice_text">Dica: Um objeto por vez, centralizado,\ncom boa luz e fundo simples!</string>
 
     <!-- Fluxo de captura / envio -->
-    <string name="back">Voltar</string>
-    <string name="send">Enviar</string>
+    <string name="confirm_title">A foto está boa?</string>
+    <string name="confirm_retake_camera">Tirar outra</string>
+    <string name="confirm_retake_gallery">Escolher outra</string>
+    <string name="confirm_send">Enviar para análise</string>
 
     <!-- Loading — mensagens rotativas -->
     <string name="loading_msg_1">Analisando a imagem…</string>
