@@ -51,6 +51,12 @@ val AppTypography = androidx.compose.material3.Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 22.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = Poppins,
+        fontWeight = FontWeight.Normal,
+        fontSize = 17.sp,
+        lineHeight = 24.sp
     )
 )
 
