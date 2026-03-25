@@ -1,14 +1,6 @@
 package br.recycleapp.ui.screens
 
-import androidx.compose.animation.core.Easing
-import kotlinx.coroutines.delay
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,8 +17,11 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,10 +43,7 @@ import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
 import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
-
-private val EaseOutCubic = Easing { t ->
-    val p = t - 1f; 1f + p * p * p
-}
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
@@ -59,31 +51,34 @@ fun HomeScreen(
     windowSizeClass: WindowSizeClass,
     onOpenCamera: () -> Unit,
     onOpenGallery: () -> Unit,
-    titleTop: Dp = 74.dp,
-    titleMaxWidth: Dp = 353.dp,
+    // Espaçamentos — ajuste aqui para mover elementos verticalmente
+    titleTop: Dp        = 74.dp,
+    titleMaxWidth: Dp   = 353.dp,
     titleLineHeight: Float = 40f,
-    titleToSubtitle: Dp = 30.dp,    // ← espaço entre título e subtítulo
-    subtitleToButtons: Dp = 24.dp,  // ← espaço entre subtítulo e botões
+    titleToSubtitle: Dp = 30.dp,
+    subtitleToButtons: Dp = 24.dp,
+    warningTop: Dp      = 40.dp,
+    // Botões
     buttonTargetSize: Dp = 167.dp,
-    buttonCorner: Dp = 12.dp,
-    buttonGap: Dp = 20.dp,
-    cameraIconSize: Dp = 80.dp,
-    galleryIconSize: Dp = 70.dp,
-    warningTop: Dp = 40.dp,
-    illustrationOffsetY: Dp = 52.dp,
-    horizontalPadding: Dp = 20.dp,
+    buttonCorner: Dp     = 12.dp,
+    buttonGap: Dp        = 20.dp,
+    cameraIconSize: Dp   = 80.dp,
+    galleryIconSize: Dp  = 70.dp,
+    // Arte inferior
+    illustrationOffsetY: Dp  = 52.dp,
+    illustrationHeight: Dp   = 200.dp,
+    horizontalPadding: Dp    = 20.dp,
     bottomGuardFactor: Float = 0.10f
 ) {
+    // Escala por tamanho de janela
     val wScale: Float = when (windowSizeClass.widthSizeClass) {
         WindowWidthSizeClass.Compact -> 1.00f
         WindowWidthSizeClass.Medium  -> 1.10f
         else                         -> 1.20f
     }
 
-    var visible by remember {
-        mutableStateOf(HomeAnimationState.hasAnimated)
-    }
-
+    // Animação de entrada — só roda na primeira abertura do app
+    var visible by remember { mutableStateOf(HomeAnimationState.hasAnimated) }
     LaunchedEffect(Unit) {
         if (!HomeAnimationState.hasAnimated) {
             delay(1100)
@@ -92,17 +87,14 @@ fun HomeScreen(
         }
     }
 
-    val titleAlpha     by animateFloatAsState(if (visible) 1f else 0f, tween(600), label = "ta")
-    val titleOffsetY   by animateFloatAsState(if (visible) 0f else 60f, tween(600), label = "to")
-
-    val subtitleAlpha  by animateFloatAsState(if (visible) 1f else 0f, tween(600, 150), label = "sa")
-    val subtitleOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 150), label = "so")
-
-    val buttonsAlpha   by animateFloatAsState(if (visible) 1f else 0f, tween(600, 300), label = "ba")
-    val buttonsOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 300), label = "bo")
-
-    val warningAlpha   by animateFloatAsState(if (visible) 1f else 0f, tween(600, 450), label = "wa")
-    val warningOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 450), label = "wo")
+    val titleAlpha      by animateFloatAsState(if (visible) 1f else 0f, tween(600),       label = "ta")
+    val titleOffsetY    by animateFloatAsState(if (visible) 0f else 60f, tween(600),       label = "to")
+    val subtitleAlpha   by animateFloatAsState(if (visible) 1f else 0f, tween(600, 150),   label = "sa")
+    val subtitleOffsetY by animateFloatAsState(if (visible) 0f else 60f, tween(600, 150),  label = "so")
+    val buttonsAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 300),   label = "ba")
+    val buttonsOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 300),  label = "bo")
+    val warningAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 450),   label = "wa")
+    val warningOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 450),  label = "wo")
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
         Box(
@@ -111,7 +103,7 @@ fun HomeScreen(
                 .padding(inner)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // ── Arte inferior (bottom_art) ──────────────────────────────
+            // Arte inferior
             val bottomPainter = painterResource(id = R.drawable.bottom_art)
             val aspectRatio = remember(bottomPainter) {
                 val s = bottomPainter.intrinsicSize
@@ -123,13 +115,13 @@ fun HomeScreen(
                 modifier           = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(200.dp)          // ← altura fixa, ajuste conforme quiser
+                    .height(illustrationHeight)
                     .offset(y = illustrationOffsetY),
                 contentScale = ContentScale.FillWidth,
                 alignment    = Alignment.BottomCenter
             )
 
-            // ── Arte superior (top_art) — atrás dos elementos de texto ──
+            // Arte superior
             Image(
                 painter            = painterResource(id = R.drawable.top_art),
                 contentDescription = null,
@@ -140,73 +132,44 @@ fun HomeScreen(
                 alignment    = Alignment.TopCenter
             )
 
-            // ── Conteúdo principal ──────────────────────────────────────
+            // Conteúdo principal
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
                     .padding(horizontal = horizontalPadding)
             ) {
-                val boxMaxW = this.maxWidth
-                val boxMaxH = this.maxHeight
-
-                val bpSmallH = 700.dp
-                val bpTinyH  = 630.dp
-                val hScale: Float = when {
-                    boxMaxH < bpTinyH  -> 0.80f
-                    boxMaxH < bpSmallH -> 0.90f
-                    else               -> 1.00f
-                }
-                val isSmallH = hScale < 1f
-
-                val scaleForButtons = hScale * wScale
-                val scaleForTitle   = if (isSmallH) 0.95f else wScale
-
-                val titleTopEff       = titleTop * hScale
-                val warningTopEff = warningTop
-
-                val effectiveTarget = buttonTargetSize * scaleForButtons
-                val cardSize: Dp    = ((boxMaxW - buttonGap) / 2).coerceAtMost(effectiveTarget)
-                val pairWidth       = (cardSize * 2 + buttonGap)
-                val leftInset       = (boxMaxW - pairWidth) / 2
-
-                val noticeTextScale = when {
-                    pairWidth < 280.dp -> 0.86f
-                    pairWidth < 320.dp -> 0.92f
-                    else               -> 1.00f
-                }
-
-                val illusHeight          = boxMaxW / aspectRatio
-                val guardFactor          = when {
-                    hScale <= 0.80f -> bottomGuardFactor * 0.55f
-                    hScale <  1.00f -> bottomGuardFactor * 0.70f
-                    else            -> bottomGuardFactor
-                }
-                val contentBottomPadding = illusHeight * guardFactor
+                // Cálculos de dimensão extraídos para HomeScreenDimensions.kt
+                val dims = rememberHomeScreenDimensions(
+                    boxMaxW          = maxWidth,
+                    boxMaxH          = maxHeight,
+                    wScale           = wScale,
+                    titleTop         = titleTop,
+                    buttonTargetSize = buttonTargetSize,
+                    buttonGap        = buttonGap,
+                    warningTop       = warningTop,
+                    bottomGuardFactor = bottomGuardFactor,
+                    aspectRatio      = aspectRatio
+                )
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier            = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Spacer(Modifier.height(titleTopEff))
+                    Spacer(Modifier.height(dims.titleTopEff))
 
-                    // Título — fonte 31sp, duas linhas
-                    val baseTitle   = MaterialTheme.typography.headlineLarge
-                    val scaledTitle = baseTitle.copy(
-                        fontSize   = (30f * scaleForTitle).sp,
-                        lineHeight = (titleLineHeight * scaleForTitle).sp
-                    )
-                    val titleMax = if (titleMaxWidth < pairWidth) titleMaxWidth else pairWidth
-
+                    // Título
                     Text(
-                        text     = stringResource(R.string.title_home),
-                        color    = WhiteText,
-                        style    = scaledTitle,
+                        text  = stringResource(R.string.title_home),
+                        color = WhiteText,
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize   = (30f * dims.scaleForTitle).sp,
+                            lineHeight = (titleLineHeight * dims.scaleForTitle).sp
+                        ),
                         modifier = Modifier
-                            .padding(start = leftInset)
-                            .widthIn(max = titleMax)
+                            .padding(start = dims.leftInset)
+                            .widthIn(max = dims.pairWidth.coerceAtMost(titleMaxWidth))
                             .graphicsLayer {
                                 alpha        = titleAlpha
                                 translationY = titleOffsetY
@@ -215,10 +178,10 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(titleToSubtitle))
 
-                    // Subtítulo — Poppins Regular 19sp, centralizado
+                    // Subtítulo
                     Text(
                         text      = stringResource(R.string.btn_subtitle_home),
-                        color = WhiteText,
+                        color     = WhiteText,
                         style     = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier  = Modifier
@@ -246,33 +209,33 @@ fun HomeScreen(
                     ) {
                         ActionButtonWithLabel(
                             title       = stringResource(R.string.btn_camera),
-                            size        = cardSize,
+                            size        = dims.cardSize,
                             corner      = buttonCorner,
                             container   = MaterialTheme.colorScheme.primaryContainer,
                             iconPainter = painterResource(R.drawable.ic_camera),
                             iconTint    = MaterialTheme.colorScheme.onPrimaryContainer,
-                            iconSize    = (cameraIconSize.value * scaleForButtons).dp,
+                            iconSize    = (cameraIconSize.value * dims.scaleForButtons).dp,
                             onClick     = onOpenCamera
                         )
                         ActionButtonWithLabel(
                             title       = stringResource(R.string.btn_gallery),
-                            size        = cardSize,
+                            size        = dims.cardSize,
                             corner      = buttonCorner,
                             container   = MaterialTheme.colorScheme.secondaryContainer,
                             iconPainter = painterResource(R.drawable.ic_gallery),
                             iconTint    = MaterialTheme.colorScheme.onSecondaryContainer,
-                            iconSize    = (galleryIconSize.value * scaleForButtons).dp,
+                            iconSize    = (galleryIconSize.value * dims.scaleForButtons).dp,
                             onClick     = onOpenGallery
                         )
                     }
 
-                    Spacer(Modifier.height(warningTopEff))
+                    Spacer(Modifier.height(dims.warningTopEff))
 
-                    // Aviso
+                    // Card de dica
                     Row(
                         modifier = Modifier
-                            .padding(start = leftInset)
-                            .width(pairWidth)
+                            .padding(start = dims.leftInset)
+                            .width(dims.pairWidth)
                             .shadow(6.dp, RoundedCornerShape(10.dp))
                             .background(color = WhiteText, shape = RoundedCornerShape(10.dp))
                             .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -297,13 +260,11 @@ fun HomeScreen(
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-
-                        val baseBody = MaterialTheme.typography.bodyMedium
                         Text(
-                            text     = stringResource(R.string.notice_text),
-                            style    = baseBody.copy(
-                                fontSize   = (14f * noticeTextScale).sp,
-                                lineHeight = (20f * noticeTextScale).sp
+                            text  = stringResource(R.string.notice_text),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize   = (14f * dims.noticeTextScale).sp,
+                                lineHeight = (20f * dims.noticeTextScale).sp
                             ),
                             maxLines = 2,
                             color    = GreenDark
