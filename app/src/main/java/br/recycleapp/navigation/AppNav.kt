@@ -25,10 +25,20 @@ import br.recycleapp.ui.screens.LoadingScreen
 import br.recycleapp.ui.screens.ResultScreen
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
 
+/**
+ * Define todas as rotas de navegação do app.
+ * Cada `data object` representa uma tela — a rota é a string usada
+ * para navegar entre elas via [NavHost].
+ */
 sealed class Screen(val route: String) {
     data object Home         : Screen("home")
     data object Camera       : Screen("camera")
     data object Gallery      : Screen("gallery")
+
+    /** A rota do ConfirmPhoto recebe dois argumentos:
+     *  - photoUri: URI da foto capturada (encodada para não quebrar a rota)
+     *  - fromCamera: booleano que indica se veio da câmera ou da galeria
+     */
     data object ConfirmPhoto : Screen("confirm_photo/{photoUri}/{fromCamera}") {
         fun build(photoUri: String, fromCamera: Boolean) =
             "confirm_photo/${Uri.encode(photoUri)}/$fromCamera"
@@ -37,14 +47,23 @@ sealed class Screen(val route: String) {
     data object Result  : Screen("result")
 }
 
+/**
+ * Host de navegação principal do app.
+ * Recebe o [windowSizeClass] para repassar às telas que precisam
+ * de layout responsivo (HomeScreen, ConfirmPhotoScreen).
+ *
+ * O [ClassificationViewModel] é compartilhado entre todas as telas
+ * para que o resultado da IA persista da LoadingScreen até a ResultScreen.
+ */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun AppNavHost(windowSizeClass: WindowSizeClass) {
-    val nav = rememberNavController()
-    val viewModel: ClassificationViewModel = viewModel()
+    val nav       = rememberNavController()
+    val viewModel : ClassificationViewModel = viewModel()
 
     NavHost(navController = nav, startDestination = Screen.Home.route) {
 
+        // ── Tela inicial ──────────────────────────────────────────────
         composable(Screen.Home.route) {
             HomeScreen(
                 windowSizeClass = windowSizeClass,
@@ -53,6 +72,7 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             )
         }
 
+        // ── Captura pela câmera ───────────────────────────────────────
         composable(Screen.Camera.route) {
             CameraCaptureScreen(
                 onBack       = { nav.navigateUp() },
@@ -62,6 +82,7 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             )
         }
 
+        // ── Seleção da galeria ────────────────────────────────────────
         composable(Screen.Gallery.route) {
             GalleryPickerScreen(
                 onBack        = { nav.navigateUp() },
@@ -71,6 +92,8 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             )
         }
 
+        // ── Confirmação da foto ───────────────────────────────────────
+        // fromCamera determina o texto e proporção do botão esquerdo
         composable(
             route     = Screen.ConfirmPhoto.route,
             arguments = listOf(
@@ -113,6 +136,7 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             }
         }
 
+        // ── Loading / análise da IA ───────────────────────────────────
         composable(Screen.Loading.route) {
             val uiState by viewModel.uiState.collectAsState()
 
@@ -120,6 +144,7 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                 uiState  = uiState,
                 onBack   = { nav.navigateUp() },
                 onResult = {
+                    // Remove a LoadingScreen da pilha para o botão voltar não retornar a ela
                     nav.navigate(Screen.Result.route) {
                         popUpTo(Screen.Loading.route) { inclusive = true }
                     }
@@ -127,9 +152,12 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             )
         }
 
+        // ── Resultado da classificação ────────────────────────────────
         composable(Screen.Result.route) {
             val uiState by viewModel.uiState.collectAsState()
 
+            // cachedLabel evita o flash de "Indefinido" que ocorreria se o
+            // uiState fosse resetado antes da tela ser removida da pilha
             var cachedLabel by remember { mutableStateOf("Indefinido") }
             if (uiState is ClassificationViewModel.UiState.Result) {
                 cachedLabel = when (
@@ -142,10 +170,10 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             }
 
             ResultScreen(
-                windowSizeClass = windowSizeClass,
-                photoUri        = viewModel.imageUri.toString(),
-                label           = cachedLabel,
-                onBackToHome    = {
+                photoUri     = viewModel.imageUri.toString(),
+                label        = cachedLabel,
+                onBackToHome = {
+                    // Volta para Home limpando toda a pilha de navegação
                     nav.popBackStack(Screen.Home.route, inclusive = false)
                     viewModel.reset()
                 }

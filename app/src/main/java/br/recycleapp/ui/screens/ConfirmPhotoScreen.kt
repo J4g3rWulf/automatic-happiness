@@ -2,18 +2,18 @@ package br.recycleapp.ui.screens
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,7 +47,6 @@ import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import br.recycleapp.R
-import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
 import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
@@ -60,8 +59,7 @@ import br.recycleapp.util.tryDeleteCapturedCacheFile
  * Não tem barra de navegação — o usuário volta pelos botões
  * "Tirar outra" / "Escolher outra" na parte inferior.
  *
- * @param retakeLabel texto do botão secundário —
- *   "Tirar outra" para o fluxo de câmera ou "Escolher outra" para galeria.
+ * @param retakeLabel        texto do botão esquerdo — vindo do AppNav
  * @param retakeButtonWeight proporção do botão esquerdo (0.0 a 1.0)
  * @param sendButtonWeight   proporção do botão direito  (0.0 a 1.0)
  */
@@ -71,8 +69,8 @@ fun ConfirmPhotoScreen(
     windowSizeClass: WindowSizeClass,
     photoUri: String,
     retakeLabel: String,
-    retakeButtonWeight: Float = 0.45f,   // ← proporção do botão esquerdo
-    sendButtonWeight: Float   = 0.55f,   // ← proporção do botão direito
+    retakeButtonWeight: Float = 0.45f,
+    sendButtonWeight: Float   = 0.55f,
     onBack: () -> Unit,
     onSend: (String) -> Unit
 ) {
@@ -83,12 +81,14 @@ fun ConfirmPhotoScreen(
         Log.d("CONFIRM", "opened uri=$photoUri | exists=${f?.exists()} | len=${f?.length()}")
     }
 
+    // Ao pressionar o botão físico de voltar, deleta o arquivo temporário
     BackHandler {
         photoUri.tryDeleteCapturedCacheFile(ctx)
         onBack()
     }
 
     // ── Dimensões responsivas por altura da tela ──────────────────────
+    // Compact: telas baixas (ex: landscape) | Medium: intermediário | else: normal
     val buttonHeight: Dp
     val buttonBottomOffset: Dp
     val imageOffsetY: Dp
@@ -105,9 +105,9 @@ fun ConfirmPhotoScreen(
             imageOffsetY       = (-56).dp
         }
         else -> {
-            buttonHeight       = 56.dp
-            buttonBottomOffset = 32.dp
-            imageOffsetY       = (-40).dp
+            buttonHeight       = 56.dp   // altura dos botões
+            buttonBottomOffset = 32.dp   // distância dos botões até o fundo
+            imageOffsetY       = (-40).dp // posição vertical da foto
         }
     }
 
@@ -126,10 +126,11 @@ fun ConfirmPhotoScreen(
                 modifier           = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .offset(y = 97.dp)  // ← aumente para descer mais
+                    .offset(y = 97.dp)  // ← aumente para descer a arte
             )
 
-            // ── Arte decorativa inferior — atrás dos botões ───────────
+            // ── Arte decorativa inferior — fica atrás dos botões ──────
+            // zIndex(-1f) garante que a arte fique atrás dos botões
             Image(
                 painter            = painterResource(R.drawable.bottom_art_3),
                 contentDescription = null,
@@ -142,20 +143,20 @@ fun ConfirmPhotoScreen(
             )
 
             // ── Título centralizado ───────────────────────────────────
-            // Usar Text diretamente em vez de TopAppBar elimina o espaço
-            // fantasma à esquerda que deslocava o texto visualmente
+            // Text direto (sem TopAppBar) evita o espaço fantasma
+            // à esquerda que deslocava o texto visualmente
             Text(
                 text      = stringResource(R.string.confirm_title),
                 style     = MaterialTheme.typography.headlineMedium.copy(
                     fontFamily = FontFamily(Font(R.font.poppins_semibold)),
-                    fontSize   = 30.sp
+                    fontSize   = 30.sp   // ← tamanho da fonte do título
                 ),
                 color     = WhiteText,
                 textAlign = TextAlign.Center,
                 modifier  = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()       // respeita a barra de status do sistema
-                    .padding(top = 16.dp)      // ← ajuste para mover verticalmente
+                    .statusBarsPadding()
+                    .padding(top = 16.dp)  // ← mova verticalmente aqui
                     .align(Alignment.TopCenter)
             )
 
@@ -166,11 +167,12 @@ fun ConfirmPhotoScreen(
                     .statusBarsPadding()
                     .padding(top = 60.dp)  // ← reserva espaço para o título
             ) {
+                // Calcula o tamanho máximo da foto respeitando o espaço dos botões
                 val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 32.dp)
                 val frameW         = (maxWidth - 48.dp).coerceAtMost(320.dp)
                 val frameH         = maxImageHeight.coerceAtMost(480.dp)
 
-                // Foto com ContentScale.Crop — preenche o frame sem espaço em branco
+                // Foto com borda branca e ContentScale.Crop (sem espaço em branco)
                 Surface(
                     modifier = Modifier
                         .padding(horizontal = 24.dp)
@@ -179,7 +181,7 @@ fun ConfirmPhotoScreen(
                         .offset(y = imageOffsetY),
                     shape  = RoundedCornerShape(16.dp),
                     color  = Color.Transparent,
-                    border = BorderStroke(2.dp, WhiteText)  // ← borda branca fina
+                    border = BorderStroke(2.dp, WhiteText)
                 ) {
                     Image(
                         painter            = rememberAsyncImagePainter(model = photoUri.toUri()),
@@ -205,7 +207,7 @@ fun ConfirmPhotoScreen(
                             onBack()
                         },
                         modifier       = Modifier
-                            .weight(retakeButtonWeight)
+                            .weight(retakeButtonWeight)  // ← proporção definida no AppNav
                             .height(buttonHeight),
                         shape          = RoundedCornerShape(102.dp),
                         colors         = ButtonDefaults.buttonColors(
@@ -229,10 +231,10 @@ fun ConfirmPhotoScreen(
                     Button(
                         onClick        = { onSend(photoUri) },
                         modifier       = Modifier
-                            .weight(sendButtonWeight)
+                            .weight(sendButtonWeight)  // ← proporção definida no AppNav
                             .height(buttonHeight),
                         colors         = ButtonDefaults.buttonColors(
-                            containerColor = GreenDark,
+                            containerColor = Color(0xFF1B6216),
                             contentColor   = WhiteText
                         ),
                         shape          = RoundedCornerShape(102.dp),
