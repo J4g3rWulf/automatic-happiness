@@ -20,12 +20,38 @@
     <string name="loading_msg_3">Verificando o resultado…</string>
     <string name="loading_msg_4">Quase lá…</string>
 
-    <!-- Resultado -->
-    <string name="result_head">O material é</string>
-    <string name="result_head_dots">. . .</string>
-    <string name="result_button_new">Novo Lixo</string>
-    <string name="result_dispose_hint">Descarte no local adequado\npara esse tipo de material</string>
+    <!-- ResultScreen — título -->
+    <string name="result_identified_as">Material identificado como</string>
 
-    <!-- Resultado - caso desconhecido -->
-    <string name="result_unknown_hint">Não foi possível identificar\no material do lixo</string>
+    <!-- ResultScreen — card de dicas por material -->
+    <string name="result_glass_title">Descarte na lixeira verde!</string>
+    <string name="result_glass_tip1">Remova lacres e tampas</string>
+    <string name="result_glass_tip2">Embale em papel grosso ou caixa</string>
+
+    <string name="result_plastic_title">Descarte na lixeira vermelha!</string>
+    <string name="result_plastic_tip1">Evite restos de alimento</string>
+    <string name="result_plastic_tip2">Amasse para reduzir o volume</string>
+
+    <string name="result_paper_title">Descarte na lixeira azul!</string>
+    <string name="result_paper_tip1">Descarte limpo e seco</string>
+    <string name="result_paper_tip2">Dobre para economizar espaço</string>
+
+    <string name="result_metal_title">Descarte na lixeira amarela!</string>
+    <string name="result_metal_tip1">Amasse latas com cuidado</string>
+    <string name="result_metal_tip2">Dobre as tampas cortantes para dentro</string>
+
+    <!-- ResultScreen — mapa -->
+    <string name="result_map_title">Encontre no mapa locais de descarte</string>
+
+    <!-- ResultScreen — botões -->
+    <string name="result_btn_tips">Dicas de descarte</string>
+    <string name="result_btn_identify">Identifique outro</string>
+    <string name="result_btn_retry">Tente novamente</string>
+
+    <!-- ResultScreen — tela desconhecido -->
+    <string name="result_unknown_title">Desculpe! Não conseguimos \nter certeza sobre este item</string>
+    <string name="result_unknown_subtitle">Tente tirar uma foto mais de perto, com mais luz e sem reflexos.</string>
+    <string name="result_unknown_card2_title">Procure por símbolos de reciclagem nos resíduos e embalagens</string>
+    <string name="result_unknown_card2_subtitle">Selecione um deles abaixo para identificar o tipo exato de resíduo e ter mais informações:</string>
+    <string name="result_unknown_placeholder">IMPLEMENTAÇÃO FUTURA:\n\nCarrossel com símbolos clicáveis que \nao serem selecionados, mostram um \npopup informativo</string>
 </resources>

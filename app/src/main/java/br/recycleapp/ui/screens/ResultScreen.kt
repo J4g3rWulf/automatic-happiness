@@ -2,27 +2,28 @@ package br.recycleapp.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,95 +32,158 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
-import br.recycleapp.ui.theme.GreenDark
-import br.recycleapp.ui.theme.GreenPrimary
 import br.recycleapp.ui.theme.RecycleAppTheme
-import br.recycleapp.ui.theme.RedAccent
 import br.recycleapp.ui.theme.WhiteText
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
-// Dimensões base usadas como referência para a responsividade
-private const val BASE_HEIGHT_DP = 800f
-private const val BASE_WIDTH_DP = 360f
+// ── Dados por material ────────────────────────────────────────────────────────
 
-// Paleta de cores e ícone para cada tipo de material
-private data class ResultPalette(
+/**
+ * Agrupa todas as cores, recursos e strings de cada material.
+ * Adicione novos campos aqui se precisar de mais customizações por material.
+ *
+ * @param background    cor de fundo principal da tela
+ * @param tone          cor usada em textos internos e botão direito
+ * @param cardTitleColor cor dos títulos dentro do card branco
+ * @param btnLeft       cor do botão esquerdo "Dicas de descarte"
+ * @param btnRight      cor do botão direito "Identifique outro"
+ * @param binOffsetX    offset horizontal da lixeira sobre o card — ajuste no dataForLabel()
+ * @param binOffsetY    offset vertical da lixeira sobre o card — ajuste no dataForLabel()
+ * @param binIcon       drawable da lixeira ilustrada
+ * @param bgImage       drawable do fundo topográfico
+ * @param cardTitle     string res do título do card (ex: "Descarte na lixeira verde!")
+ * @param tip1          string res da primeira dica de descarte
+ * @param tip2          string res da segunda dica de descarte
+ */
+private data class MaterialData(
     val background: Color,
-    val tone: Color,   // texto do card, botão "Novo Lixo", borda dos botões do mapa
-    val accent: Color, // detalhes (pin do mapa, etc.)
-    @DrawableRes val binIcon: Int
+    val tone: Color,
+    val cardTitleColor: Color,
+    val btnLeft: Color,
+    val btnRight: Color,
+    val binOffsetX: Dp = 0.dp,
+    val binOffsetY: Dp = 0.dp,
+    @DrawableRes val binIcon: Int,
+    @DrawableRes val bgImage: Int,
+    val cardTitle: Int,
+    val tip1: Int,
+    val tip2: Int
 )
 
-private fun paletteForLabel(label: String): ResultPalette {
-    return when (label.trim().lowercase()) {
-        "vidro" -> ResultPalette(
-            background = Color(0xFF60AE1D),
-            tone = Color(0xFF297B19),
-            accent = Color(0xFF5AAC48),
-            binIcon = R.drawable.ic_green_trashh
+/**
+ * Retorna o [MaterialData] correspondente ao label classificado pela IA.
+ * O `else` cobre "Indefinido", "Desconhecido" e qualquer valor inesperado.
+ */
+private fun dataForLabel(label: String): MaterialData =
+    when (label.trim().lowercase()) {
+        "vidro" -> MaterialData(
+            background     = Color(0xFF3DAF3F),
+            tone           = Color(0xFF1E6B20),
+            cardTitleColor = Color(0xFF297B19),
+            btnLeft        = Color(0xFF86BF54),
+            btnRight       = Color(0xFF1B6216),
+            binOffsetX     = 10.dp,   // ← ajuste horizontal da lixeira
+            binOffsetY     = (-49).dp,// ← ajuste vertical da lixeira
+            binIcon        = R.drawable.glass_trash,
+            bgImage        = R.drawable.green_back,
+            cardTitle      = R.string.result_glass_title,
+            tip1           = R.string.result_glass_tip1,
+            tip2           = R.string.result_glass_tip2
         )
-
-        "plástico", "plastico" -> ResultPalette(
-            background = Color(0xFFEB555F),
-            tone = Color(0xFFB12B2A),
-            accent = RedAccent,
-            binIcon = R.drawable.ic_red_trashh
+        "plástico", "plastico" -> MaterialData(
+            background     = Color(0xFFCC3333),
+            tone           = Color(0xFF8B1A1A),
+            cardTitleColor = Color(0xFF962E2E),
+            btnLeft        = Color(0xFFBC5353),
+            btnRight       = Color(0xFF621616),
+            binOffsetX     = 28.dp,
+            binOffsetY     = (-49).dp,
+            binIcon        = R.drawable.plastic_trash,
+            bgImage        = R.drawable.red_back,
+            cardTitle      = R.string.result_plastic_title,
+            tip1           = R.string.result_plastic_tip1,
+            tip2           = R.string.result_plastic_tip2
         )
-
-        "papel" -> ResultPalette(
-            background = Color(0xFF3EAFC8),
-            tone = Color(0xFF333AB5),
-            accent = Color(0xFF333AB5),
-            binIcon = R.drawable.ic_blue_trashh
+        "papel" -> MaterialData(
+            background     = Color(0xFF3A9FCC),
+            tone           = Color(0xFF1A5F8B),
+            cardTitleColor = Color(0xFF161C62),
+            btnLeft        = Color(0xFF549BCD),
+            btnRight       = Color(0xFF161C62),
+            binOffsetX     = 2.dp,
+            binOffsetY     = (-49).dp,
+            binIcon        = R.drawable.paper_trash,
+            bgImage        = R.drawable.blue_back,
+            cardTitle      = R.string.result_paper_title,
+            tip1           = R.string.result_paper_tip1,
+            tip2           = R.string.result_paper_tip2
         )
-
-        "metal" -> ResultPalette(
-            background = Color(0xFFF0C753),
-            tone = Color(0xFFA87B32),
-            accent = Color(0xFFF0C753),
-            binIcon = R.drawable.ic_yellow_trashh
+        "metal" -> MaterialData(
+            background     = Color(0xFFD4A820),
+            tone           = Color(0xFF8B6A00),
+            cardTitleColor = Color(0xFF60581E),
+            btnLeft        = Color(0xFFD0B761),
+            btnRight       = Color(0xFF625916),
+            binOffsetX     = 22.dp,
+            binOffsetY     = (-49).dp,
+            binIcon        = R.drawable.metal_trash,
+            bgImage        = R.drawable.yellow_back,
+            cardTitle      = R.string.result_metal_title,
+            tip1           = R.string.result_metal_tip1,
+            tip2           = R.string.result_metal_tip2
         )
-
-        "desconhecido", "indefinido", "unknown" -> ResultPalette(
-            background = Color(0xFF9E9E9E),
-            tone       = Color(0xFF424242),
-            accent     = Color(0xFFBDBDBD),
-            binIcon    = R.drawable.ic_gray_trashh
-        )
-
-        else -> ResultPalette(
-            background = GreenPrimary,
-            tone = GreenDark,
-            accent = GreenDark,
-            binIcon = R.drawable.ic_recycle_loading
+        else -> MaterialData(
+            // Cobre "Indefinido", "Desconhecido" e qualquer label inesperado
+            background     = Color(0xFF9E9E9E),
+            tone           = Color(0xFF424242),
+            cardTitleColor = Color(0xFF5C5C5C),
+            btnLeft        = Color(0xFFB7B7B7),
+            btnRight       = Color(0xFF5C5C5C),
+            binOffsetX     = 27.dp,
+            binOffsetY     = (-49).dp,
+            binIcon        = R.drawable.unknown_trash,
+            bgImage        = R.drawable.grey_back,
+            cardTitle      = R.string.result_unknown_title,
+            tip1           = R.string.result_unknown_subtitle,
+            tip2           = R.string.result_unknown_subtitle
         )
     }
-}
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+// ── Tela principal ────────────────────────────────────────────────────────────
+
+/**
+ * Tela de resultado da classificação da IA.
+ *
+ * Exibe o material identificado com fundo topográfico colorido,
+ * lixeira ilustrada, card de dicas de descarte e placeholder de mapa.
+ * Para o caso "Indefinido", exibe dois cards de orientação.
+ *
+ * Animações:
+ * - [AnimatedVisibility] com fadeIn + slideInVertically — entrada do conteúdo
+ */
 @Composable
 fun ResultScreen(
-    windowSizeClass: WindowSizeClass,
     photoUri: String,
     label: String,
-    onBackToHome: () -> Unit,
-    headFontSize: Float = 40f,
-    labelFontSize: Float = 45f,
-    titleTopPadding: Dp = 80.dp,
-    titleBetweenLines: Dp = 8.dp,
-    titleToCardSpacing: Dp = 10.dp,
-    cardTextFontSize: Float = 16f,
-    cardTextLineHeight: Float = 19f,
-    dotSpacingBase: Dp = 19.dp
+    onBackToHome: () -> Unit
 ) {
-    val ctx = LocalContext.current
-    val palette = remember(label) { paletteForLabel(label) }
+    val ctx  = LocalContext.current
+    val data = remember(label) { dataForLabel(label) }
+
+    // isUnknown controla o layout alternativo da tela Desconhecido
+    val isUnknown = label.trim().lowercase().let {
+        it == "desconhecido" || it == "indefinido" || it == "unknown"
+    }
 
     fun clearAndBack() {
         photoUri.tryDeleteCapturedCacheFile(ctx)
@@ -128,462 +192,378 @@ fun ResultScreen(
 
     BackHandler { clearAndBack() }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(palette.background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val boxMaxW = maxWidth
-            val boxMaxH = maxHeight
+    // Dispara a animação de entrada assim que a tela é composta
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
 
-            // 1) Escalas relativas às dimensões base
-            val rawHScale = boxMaxH.value / BASE_HEIGHT_DP
-            val rawWScale = boxMaxW.value / BASE_WIDTH_DP
+    Box(modifier = Modifier.fillMaxSize()) {
 
-            val hScale: Float = rawHScale.coerceIn(0.80f, 1.30f)
-            val wScale: Float = rawWScale.coerceIn(0.90f, 1.30f)
+        // ── Fundo topográfico ─────────────────────────────────────────
+        // PNG específico por material — já tem a cor de fundo embutida
+        Image(
+            painter            = painterResource(data.bgImage),
+            contentDescription = null,
+            contentScale       = ContentScale.Crop,
+            modifier           = Modifier.fillMaxSize()
+        )
 
-            val rawUniform = minOf(hScale, wScale)
+        // ── Layout principal ──────────────────────────────────────────
+        // Box separa o conteúdo superior (ancorado no topo) dos botões
+        // (ancorados na base) — assim os botões não se movem quando o
+        // conteúdo cresce ou encolhe
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp)
+        ) {
 
-            // Telas muito próximas da base travam em 1f para evitar microvariações
-            val uniformBase: Float =
-                if (rawUniform in 0.97f..1.03f) 1f else rawUniform
-
-            // WindowHeightSizeClass substitui as comparações manuais de dp
-            val isSmallH = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
-            val isLargeH = windowSizeClass.heightSizeClass == WindowHeightSizeClass.Expanded
-
-            // Escalas separadas por grupo de elementos
-            val scaleForTitle: Float = when {
-                isSmallH -> uniformBase * 1.13f
-                isLargeH -> uniformBase * 1.03f
-                else -> uniformBase
-            }
-
-            val scaleForCard: Float = when {
-                isSmallH -> uniformBase * 1.13f
-                else -> uniformBase
-            }
-
-            val scaleForButtons: Float = when {
-                isSmallH -> uniformBase * 0.88f
-                isLargeH -> uniformBase * 1.04f
-                else -> uniformBase
-            }
-
-            // 2) Dimensões derivadas das escalas
-
-            // Espaçamentos verticais do título/card
-            val titleTopEff: Dp = titleTopPadding * scaleForTitle
-            val titleBetweenLinesEff: Dp = titleBetweenLines * scaleForTitle
-            val titleToCardEff: Dp = titleToCardSpacing * scaleForTitle
-
-            // Distância do botão para a borda inferior
-            val baseButtonBottom = when {
-                isSmallH -> 16.dp
-                isLargeH -> 32.dp
-                else -> 40.dp
-            }
-            val minBottom = if (isSmallH) 8.dp else 20.dp
-            val buttonBottomEff: Dp =
-                (baseButtonBottom * scaleForButtons).coerceIn(minBottom, 64.dp)
-
-            // Botão principal
-            val buttonWidthBase = 170.dp * scaleForButtons
-            val buttonWidth: Dp = buttonWidthBase.coerceIn(150.dp, boxMaxW - 48.dp)
-            val buttonHeight: Dp = (64.dp * scaleForButtons).coerceIn(56.dp, 80.dp)
-
-            // Lixeira
-            val baseBinSize = when {
-                isSmallH -> 90.dp
-                isLargeH -> 102.dp
-                else -> 97.dp
-            }
-            val binSize: Dp = (baseBinSize * scaleForCard).coerceIn(70.dp, 112.dp)
-            val binOffsetX: Dp = 1.7.dp
-            val binOffsetY: Dp = when {
-                isSmallH -> (-26).dp
-                boxMaxH < 900.dp -> (-36).dp
-                else -> (-42).dp
-            }
-
-            // Reserva de espaço à direita para não colidir o título com a lixeira
-            val reserveRightForBin: Dp = binSize * 0.6f
-
-            // Altura do "mapa"
-            val mapHeightFraction = when {
-                isSmallH -> 0.40f
-                isLargeH -> 0.46f
-                else -> 0.43f
-            }
-            val mapHeight: Dp = (boxMaxH * mapHeightFraction)
-                .coerceIn(220.dp, 420.dp)
-
-            // --- Fontes do título ---
-
-            // Mantém o título sempre igual
-            val headFontSp = (headFontSize * scaleForTitle).sp
-
-            // Para o caso "Indefinido", usa uma fonte um pouco menor
-            val isUnknownLabel = label.trim().equals("Indefinido", ignoreCase = true)
-            val adjustedLabelFontSize = if (isUnknownLabel) {
-                labelFontSize * 0.82f   // ~18% menor, pode ajustar esse fator depois
-            } else {
-                labelFontSize
-            }
-
-            val labelFontSp = (adjustedLabelFontSize * scaleForTitle).sp
-
-            // Fontes do card
-            val cardFontSp = (cardTextFontSize * scaleForCard).sp
-            val cardLineHeightSp = (cardTextLineHeight * scaleForCard).sp
-
-            // Espaço entre "O material é" e ". . ."
-            val dotSpacing: Dp = (dotSpacingBase * scaleForTitle)
-                .coerceIn(14.dp, 26.dp)
-
-            val headStyle = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = headFontSp,
-                lineHeight = (34f * scaleForTitle).sp
-            )
-            val labelStyle = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = labelFontSp,
-                lineHeight = (44f * scaleForTitle).sp
-            )
-
-            // Fonte do texto do botão
-            val buttonTextFontSp = (21f * scaleForButtons)
-                .coerceIn(18f, 24f)
-                .sp
-
-            // Layout principal
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+            // ── Conteúdo superior — animado ───────────────────────────
+            // fadeIn + slideInVertically: aparece com fade enquanto sobe levemente
+            AnimatedVisibility(
+                visible  = visible,
+                enter    = fadeIn(tween(400)) +
+                        slideInVertically(tween(400)) { it / 3 },
+                modifier = Modifier.align(Alignment.TopStart)
             ) {
-                // Topo: título + card + lixeira
                 Column(modifier = Modifier.fillMaxWidth()) {
 
-                    Spacer(modifier = Modifier.height(titleTopEff))
+                    // Espaço do topo até o subtítulo
+                    // isUnknown tem valor menor para compensar o título menor
+                    Spacer(Modifier.height(if (isUnknown) 30.dp else 40.dp))
 
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 5.dp)
-                                .wrapContentWidth(Alignment.Start),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.result_head),
-                                color = WhiteText,
-                                style = headStyle
-                            )
+                    // "Material identificado como" — 70% de opacidade
+                    Text(
+                        text  = stringResource(R.string.result_identified_as),
+                        color = WhiteText.copy(alpha = 0.70f),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
 
-                            Spacer(modifier = Modifier.width(dotSpacing))
+                    // Espaço entre subtítulo e nome do material
+                    Spacer(Modifier.height(if (isUnknown) 15.dp else 4.dp))
 
-                            Text(
-                                text = stringResource(R.string.result_head_dots),
-                                color = WhiteText,
-                                style = headStyle
-                            )
-                        }
+                    // Nome do material — fonte grande, bold
+                    // isUnknown usa fonte menor pois "Desconhecido" é mais longo
+                    Text(
+                        text     = label.replaceFirstChar { it.titlecase() },
+                        color    = WhiteText,
+                        style    = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize   = if (isUnknown) 35.sp else 56.sp,  // ← tamanho da fonte
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily(Font(R.font.poppins_semibold))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                        Spacer(modifier = Modifier.height(titleBetweenLinesEff))
+                    Spacer(Modifier.height(12.dp))
 
-                        val formattedLabel = label.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase() else it.toString()
-                        }
-
-                        // Se for o caso "Desconhecido", usa uma fonte um pouco menor
-                        val isUnknown = formattedLabel.equals("Desconhecido", ignoreCase = true)
-                        val effectiveLabelStyle = if (isUnknown) {
-                            labelStyle.copy(
-                                fontSize = (labelFontSp.value * 0.65f).sp,
-                                lineHeight = (44f * scaleForTitle * 0.85f).sp
-                            )
-                        } else {
-                            labelStyle
-                        }
-
-                        // Deixa espaço à direita para a lixeira
-                        val labelPaddingEnd = 16.dp + reserveRightForBin + 30.dp
-
-                        Text(
-                            text = formattedLabel,
-                            color = WhiteText,
-                            style = effectiveLabelStyle,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    start = 16.dp,
-                                    end = labelPaddingEnd
-                                )
-                                .wrapContentWidth(Alignment.CenterHorizontally)
-                        )
-
-                    }
-
-                    Spacer(modifier = Modifier.height(titleToCardEff))
-
+                    // ── Card + lixeira sobrepostos ────────────────────
+                    // A lixeira fica na frente do card via offset negativo
+                    // que a puxa para cima, sobrepondo a borda superior do card
                     Box(modifier = Modifier.fillMaxWidth()) {
-                        // Normaliza o label para decidir a mensagem do card
-                        val normalizedLabel = label.trim().lowercase()
-                        val cardDescription = if (
-                            normalizedLabel == "desconhecido" ||
-                            normalizedLabel == "indefinido"   ||
-                            normalizedLabel == "unknown"
-                        ) {
-                            stringResource(R.string.result_unknown_hint)
+
+                        if (isUnknown) {
+                            UnknownCard(toneColor = data.tone)
                         } else {
-                            stringResource(R.string.result_dispose_hint)
+                            MaterialCard(data = data, toneColor = data.tone)
                         }
 
-                        ResultMapCard(
-                            accentColor = palette.accent,
-                            toneColor = palette.tone,
-                            description = cardDescription,
-                            reserveRightForBin = reserveRightForBin,
-                            mapHeight = mapHeight,
-                            hintFontSizeSp = cardFontSp.value,
-                            hintLineHeightSp = cardLineHeightSp.value
-                        )
-
+                        // Lixeira — ancoraa no canto superior direito do Box
                         Image(
-                            painter = painterResource(id = palette.binIcon),
+                            painter            = painterResource(data.binIcon),
                             contentDescription = null,
-                            modifier = Modifier
+                            contentScale       = ContentScale.Fit,
+                            modifier           = Modifier
+                                .size(110.dp)               // ← tamanho da lixeira
+                                .offset(
+                                    x = data.binOffsetX,    // ← ajuste em dataForLabel()
+                                    y = data.binOffsetY     // ← ajuste em dataForLabel()
+                                )
                                 .align(Alignment.TopEnd)
-                                .offset(x = binOffsetX, y = binOffsetY)
-                                .size(binSize),
-                            contentScale = ContentScale.Fit
                         )
                     }
                 }
+            }
 
-                // Botão "Novo Lixo"
-                Button(
-                    onClick = { clearAndBack() },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = buttonBottomEff)
-                        .size(width = buttonWidth, height = buttonHeight),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = palette.tone,
-                        contentColor = WhiteText
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 10.dp,
-                        pressedElevation = 14.dp
-                    )
+            // ── Botões — ancorados na base ────────────────────────────
+            // Independentes do conteúdo acima — não sobem quando o card cresce
+            AnimatedVisibility(
+                visible  = visible,
+                enter    = fadeIn(tween(400, delayMillis = 200)),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Row(
+                    modifier              = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp),  // ← distância do fundo da tela
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.result_button_new),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = buttonTextFontSp,
-                            lineHeight = buttonTextFontSp
+                    // Botão esquerdo — "Dicas de descarte" (funcionalidade futura)
+                    Button(
+                        onClick        = { /* futuro */ },
+                        modifier       = Modifier
+                            .weight(0.45f)
+                            .height(56.dp),
+                        shape          = RoundedCornerShape(102.dp),
+                        colors         = ButtonDefaults.buttonColors(
+                            containerColor = data.btnLeft,
+                            contentColor   = WhiteText
                         ),
-                        maxLines = 1,
-                        textAlign = TextAlign.Center
-                    )
+                        elevation      = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 10.dp
+                        ),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                    ) {
+                        Text(
+                            text       = stringResource(R.string.result_btn_tips),
+                            fontSize   = 13.sp,
+                            maxLines   = 1,
+                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
+                            color      = WhiteText,
+                            textAlign  = TextAlign.Center
+                        )
+                    }
+
+                    // Botão direito — "Identifique outro" ou "Tente novamente"
+                    Button(
+                        onClick        = { clearAndBack() },
+                        modifier       = Modifier
+                            .weight(0.45f)
+                            .height(56.dp),
+                        shape          = RoundedCornerShape(102.dp),
+                        colors         = ButtonDefaults.buttonColors(
+                            containerColor = data.btnRight,
+                            contentColor   = WhiteText
+                        ),
+                        elevation      = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 10.dp
+                        ),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                    ) {
+                        Text(
+                            text       = stringResource(
+                                if (isUnknown) R.string.result_btn_retry
+                                else           R.string.result_btn_identify
+                            ),
+                            fontSize   = 13.sp,
+                            maxLines   = 1,
+                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
+                            color      = WhiteText,
+                            textAlign  = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun ResultMapCard(
-    accentColor: Color,
-    toneColor: Color,
-    description: String,
-    reserveRightForBin: Dp,
-    mapHeight: Dp,
-    hintFontSizeSp: Float,
-    hintLineHeightSp: Float
-) {
-    val cardCorner = 12.dp
+// ── Componentes privados ──────────────────────────────────────────────────────
 
+/**
+ * Card branco com título bold, dois bullet points de dicas
+ * e placeholder de mapa para materiais identificados.
+ */
+@Composable
+private fun MaterialCard(
+    data: MaterialData,
+    toneColor: Color
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(cardCorner),
-        color = Color.White
+        shape    = RoundedCornerShape(12.dp),
+        color    = Color.White
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            val hintStyle = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = hintFontSizeSp.sp,
-                lineHeight = hintLineHeightSp.sp
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
+
+            // Título "Descarte na lixeira (cor)!"
+            Text(
+                text  = stringResource(data.cardTitle),
+                color = data.cardTitleColor,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily(Font(R.font.poppins_bold)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize   = 16.sp  // ← tamanho do título do card
+                )
             )
 
-            val parts = description.split('\n')
-            val line1 = parts.getOrNull(0).orEmpty()
-            val line2 = parts.getOrNull(1).orEmpty()
+            Spacer(Modifier.height(2.dp))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = reserveRightForBin)
-            ) {
-                Text(
-                    text = line1,
-                    style = hintStyle,
-                    color = toneColor,
-                    maxLines = 1
+            // Dicas de descarte com bullet points
+            BulletText(text = stringResource(data.tip1), color = toneColor, fontSize = 13.sp, startPadding = 8.dp)
+            Spacer(Modifier.height(2.dp))
+            BulletText(text = stringResource(data.tip2), color = toneColor, fontSize = 13.sp, startPadding = 8.dp)
+
+            Spacer(Modifier.height(14.dp))
+
+            // Título da seção de mapa
+            Text(
+                text  = stringResource(R.string.result_map_title),
+                color = data.cardTitleColor,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily(Font(R.font.poppins_bold)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize   = 15.sp  // ← tamanho do título do mapa
                 )
-                if (line2.isNotEmpty()) {
-                    Text(
-                        text = line2,
-                        style = hintStyle,
-                        color = toneColor,
-                        maxLines = 1
-                    )
-                }
-            }
+            )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
+            // Placeholder do mapa — será substituído pela integração real futuramente
             Box(
-                modifier = Modifier
+                modifier         = Modifier
                     .fillMaxWidth()
-                    .height(mapHeight)
-                    .clip(RoundedCornerShape(cardCorner))
+                    .height(300.dp)  // ← altura do placeholder do mapa
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFEFEFEF)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Place,
+                    imageVector        = Icons.Filled.Place,
                     contentDescription = null,
-                    tint = accentColor,
-                    modifier = Modifier.size(28.dp)
+                    tint               = toneColor,
+                    modifier           = Modifier.size(32.dp)
                 )
+            }
+        }
+    }
+}
 
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+/**
+ * Dois cards empilhados para o caso "Indefinido/Desconhecido":
+ * - Card 1: explica que não foi possível identificar e sugere nova foto
+ * - Card 2: orienta sobre símbolos de reciclagem (implementação futura)
+ */
+@Composable
+private fun UnknownCard(toneColor: Color) {
+    Column(
+        modifier            = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(20.dp)  // ← espaço entre os dois cards
+    ) {
+        // Card 1 — explicação do erro
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(12.dp),
+            color    = Color.White
+        ) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
+                Text(
+                    text  = stringResource(R.string.result_unknown_title),
+                    color = toneColor,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily(Font(R.font.poppins_bold)),
+                        fontSize   = 16.sp
+                    )
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text  = stringResource(R.string.result_unknown_subtitle),
+                    color = Color(0xFF555555),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                )
+            }
+        }
+
+        // Card 2 — símbolos de reciclagem (implementação futura)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(12.dp),
+            color    = Color.White
+        ) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
+                Text(
+                    text  = stringResource(R.string.result_unknown_card2_title),
+                    color = toneColor,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily(Font(R.font.poppins_bold)),
+                        fontSize   = 15.sp
+                    )
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text  = stringResource(R.string.result_unknown_card2_subtitle),
+                    color = Color(0xFF555555),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                )
+                Spacer(Modifier.height(20.dp))
+
+                // Placeholder do carrossel de símbolos — alinhado à esquerda
+                Box(
+                    modifier         = Modifier
+                        .fillMaxWidth()
+                        .height(190.dp)  // ← altura do placeholder
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF333333)),
+                    contentAlignment = Alignment.TopStart
                 ) {
-                    MapNavButton(isLeft = true, toneColor = toneColor)
-                    MapNavButton(isLeft = false, toneColor = toneColor)
+                    Text(
+                        text      = stringResource(R.string.result_unknown_placeholder),
+                        color     = Color.White,
+                        fontSize  = 11.sp,
+                        textAlign = TextAlign.Start,
+                        modifier  = Modifier.padding(12.dp)
+                    )
                 }
             }
         }
     }
 }
 
+/**
+ * Linha de texto com bullet point "• " à esquerda.
+ * Usado nas dicas de descarte dentro do [MaterialCard].
+ *
+ * @param startPadding recuo à esquerda para indentação visual
+ */
 @Composable
-private fun MapNavButton(
-    isLeft: Boolean,
-    toneColor: Color,
-    onClick: () -> Unit = {}
+private fun BulletText(
+    text: String,
+    color: Color,
+    fontSize: TextUnit = MaterialTheme.typography.bodyMedium.fontSize,
+    startPadding: Dp = 0.dp
 ) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier.size(width = 40.dp, height = 32.dp),
-        contentPadding = PaddingValues(0.dp),
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, toneColor),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = WhiteText,
-            contentColor = toneColor
-        )
+    Row(
+        modifier          = Modifier.padding(start = startPadding),
+        verticalAlignment = Alignment.Top
     ) {
-        val icon =
-            if (isLeft) Icons.AutoMirrored.Filled.ArrowBack
-            else Icons.AutoMirrored.Filled.ArrowForward
-
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp)
-        )
+        Text(text = "• ", color = color, fontSize = fontSize)
+        Text(text = text,  color = color, fontSize = fontSize)
     }
 }
 
-// Previews por tipo de material
+// ── Previews ──────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Resultado - Plástico")
-@Composable
-private fun ResultScreenPreviewPlastic() {
-    RecycleAppTheme {
-        ResultScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(
-                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
-            ),
-            photoUri     = "",
-            label        = "Plástico",
-            onBackToHome = {}
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Vidro")
 @Composable
 private fun ResultScreenPreviewGlass() {
-    RecycleAppTheme {
-        ResultScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(
-                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
-            ),
-            photoUri     = "",
-            label        = "Vidro",
-            onBackToHome = {}
-        )
-    }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}) }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Resultado - Plástico")
+@Composable
+private fun ResultScreenPreviewPlastic() {
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Plástico", onBackToHome = {}) }
+}
+
 @Preview(showBackground = true, name = "Resultado - Papel")
 @Composable
 private fun ResultScreenPreviewPaper() {
-    RecycleAppTheme {
-        ResultScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(
-                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
-            ),
-            photoUri     = "",
-            label        = "Papel",
-            onBackToHome = {}
-        )
-    }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Papel", onBackToHome = {}) }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Metal")
 @Composable
 private fun ResultScreenPreviewMetal() {
-    RecycleAppTheme {
-        ResultScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(
-                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
-            ),
-            photoUri     = "",
-            label        = "Metal",
-            onBackToHome = {}
-        )
-    }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Metal", onBackToHome = {}) }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(showBackground = true, name = "Resultado - Desconhecido")
 @Composable
 private fun ResultScreenPreviewUnknown() {
-    RecycleAppTheme {
-        ResultScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(
-                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
-            ),
-            photoUri     = "",
-            label        = "Desconhecido",
-            onBackToHome = {}
-        )
-    }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}) }
 }
