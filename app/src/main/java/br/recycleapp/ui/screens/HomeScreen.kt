@@ -135,7 +135,7 @@ fun HomeScreen(
             // A altura fixa evita que o espaço transparente do PNG
             // interfira no posicionamento dos elementos acima.
             Image(
-                painter            = painterResource(id = R.drawable.bottom_art),
+                painter            = painterResource(id = R.drawable.art_bottom_v1),
                 contentDescription = null,
                 modifier           = Modifier
                     .align(Alignment.BottomCenter)
@@ -150,7 +150,7 @@ fun HomeScreen(
             // Fica atrás do título, criando o padrão visual de ondas
             // no topo da tela. Não tem offset — sempre no topo.
             Image(
-                painter            = painterResource(id = R.drawable.top_art),
+                painter            = painterResource(id = R.drawable.art_top_v1),
                 contentDescription = null,
                 modifier           = Modifier
                     .align(Alignment.TopCenter)

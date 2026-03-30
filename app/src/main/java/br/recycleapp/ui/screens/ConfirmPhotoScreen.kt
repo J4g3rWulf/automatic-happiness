@@ -119,7 +119,7 @@ fun ConfirmPhotoScreen(
         ) {
             // ── Arte decorativa superior ──────────────────────────────
             Image(
-                painter            = painterResource(R.drawable.top_art_2),
+                painter            = painterResource(R.drawable.art_top_v2),
                 contentDescription = null,
                 contentScale       = ContentScale.FillWidth,
                 alignment          = Alignment.TopCenter,
@@ -132,7 +132,7 @@ fun ConfirmPhotoScreen(
             // ── Arte decorativa inferior — fica atrás dos botões ──────
             // zIndex(-1f) garante que a arte fique atrás dos botões
             Image(
-                painter            = painterResource(R.drawable.bottom_art_3),
+                painter            = painterResource(R.drawable.art_bottom_v3),
                 contentDescription = null,
                 contentScale       = ContentScale.FillWidth,
                 alignment          = Alignment.BottomCenter,
