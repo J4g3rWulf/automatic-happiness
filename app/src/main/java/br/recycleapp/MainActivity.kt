@@ -13,6 +13,12 @@ import br.recycleapp.ui.theme.RecycleAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * Activity principal do aplicativo RecycleApp.
+ *
+ * Configura a splash screen, edge-to-edge UI e o host de navegação.
+ * Calcula o WindowSizeClass para suportar layouts responsivos em diferentes tamanhos de tela.
+ */
 class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -20,6 +26,7 @@ class MainActivity : ComponentActivity() {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        // Exibe splash screen por 1.5s apenas no primeiro launch (não em rotação)
         val shouldDelay = savedInstanceState == null
         var keep = shouldDelay
         splash.setKeepOnScreenCondition { keep }
@@ -32,8 +39,6 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            // Calcula o tamanho da janela uma única vez aqui
-            // e passa para todas as telas via AppNavHost
             val windowSizeClass = calculateWindowSizeClass(this)
 
             RecycleAppTheme {
