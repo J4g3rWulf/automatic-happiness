@@ -108,7 +108,7 @@ fun HomeScreen(
         if (!HomeAnimationState.hasAnimated) {
             delay(1100) // aguarda a splash screen terminar
             visible = true
-            HomeAnimationState.hasAnimated = true
+            HomeAnimationState.markAsAnimated()
         }
     }
 
