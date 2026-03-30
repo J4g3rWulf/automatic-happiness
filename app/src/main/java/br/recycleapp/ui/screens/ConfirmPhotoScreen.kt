@@ -47,9 +47,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import br.recycleapp.R
-import br.recycleapp.ui.theme.GreenPrimary
-import br.recycleapp.ui.theme.RecycleAppTheme
-import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.ui.theme.*
 import br.recycleapp.util.resolveCapturedCacheFile
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
@@ -211,7 +209,7 @@ fun ConfirmPhotoScreen(
                             .height(buttonHeight),
                         shape          = RoundedCornerShape(102.dp),
                         colors         = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF86BF54),
+                            containerColor = GlassBtnLight,
                             contentColor   = WhiteText
                         ),
                         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
@@ -234,7 +232,7 @@ fun ConfirmPhotoScreen(
                             .weight(sendButtonWeight)  // ← proporção definida no AppNav
                             .height(buttonHeight),
                         colors         = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF1B6216),
+                            containerColor = GlassBtnDark ,
                             contentColor   = WhiteText
                         ),
                         shape          = RoundedCornerShape(102.dp),
