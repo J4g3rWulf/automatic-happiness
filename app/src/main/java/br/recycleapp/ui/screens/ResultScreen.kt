@@ -32,8 +32,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -248,8 +246,7 @@ fun ResultScreen(
                         color    = WhiteText,
                         style    = MaterialTheme.typography.headlineLarge.copy(
                             fontSize   = if (isUnknown) 35.sp else 56.sp,  // ← tamanho da fonte
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily(Font(R.font.poppins_semibold))
+                            //fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -318,7 +315,6 @@ fun ResultScreen(
                             text       = stringResource(R.string.result_btn_tips),
                             fontSize   = 13.sp,
                             maxLines   = 1,
-                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
                             color      = WhiteText,
                             textAlign  = TextAlign.Center
                         )
@@ -348,7 +344,6 @@ fun ResultScreen(
                             ),
                             fontSize   = 13.sp,
                             maxLines   = 1,
-                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
                             color      = WhiteText,
                             textAlign  = TextAlign.Center
                         )
@@ -382,7 +377,6 @@ private fun MaterialCard(
                 text  = stringResource(data.cardTitle),
                 color = data.cardTitleColor,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = FontFamily(Font(R.font.poppins_bold)),
                     fontWeight = FontWeight.Bold,
                     fontSize   = 16.sp  // ← tamanho do título do card
                 )
@@ -402,7 +396,6 @@ private fun MaterialCard(
                 text  = stringResource(R.string.result_map_title),
                 color = data.cardTitleColor,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = FontFamily(Font(R.font.poppins_bold)),
                     fontWeight = FontWeight.Bold,
                     fontSize   = 15.sp  // ← tamanho do título do mapa
                 )
@@ -453,7 +446,6 @@ private fun UnknownCard(toneColor: Color) {
                     color = toneColor,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily(Font(R.font.poppins_bold)),
                         fontSize   = 16.sp
                     )
                 )
@@ -478,7 +470,6 @@ private fun UnknownCard(toneColor: Color) {
                     color = toneColor,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily(Font(R.font.poppins_bold)),
                         fontSize   = 15.sp
                     )
                 )

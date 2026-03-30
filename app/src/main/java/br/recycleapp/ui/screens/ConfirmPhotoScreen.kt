@@ -34,8 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
@@ -146,7 +144,6 @@ fun ConfirmPhotoScreen(
             Text(
                 text      = stringResource(R.string.confirm_title),
                 style     = MaterialTheme.typography.headlineMedium.copy(
-                    fontFamily = FontFamily(Font(R.font.poppins_semibold)),
                     fontSize   = 30.sp   // ← tamanho da fonte do título
                 ),
                 color     = WhiteText,
@@ -220,7 +217,6 @@ fun ConfirmPhotoScreen(
                             fontSize   = 14.sp,
                             maxLines   = 1,
                             overflow   = TextOverflow.Ellipsis,
-                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
                             color      = WhiteText
                         )
                     }
@@ -247,7 +243,6 @@ fun ConfirmPhotoScreen(
                             fontSize   = 14.sp,
                             maxLines   = 1,
                             overflow   = TextOverflow.Ellipsis,
-                            fontFamily = FontFamily(Font(R.font.poppins_semibold)),
                             color      = WhiteText
                         )
                     }

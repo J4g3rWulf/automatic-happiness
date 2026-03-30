@@ -7,7 +7,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// ─── Light Scheme ───────────
+// AppTypography agora vem do Type.kt - sem definição inline
+
 private val LightColorScheme = lightColorScheme(
     primary              = GreenPrimary,
     onPrimary            = WhiteText,
@@ -17,11 +18,10 @@ private val LightColorScheme = lightColorScheme(
     onSecondaryContainer = GreenLight,
     background           = GreenPrimary,
     onBackground         = WhiteText,
-    surface              = SurfaceLight,
-    onSurface            = OnSurfaceLight
+    surface              = GreenPrimary,
+    onSurface            = WhiteText
 )
 
-// ─── Dark Scheme ─────────────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
     primary              = GreenPrimary,
     onPrimary            = Color.White,
@@ -44,7 +44,7 @@ fun RecycleAppTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        // typography  = AppTypography,   // COMENTADO até Etapa 2 (tipografia).
+        typography  = AppTypography,
         content     = content
     )
 }
