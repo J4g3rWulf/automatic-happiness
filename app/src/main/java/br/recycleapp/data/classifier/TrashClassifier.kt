@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import org.tensorflow.lite.Interpreter
+import java.io.Closeable
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -16,37 +17,67 @@ import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
-class TrashClassifier(private val context: Context) {
+/**
+ * Classificador de resíduos recicláveis usando TensorFlow Lite.
+ *
+ * Processa imagens de resíduos e identifica o material (vidro, papel, plástico ou metal)
+ * com base em um modelo treinado que reconhece 10 classes finas.
+ *
+ * Implementa [Closeable] para gerenciamento adequado de recursos do interpretador TFLite.
+ * Deve ser fechado explicitamente quando não for mais necessário.
+ *
+ * @property context Contexto da aplicação para acesso a assets e ContentResolver
+ */
+class TrashClassifier(private val context: Context) : Closeable {
 
-    // Interpreter lazy para só carregar o modelo quando for realmente usar
-    private val interpreter: Interpreter by lazy {
-        Interpreter(
-            loadModelFile(),
-            Interpreter.Options().apply {
-                setNumThreads(4) // ajusta se quiser
-            }
-        )
+    private var interpreter: Interpreter? = null
+
+    /**
+     * Retorna o interpretador existente ou cria um novo se ainda não foi inicializado.
+     */
+    private fun getInterpreter(): Interpreter {
+        if (interpreter == null) {
+            interpreter = Interpreter(
+                loadModelFile(),
+                Interpreter.Options().apply {
+                    setNumThreads(4)
+                }
+            )
+        }
+        return interpreter!!
     }
 
     /**
-     * Classifica a imagem apontada por [uriString] e retorna
-     * o MATERIAL em português para mostrar na UI:
-     *  - "Vidro", "Metal", "Papel" ou "Plástico"
-     *  - Em caso de erro, retorna "Indefinido"
+     * Resultado interno da classificação antes de aplicar threshold.
      */
-    fun classifyMaterial(uriString: String): String {
+    data class RawClassification(
+        val materialKey: String,
+        val fineLabel: String,
+        val confidence: Float
+    )
+
+    /**
+     * Classifica a imagem apontada por [uriString].
+     *
+     * Retorna dados estruturados da classificação incluindo material, confiança e label detalhada.
+     * Retorna null se houver erro no carregamento/processamento da imagem.
+     *
+     * **Nota:** Esta função NÃO aplica threshold de confiança. A camada de Repository
+     * é responsável por decidir se o resultado é confiável o suficiente (≥ 60%).
+     *
+     * @param uriString URI da imagem a ser classificada
+     * @return Dados brutos da classificação ou null em caso de erro
+     */
+    fun classifyMaterial(uriString: String): RawClassification? {
         return try {
-            val bitmap = loadBitmapFromUri(uriString)
-                ?: return "Indefinido"
+            val bitmap = loadBitmapFromUri(uriString) ?: return null
 
-            // Redimensiona para 256x256 (tamanho esperado pelo modelo)
             val resized: Bitmap = bitmap.scale(IMG_SIZE, IMG_SIZE)
-
             val inputBuffer = convertBitmapToBuffer(resized)
 
-            // Saída [1, 7] => vetor de probabilidades
+            // Output shape: [1, 10] - vetor de probabilidades para 10 classes
             val output = Array(1) { FloatArray(NUM_CLASSES) }
-            interpreter.run(inputBuffer, output)
+            getInterpreter().run(inputBuffer, output)
 
             val probs = output[0]
 
@@ -62,23 +93,30 @@ class TrashClassifier(private val context: Context) {
 
             val fineLabel = FINE_LABELS[bestIdx]
             val materialKey = fineToMaterial(fineLabel)
-            val materialDisplay = materialKeyToDisplay(materialKey)
 
             Log.d(
                 TAG,
-                "classIdx=$bestIdx fine=$fineLabel material=$materialKey ($materialDisplay) conf=${"%.3f".format(
-                    bestScore
-                )}"
+                "classIdx=$bestIdx fine=$fineLabel material=$materialKey conf=${"%.3f".format(bestScore)}"
             )
 
-            materialDisplay
+            RawClassification(
+                materialKey = materialKey,
+                fineLabel = fineLabel,
+                confidence = bestScore
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao classificar imagem: $uriString", e)
-            "Indefinido"
+            null
         }
     }
 
-    // ---------- Helpers internos ----------
+    override fun close() {
+        interpreter?.let {
+            it.close()
+            interpreter = null
+            Log.d(TAG, "Interpreter fechado e liberado")
+        }
+    }
 
     private fun loadBitmapFromUri(uriString: String): Bitmap? {
         return try {
@@ -102,8 +140,7 @@ class TrashClassifier(private val context: Context) {
      * Converte o Bitmap 256x256 em um ByteBuffer de float32,
      * no formato [1, 256, 256, 3], com valores 0–255.
      *
-     * Importante: NÃO dividimos por 255 aqui, porque o modelo
-     * já tem uma camada Rescaling(1./255).
+     * Não normalizamos aqui porque o modelo já tem uma camada Rescaling(1./255).
      */
     private fun convertBitmapToBuffer(bitmap: Bitmap): ByteBuffer {
         val buffer = ByteBuffer.allocateDirect(1 * IMG_SIZE * IMG_SIZE * 3 * 4)
@@ -120,7 +157,6 @@ class TrashClassifier(private val context: Context) {
             bitmap.height
         )
 
-        // Itera diretamente pelos pixels, sem precisar de x/y
         for (pixel in intValues) {
             val r = ((pixel shr 16) and 0xFF).toFloat()
             val g = ((pixel shr 8) and 0xFF).toFloat()
@@ -160,7 +196,6 @@ class TrashClassifier(private val context: Context) {
         private const val NUM_CLASSES = 10
         private const val MODEL_NAME = "model_v03.tflite"
 
-        // Índices do modelo -> classes finas (seguir a MESMA ordem do treino)
         private val FINE_LABELS = arrayOf(
             "glass_bottle",           // 0
             "glass_cup",              // 1
@@ -174,32 +209,13 @@ class TrashClassifier(private val context: Context) {
             "plastic_transparent_cup" // 9
         )
 
-        // Classe fina -> material (4 grupos)
         private fun fineToMaterial(fineLabel: String): String =
             when (fineLabel) {
-                "glass_bottle", "glass_cup" ->
-                    "glass"
-
-                "metal_can" ->
-                    "metal"
-
-                "paper_bag", "paper_ball", "paper_package", "paper_milk_package" ->
-                    "paper"
-
-                "plastic_bottle", "plastic_cup", "plastic_transparent_cup" ->
-                    "plastic"
-
+                "glass_bottle", "glass_cup" -> "glass"
+                "metal_can" -> "metal"
+                "paper_bag", "paper_ball", "paper_package", "paper_milk_package" -> "paper"
+                "plastic_bottle", "plastic_cup", "plastic_transparent_cup" -> "plastic"
                 else -> "unknown"
-            }
-
-        // Material -> label para UI (PT-BR)
-        fun materialKeyToDisplay(materialKey: String): String =
-            when (materialKey) {
-                "glass"   -> "Vidro"
-                "metal"   -> "Metal"
-                "paper"   -> "Papel"
-                "plastic" -> "Plástico"
-                else      -> "Indefinido"
             }
     }
 }
