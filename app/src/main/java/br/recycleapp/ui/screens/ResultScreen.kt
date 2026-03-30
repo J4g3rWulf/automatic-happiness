@@ -42,8 +42,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
-import br.recycleapp.ui.theme.RecycleAppTheme
-import br.recycleapp.ui.theme.WhiteText
+import br.recycleapp.ui.theme.*
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
 // ── Dados por material ────────────────────────────────────────────────────────
@@ -87,13 +86,13 @@ private data class MaterialData(
 private fun dataForLabel(label: String): MaterialData =
     when (label.trim().lowercase()) {
         "vidro" -> MaterialData(
-            background     = Color(0xFF3DAF3F),
-            tone           = Color(0xFF1E6B20),
-            cardTitleColor = Color(0xFF297B19),
-            btnLeft        = Color(0xFF86BF54),
-            btnRight       = Color(0xFF1B6216),
-            binOffsetX     = 10.dp,   // ← ajuste horizontal da lixeira
-            binOffsetY     = (-49).dp,// ← ajuste vertical da lixeira
+            background     = GlassBg,           // ← ALTERADO (era Color(0xFF3DAF3F))
+            tone           = GlassTone,         // ← ALTERADO (era Color(0xFF1E6B20))
+            cardTitleColor = GlassCardTitle,    // ← ALTERADO (era Color(0xFF297B19))
+            btnLeft        = GlassBtnLight,     // ← ALTERADO (era Color(0xFF86BF54))
+            btnRight       = GlassBtnDark,      // ← ALTERADO (era Color(0xFF1B6216))
+            binOffsetX     = 10.dp,
+            binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_glass,
             bgImage        = R.drawable.bg_green,
             cardTitle      = R.string.result_glass_title,
@@ -101,11 +100,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_glass_tip2
         )
         "plástico", "plastico" -> MaterialData(
-            background     = Color(0xFFCC3333),
-            tone           = Color(0xFF8B1A1A),
-            cardTitleColor = Color(0xFF962E2E),
-            btnLeft        = Color(0xFFBC5353),
-            btnRight       = Color(0xFF621616),
+            background     = PlasticBg,         // ← ALTERADO
+            tone           = PlasticTone,       // ← ALTERADO
+            cardTitleColor = PlasticCardTitle,  // ← ALTERADO
+            btnLeft        = PlasticBtnLight,   // ← ALTERADO
+            btnRight       = PlasticBtnDark,    // ← ALTERADO
             binOffsetX     = 28.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_plastic,
@@ -115,11 +114,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_plastic_tip2
         )
         "papel" -> MaterialData(
-            background     = Color(0xFF3A9FCC),
-            tone           = Color(0xFF1A5F8B),
-            cardTitleColor = Color(0xFF161C62),
-            btnLeft        = Color(0xFF549BCD),
-            btnRight       = Color(0xFF161C62),
+            background     = PaperBg,           // ← ALTERADO
+            tone           = PaperTone,         // ← ALTERADO
+            cardTitleColor = PaperCardTitle,    // ← ALTERADO
+            btnLeft        = PaperBtnLight,     // ← ALTERADO
+            btnRight       = PaperBtnDark,      // ← ALTERADO
             binOffsetX     = 2.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_paper,
@@ -129,11 +128,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_paper_tip2
         )
         "metal" -> MaterialData(
-            background     = Color(0xFFD4A820),
-            tone           = Color(0xFF8B6A00),
-            cardTitleColor = Color(0xFF60581E),
-            btnLeft        = Color(0xFFD0B761),
-            btnRight       = Color(0xFF625916),
+            background     = MetalBg,           // ← ALTERADO
+            tone           = MetalTone,         // ← ALTERADO
+            cardTitleColor = MetalCardTitle,    // ← ALTERADO
+            btnLeft        = MetalBtnLight,     // ← ALTERADO
+            btnRight       = MetalBtnDark,      // ← ALTERADO
             binOffsetX     = 22.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_metal,
@@ -143,12 +142,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_metal_tip2
         )
         else -> MaterialData(
-            // Cobre "Indefinido", "Desconhecido" e qualquer label inesperado
-            background     = Color(0xFF9E9E9E),
-            tone           = Color(0xFF424242),
-            cardTitleColor = Color(0xFF5C5C5C),
-            btnLeft        = Color(0xFFB7B7B7),
-            btnRight       = Color(0xFF5C5C5C),
+            background     = UnknownBg,         // ← ALTERADO
+            tone           = UnknownTone,       // ← ALTERADO
+            cardTitleColor = UnknownCardTitle,  // ← ALTERADO
+            btnLeft        = UnknownBtnLight,   // ← ALTERADO
+            btnRight       = UnknownBtnDark,    // ← ALTERADO
             binOffsetX     = 27.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_unknown,
@@ -418,7 +416,7 @@ private fun MaterialCard(
                     .fillMaxWidth()
                     .height(300.dp)  // ← altura do placeholder do mapa
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFEFEFEF)),
+                    .background(PlaceholderLight),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -462,7 +460,7 @@ private fun UnknownCard(toneColor: Color) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text  = stringResource(R.string.result_unknown_subtitle),
-                    color = Color(0xFF555555),
+                    color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
                 )
             }
@@ -487,7 +485,7 @@ private fun UnknownCard(toneColor: Color) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text  = stringResource(R.string.result_unknown_card2_subtitle),
-                    color = Color(0xFF555555),
+                    color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
                 )
                 Spacer(Modifier.height(20.dp))
@@ -498,7 +496,7 @@ private fun UnknownCard(toneColor: Color) {
                         .fillMaxWidth()
                         .height(190.dp)  // ← altura do placeholder
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF333333)),
+                        .background(PlaceholderDark),
                     contentAlignment = Alignment.TopStart
                 ) {
                     Text(
