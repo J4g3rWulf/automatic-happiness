@@ -7,16 +7,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,55 +18,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
+import br.recycleapp.ui.components.MaterialCard
+import br.recycleapp.ui.components.MaterialCardData
+import br.recycleapp.ui.components.ResultButton
+import br.recycleapp.ui.components.UnknownCard
 import br.recycleapp.ui.theme.*
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
 // ── Dados por material ────────────────────────────────────────────────────────
 
 /**
- * Agrupa todas as cores, recursos e strings de cada material.
- * Adicione novos campos aqui se precisar de mais customizações por material.
+ * Agrupa cores, recursos e dados do card de cada material.
  *
- * @param background    cor de fundo principal da tela
- * @param tone          cor usada em textos internos e botão direito
- * @param cardTitleColor cor dos títulos dentro do card branco
- * @param btnLeft       cor do botão esquerdo "Dicas de descarte"
- * @param btnRight      cor do botão direito "Identifique outro"
- * @param binOffsetX    offset horizontal da lixeira sobre o card — ajuste no dataForLabel()
- * @param binOffsetY    offset vertical da lixeira sobre o card — ajuste no dataForLabel()
- * @param binIcon       drawable da lixeira ilustrada
- * @param bgImage       drawable do fundo topográfico
- * @param cardTitle     string res do título do card (ex: "Descarte na lixeira verde!")
- * @param tip1          string res da primeira dica de descarte
- * @param tip2          string res da segunda dica de descarte
+ * @param background cor de fundo principal da tela
+ * @param tone       cor usada em textos internos e botão direito
+ * @param btnLeft    cor do botão esquerdo "Dicas de descarte"
+ * @param btnRight   cor do botão direito "Identifique outro"
+ * @param binOffsetX offset horizontal da lixeira sobre o card
+ * @param binOffsetY offset vertical da lixeira sobre o card
+ * @param binIcon    drawable da lixeira ilustrada
+ * @param bgImage    drawable do fundo topográfico
+ * @param cardData   dados visuais delegados ao MaterialCard
  */
 private data class MaterialData(
     val background: Color,
     val tone: Color,
-    val cardTitleColor: Color,
     val btnLeft: Color,
     val btnRight: Color,
     val binOffsetX: Dp = 0.dp,
     val binOffsetY: Dp = 0.dp,
     @DrawableRes val binIcon: Int,
     @DrawableRes val bgImage: Int,
-    val cardTitle: Int,
-    val tip1: Int,
-    val tip2: Int
+    val cardData: MaterialCardData
 )
 
 /**
@@ -86,72 +71,87 @@ private fun dataForLabel(label: String): MaterialData =
         "vidro" -> MaterialData(
             background     = GlassBg,
             tone           = GlassTone,
-            cardTitleColor = GlassCardTitle,
             btnLeft        = GlassBtnLight,
             btnRight       = GlassBtnDark,
             binOffsetX     = 10.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_glass,
             bgImage        = R.drawable.bg_green,
-            cardTitle      = R.string.result_glass_title,
-            tip1           = R.string.result_glass_tip1,
-            tip2           = R.string.result_glass_tip2
+            cardData   = MaterialCardData(
+                tone           = GlassTone,
+                cardTitleColor = GlassCardTitle,
+                cardTitle      = R.string.result_glass_title,
+                tip1           = R.string.result_glass_tip1,
+                tip2           = R.string.result_glass_tip2
+            )
         )
         "plástico", "plastico" -> MaterialData(
             background     = PlasticBg,
             tone           = PlasticTone,
-            cardTitleColor = PlasticCardTitle,
             btnLeft        = PlasticBtnLight,
             btnRight       = PlasticBtnDark,
             binOffsetX     = 28.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_plastic,
             bgImage        = R.drawable.bg_red,
-            cardTitle      = R.string.result_plastic_title,
-            tip1           = R.string.result_plastic_tip1,
-            tip2           = R.string.result_plastic_tip2
+            cardData   = MaterialCardData(
+                tone           = PlasticTone,
+                cardTitleColor = PlasticCardTitle,
+                cardTitle      = R.string.result_plastic_title,
+                tip1           = R.string.result_plastic_tip1,
+                tip2           = R.string.result_plastic_tip2
+            )
         )
         "papel" -> MaterialData(
             background     = PaperBg,
             tone           = PaperTone,
-            cardTitleColor = PaperCardTitle,
             btnLeft        = PaperBtnLight,
             btnRight       = PaperBtnDark,
             binOffsetX     = 2.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_paper,
             bgImage        = R.drawable.bg_blue,
-            cardTitle      = R.string.result_paper_title,
-            tip1           = R.string.result_paper_tip1,
-            tip2           = R.string.result_paper_tip2
+            cardData   = MaterialCardData(
+                tone           = PaperTone,
+                cardTitleColor = PaperCardTitle,
+                cardTitle      = R.string.result_paper_title,
+                tip1           = R.string.result_paper_tip1,
+                tip2           = R.string.result_paper_tip2
+            )
         )
         "metal" -> MaterialData(
             background     = MetalBg,
             tone           = MetalTone,
-            cardTitleColor = MetalCardTitle,
             btnLeft        = MetalBtnLight,
             btnRight       = MetalBtnDark,
             binOffsetX     = 22.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_metal,
             bgImage        = R.drawable.bg_yellow,
-            cardTitle      = R.string.result_metal_title,
-            tip1           = R.string.result_metal_tip1,
-            tip2           = R.string.result_metal_tip2
+            cardData   = MaterialCardData(
+                tone           = MetalTone,
+                cardTitleColor = MetalCardTitle,
+                cardTitle      = R.string.result_metal_title,
+                tip1           = R.string.result_metal_tip1,
+                tip2           = R.string.result_metal_tip2
+            )
         )
         else -> MaterialData(
             background     = UnknownBg,
             tone           = UnknownTone,
-            cardTitleColor = UnknownCardTitle,
             btnLeft        = UnknownBtnLight,
             btnRight       = UnknownBtnDark,
             binOffsetX     = 27.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_unknown,
             bgImage        = R.drawable.bg_grey,
-            cardTitle      = R.string.result_unknown_title,
-            tip1           = R.string.result_unknown_subtitle,
-            tip2           = R.string.result_unknown_subtitle
+            cardData   = MaterialCardData(
+                tone           = UnknownTone,
+                cardTitleColor = UnknownCardTitle,
+                cardTitle      = R.string.result_unknown_title,
+                tip1           = R.string.result_unknown_subtitle,
+                tip2           = R.string.result_unknown_subtitle
+            )
         )
     }
 
@@ -261,7 +261,7 @@ fun ResultScreen(
                         if (isUnknown) {
                             UnknownCard(toneColor = data.tone)
                         } else {
-                            MaterialCard(data = data, toneColor = data.tone)
+                            MaterialCard(data = data.cardData)
                         }
 
                         // Lixeira — ancoraa no canto superior direito do Box
@@ -295,233 +295,23 @@ fun ResultScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Botão esquerdo — "Dicas de descarte" (funcionalidade futura)
-                    Button(
+                    ResultButton(
+                        text           = stringResource(R.string.result_btn_tips),
                         onClick        = { /* futuro */ },
-                        modifier       = Modifier
-                            .weight(0.45f)
-                            .height(56.dp),
-                        shape          = RoundedCornerShape(102.dp),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = data.btnLeft,
-                            contentColor   = WhiteText
-                        ),
-                        elevation      = ButtonDefaults.buttonElevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp
-                        ),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
-                    ) {
-                        Text(
-                            text       = stringResource(R.string.result_btn_tips),
-                            fontSize   = 13.sp,
-                            maxLines   = 1,
-                            color      = WhiteText,
-                            textAlign  = TextAlign.Center
-                        )
-                    }
+                        containerColor = data.btnLeft,
+                        modifier       = Modifier.weight(0.45f)
+                    )
 
                     // Botão direito — "Identifique outro" ou "Tente novamente"
-                    Button(
+                    ResultButton(
+                        text           = stringResource(if (isUnknown) R.string.result_btn_retry else R.string.result_btn_identify),
                         onClick        = { clearAndBack() },
-                        modifier       = Modifier
-                            .weight(0.45f)
-                            .height(56.dp),
-                        shape          = RoundedCornerShape(102.dp),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = data.btnRight,
-                            contentColor   = WhiteText
-                        ),
-                        elevation      = ButtonDefaults.buttonElevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp
-                        ),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
-                    ) {
-                        Text(
-                            text       = stringResource(
-                                if (isUnknown) R.string.result_btn_retry
-                                else           R.string.result_btn_identify
-                            ),
-                            fontSize   = 13.sp,
-                            maxLines   = 1,
-                            color      = WhiteText,
-                            textAlign  = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ── Componentes privados ──────────────────────────────────────────────────────
-
-/**
- * Card branco com título bold, dois bullet points de dicas
- * e placeholder de mapa para materiais identificados.
- */
-@Composable
-private fun MaterialCard(
-    data: MaterialData,
-    toneColor: Color
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape    = RoundedCornerShape(12.dp),
-        color    = Color.White
-    ) {
-        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
-
-            // Título "Descarte na lixeira (cor)!"
-            Text(
-                text  = stringResource(data.cardTitle),
-                color = data.cardTitleColor,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize   = 16.sp  // ← tamanho do título do card
-                )
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            // Dicas de descarte com bullet points
-            BulletText(text = stringResource(data.tip1), color = toneColor, fontSize = 13.sp, startPadding = 8.dp)
-            Spacer(Modifier.height(2.dp))
-            BulletText(text = stringResource(data.tip2), color = toneColor, fontSize = 13.sp, startPadding = 8.dp)
-
-            Spacer(Modifier.height(14.dp))
-
-            // Título da seção de mapa
-            Text(
-                text  = stringResource(R.string.result_map_title),
-                color = data.cardTitleColor,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize   = 15.sp  // ← tamanho do título do mapa
-                )
-            )
-
-            Spacer(Modifier.height(10.dp))
-
-            // Placeholder do mapa — será substituído pela integração real futuramente
-            Box(
-                modifier         = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)  // ← altura do placeholder do mapa
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(PlaceholderLight),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector        = Icons.Filled.Place,
-                    contentDescription = null,
-                    tint               = toneColor,
-                    modifier           = Modifier.size(32.dp)
-                )
-            }
-        }
-    }
-}
-
-/**
- * Dois cards empilhados para o caso "Indefinido/Desconhecido":
- * - Card 1: explica que não foi possível identificar e sugere nova foto
- * - Card 2: orienta sobre símbolos de reciclagem (implementação futura)
- */
-@Composable
-private fun UnknownCard(toneColor: Color) {
-    Column(
-        modifier            = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(20.dp)  // ← espaço entre os dois cards
-    ) {
-        // Card 1 — explicação do erro
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
-            color    = Color.White
-        ) {
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
-                Text(
-                    text  = stringResource(R.string.result_unknown_title),
-                    color = toneColor,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize   = 16.sp
-                    )
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text  = stringResource(R.string.result_unknown_subtitle),
-                    color = TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
-                )
-            }
-        }
-
-        // Card 2 — símbolos de reciclagem (implementação futura)
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
-            color    = Color.White
-        ) {
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 9.dp)) {
-                Text(
-                    text  = stringResource(R.string.result_unknown_card2_title),
-                    color = toneColor,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize   = 15.sp
-                    )
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text  = stringResource(R.string.result_unknown_card2_subtitle),
-                    color = TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
-                )
-                Spacer(Modifier.height(20.dp))
-
-                // Placeholder do carrossel de símbolos — alinhado à esquerda
-                Box(
-                    modifier         = Modifier
-                        .fillMaxWidth()
-                        .height(190.dp)  // ← altura do placeholder
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(PlaceholderDark),
-                    contentAlignment = Alignment.TopStart
-                ) {
-                    Text(
-                        text      = stringResource(R.string.result_unknown_placeholder),
-                        color     = Color.White,
-                        fontSize  = 11.sp,
-                        textAlign = TextAlign.Start,
-                        modifier  = Modifier.padding(12.dp)
+                        containerColor = data.btnRight,
+                        modifier       = Modifier.weight(0.45f)
                     )
                 }
             }
         }
-    }
-}
-
-/**
- * Linha de texto com bullet point "• " à esquerda.
- * Usado nas dicas de descarte dentro do [MaterialCard].
- *
- * @param startPadding recuo à esquerda para indentação visual
- */
-@Composable
-private fun BulletText(
-    text: String,
-    color: Color,
-    fontSize: TextUnit = MaterialTheme.typography.bodyMedium.fontSize,
-    startPadding: Dp = 0.dp
-) {
-    Row(
-        modifier          = Modifier.padding(start = startPadding),
-        verticalAlignment = Alignment.Top
-    ) {
-        Text(text = "• ", color = color, fontSize = fontSize)
-        Text(text = text,  color = color, fontSize = fontSize)
     }
 }
 
