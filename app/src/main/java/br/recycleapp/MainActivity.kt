@@ -8,7 +8,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import br.recycleapp.navigation.AppNavHost
+import br.recycleapp.ui.navigation.AppNavHost
 import br.recycleapp.ui.theme.RecycleAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
