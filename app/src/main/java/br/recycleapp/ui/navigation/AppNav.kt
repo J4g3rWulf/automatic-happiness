@@ -1,4 +1,4 @@
-package br.recycleapp.navigation
+package br.recycleapp.ui.navigation
 
 import android.net.Uri
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi

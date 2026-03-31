@@ -4,7 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import br.recycleapp.data.repository.ClassifierRepository
+import br.recycleapp.di.AppModule
 import br.recycleapp.domain.model.ClassificationResult
 import br.recycleapp.domain.usecase.ClassifyImageUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,9 +14,8 @@ import kotlinx.coroutines.launch
 
 class ClassificationViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val classifyImageUseCase = ClassifyImageUseCase(
-        ClassifierRepository(app)
-    )
+    private val classifyImageUseCase: ClassifyImageUseCase =
+        AppModule.provideClassifyImageUseCase(app)
 
     sealed class UiState {
         object Idle    : UiState()
@@ -46,6 +45,5 @@ class ClassificationViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         super.onCleared()
-        classifyImageUseCase.dispose()
     }
 }

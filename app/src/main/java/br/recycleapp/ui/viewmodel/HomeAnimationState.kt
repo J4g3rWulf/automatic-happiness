@@ -1,11 +1,11 @@
-package br.recycleapp.ui.screens
+package br.recycleapp.ui.viewmodel
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Gerencia o estado da animação inicial da HomeScreen.
  *
- * Usa [AtomicBoolean] para garantir thread-safety, pois pode ser acessado
+ * Usa [java.util.concurrent.atomic.AtomicBoolean] para garantir thread-safety, pois pode ser acessado
  * de diferentes threads durante a composição e recomposição.
  *
  * **Nota:** Esta é uma solução pragmática para controlar animação única.
