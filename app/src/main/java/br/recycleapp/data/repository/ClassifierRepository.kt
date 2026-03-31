@@ -1,50 +1,44 @@
 package br.recycleapp.data.repository
 
 import android.content.Context
-import android.net.Uri
 import br.recycleapp.data.classifier.TrashClassifier
-import br.recycleapp.data.model.ClassificationResult
-import br.recycleapp.data.model.Material
+import br.recycleapp.domain.model.ClassificationResult   // ← ALTERADO: agora vem do domain
+import br.recycleapp.domain.model.MaterialType           // ← NOVO
+import br.recycleapp.domain.repository.ITrashClassifier  // ← NOVO: implementa a interface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Repositório responsável pela classificação de imagens de resíduos.
- *
- * Gerencia a instância do [TrashClassifier] e aplica regras de negócio como
- * o threshold de confiança mínimo de 60% para aceitar uma classificação.
+ * Implementação concreta do classificador.
+ * Depende do Context e do modelo TFLite - por isso fica na camada data.
+ * Implementa [ITrashClassifier] definido no domínio.
  */
-class ClassifierRepository(context: Context) {
+class ClassifierRepository(
+    context: Context
+) : ITrashClassifier {
 
     private val classifier = TrashClassifier(context)
 
-    /**
-     * Classifica uma imagem de resíduo.
-     *
-     * Aplica threshold de confiança: classificações com confiança < 60% são
-     * retornadas como [ClassificationResult.Indefinido] para evitar resultados incorretos.
-     *
-     * @param imageUri URI da imagem a ser classificada
-     * @return Resultado da classificação (Success, Indefinido ou Error)
-     */
-    suspend fun classify(imageUri: Uri): ClassificationResult {
+    override suspend fun classify(imageUri: String): ClassificationResult {
         return withContext(Dispatchers.IO) {
             try {
-                val rawResult = classifier.classifyMaterial(imageUri.toString())
+                val rawResult = classifier.classifyMaterial(imageUri)
                     ?: return@withContext ClassificationResult.Indefinido
 
-                // Threshold de 60%: só aceita classificação se confiança >= 0.60
                 if (rawResult.confidence < CONFIDENCE_THRESHOLD) {
                     return@withContext ClassificationResult.Indefinido
                 }
 
-                val material = Material.fromMaterialKey(rawResult.materialKey)
-                    ?: return@withContext ClassificationResult.Indefinido
+                val materialType = MaterialType.fromMaterialKey(rawResult.materialKey)
+
+                if (materialType == MaterialType.UNKNOWN) {
+                    return@withContext ClassificationResult.Indefinido
+                }
 
                 ClassificationResult.Success(
-                    material = material,
-                    confidence = rawResult.confidence,
-                    fineLabel = rawResult.fineLabel
+                    materialType = materialType,
+                    confidence   = rawResult.confidence,
+                    fineLabel    = rawResult.fineLabel
                 )
             } catch (e: Exception) {
                 ClassificationResult.Error(e)
@@ -52,11 +46,7 @@ class ClassifierRepository(context: Context) {
         }
     }
 
-    /**
-     * Libera recursos do classificador.
-     * Deve ser chamado quando o repositório não for mais necessário.
-     */
-    fun close() {
+    override fun close() {
         classifier.close()
     }
 
