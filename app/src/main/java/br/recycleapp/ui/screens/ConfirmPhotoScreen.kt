@@ -122,10 +122,10 @@ fun ConfirmPhotoScreen(
                 modifier           = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .offset(y = 97.dp)  // ← aumente para descer a arte
+                    .offset(y = 97.dp)  // aumente para descer a arte
             )
 
-            // ── Arte decorativa inferior — fica atrás dos botões ──────
+            // ── Arte decorativa inferior - fica atrás dos botões ──────
             // zIndex(-1f) garante que a arte fique atrás dos botões
             Image(
                 painter            = painterResource(R.drawable.art_bottom_v3),
@@ -144,14 +144,14 @@ fun ConfirmPhotoScreen(
             Text(
                 text      = stringResource(R.string.confirm_title),
                 style     = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize   = 30.sp   // ← tamanho da fonte do título
+                    fontSize   = 30.sp   // tamanho da fonte do título
                 ),
                 color     = WhiteText,
                 textAlign = TextAlign.Center,
                 modifier  = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(top = 16.dp)  // ← mova verticalmente aqui
+                    .padding(top = 16.dp)  // mova verticalmente aqui
                     .align(Alignment.TopCenter)
             )
 
@@ -160,7 +160,7 @@ fun ConfirmPhotoScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
-                    .padding(top = 60.dp)  // ← reserva espaço para o título
+                    .padding(top = 60.dp)  // reserva espaço para o título
             ) {
                 // Calcula o tamanho máximo da foto respeitando o espaço dos botões
                 val maxImageHeight = maxHeight - (buttonBottomOffset + buttonHeight + 32.dp)
@@ -195,14 +195,14 @@ fun ConfirmPhotoScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    // Botão esquerdo — "Tirar outra" ou "Escolher outra"
+                    // Botão esquerdo - "Tirar outra" ou "Escolher outra"
                     Button(
                         onClick = {
                             photoUri.tryDeleteCapturedCacheFile(ctx)
                             onBack()
                         },
                         modifier       = Modifier
-                            .weight(retakeButtonWeight)  // ← proporção definida no AppNav
+                            .weight(retakeButtonWeight)  // proporção definida no AppNav
                             .height(buttonHeight),
                         shape          = RoundedCornerShape(102.dp),
                         colors         = ButtonDefaults.buttonColors(
@@ -221,11 +221,11 @@ fun ConfirmPhotoScreen(
                         )
                     }
 
-                    // Botão direito — "Enviar para análise"
+                    // Botão direito - "Enviar para análise"
                     Button(
                         onClick        = { onSend(photoUri) },
                         modifier       = Modifier
-                            .weight(sendButtonWeight)  // ← proporção definida no AppNav
+                            .weight(sendButtonWeight)  // proporção definida no AppNav
                             .height(buttonHeight),
                         colors         = ButtonDefaults.buttonColors(
                             containerColor = GlassBtnDark ,
