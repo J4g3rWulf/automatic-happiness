@@ -16,7 +16,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import br.recycleapp.data.model.ClassificationResult
+import br.recycleapp.domain.model.ClassificationResult
+import br.recycleapp.ui.mapper.toLabelPt
 import br.recycleapp.ui.screens.CameraCaptureScreen
 import br.recycleapp.ui.screens.ConfirmPhotoScreen
 import br.recycleapp.ui.screens.GalleryPickerScreen
@@ -163,7 +164,7 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                 cachedLabel = when (
                     val r = (uiState as ClassificationViewModel.UiState.Result).result
                 ) {
-                    is ClassificationResult.Success    -> r.material.labelPt
+                    is ClassificationResult.Success    -> r.materialType.toLabelPt()
                     is ClassificationResult.Indefinido -> "Indefinido"
                     is ClassificationResult.Error      -> "Indefinido"
                 }

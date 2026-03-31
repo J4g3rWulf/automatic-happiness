@@ -84,11 +84,11 @@ private data class MaterialData(
 private fun dataForLabel(label: String): MaterialData =
     when (label.trim().lowercase()) {
         "vidro" -> MaterialData(
-            background     = GlassBg,           // ← ALTERADO (era Color(0xFF3DAF3F))
-            tone           = GlassTone,         // ← ALTERADO (era Color(0xFF1E6B20))
-            cardTitleColor = GlassCardTitle,    // ← ALTERADO (era Color(0xFF297B19))
-            btnLeft        = GlassBtnLight,     // ← ALTERADO (era Color(0xFF86BF54))
-            btnRight       = GlassBtnDark,      // ← ALTERADO (era Color(0xFF1B6216))
+            background     = GlassBg,
+            tone           = GlassTone,
+            cardTitleColor = GlassCardTitle,
+            btnLeft        = GlassBtnLight,
+            btnRight       = GlassBtnDark,
             binOffsetX     = 10.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_glass,
@@ -98,11 +98,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_glass_tip2
         )
         "plástico", "plastico" -> MaterialData(
-            background     = PlasticBg,         // ← ALTERADO
-            tone           = PlasticTone,       // ← ALTERADO
-            cardTitleColor = PlasticCardTitle,  // ← ALTERADO
-            btnLeft        = PlasticBtnLight,   // ← ALTERADO
-            btnRight       = PlasticBtnDark,    // ← ALTERADO
+            background     = PlasticBg,
+            tone           = PlasticTone,
+            cardTitleColor = PlasticCardTitle,
+            btnLeft        = PlasticBtnLight,
+            btnRight       = PlasticBtnDark,
             binOffsetX     = 28.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_plastic,
@@ -112,11 +112,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_plastic_tip2
         )
         "papel" -> MaterialData(
-            background     = PaperBg,           // ← ALTERADO
-            tone           = PaperTone,         // ← ALTERADO
-            cardTitleColor = PaperCardTitle,    // ← ALTERADO
-            btnLeft        = PaperBtnLight,     // ← ALTERADO
-            btnRight       = PaperBtnDark,      // ← ALTERADO
+            background     = PaperBg,
+            tone           = PaperTone,
+            cardTitleColor = PaperCardTitle,
+            btnLeft        = PaperBtnLight,
+            btnRight       = PaperBtnDark,
             binOffsetX     = 2.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_paper,
@@ -126,11 +126,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_paper_tip2
         )
         "metal" -> MaterialData(
-            background     = MetalBg,           // ← ALTERADO
-            tone           = MetalTone,         // ← ALTERADO
-            cardTitleColor = MetalCardTitle,    // ← ALTERADO
-            btnLeft        = MetalBtnLight,     // ← ALTERADO
-            btnRight       = MetalBtnDark,      // ← ALTERADO
+            background     = MetalBg,
+            tone           = MetalTone,
+            cardTitleColor = MetalCardTitle,
+            btnLeft        = MetalBtnLight,
+            btnRight       = MetalBtnDark,
             binOffsetX     = 22.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_metal,
@@ -140,11 +140,11 @@ private fun dataForLabel(label: String): MaterialData =
             tip2           = R.string.result_metal_tip2
         )
         else -> MaterialData(
-            background     = UnknownBg,         // ← ALTERADO
-            tone           = UnknownTone,       // ← ALTERADO
-            cardTitleColor = UnknownCardTitle,  // ← ALTERADO
-            btnLeft        = UnknownBtnLight,   // ← ALTERADO
-            btnRight       = UnknownBtnDark,    // ← ALTERADO
+            background     = UnknownBg,
+            tone           = UnknownTone,
+            cardTitleColor = UnknownCardTitle,
+            btnLeft        = UnknownBtnLight,
+            btnRight       = UnknownBtnDark,
             binOffsetX     = 27.dp,
             binOffsetY     = (-49).dp,
             binIcon        = R.drawable.trash_unknown,
@@ -195,7 +195,7 @@ fun ResultScreen(
     Box(modifier = Modifier.fillMaxSize()) {
 
         // ── Fundo topográfico ─────────────────────────────────────────
-        // PNG específico por material — já tem a cor de fundo embutida
+        // PNG específico por material - já tem a cor de fundo embutida
         Image(
             painter            = painterResource(data.bgImage),
             contentDescription = null,
@@ -205,7 +205,7 @@ fun ResultScreen(
 
         // ── Layout principal ──────────────────────────────────────────
         // Box separa o conteúdo superior (ancorado no topo) dos botões
-        // (ancorados na base) — assim os botões não se movem quando o
+        // (ancorados na base) - assim os botões não se movem quando o
         // conteúdo cresce ou encolhe
         Box(
             modifier = Modifier
@@ -215,7 +215,7 @@ fun ResultScreen(
                 .padding(horizontal = 20.dp)
         ) {
 
-            // ── Conteúdo superior — animado ───────────────────────────
+            // ── Conteúdo superior - animado ───────────────────────────
             // fadeIn + slideInVertically: aparece com fade enquanto sobe levemente
             AnimatedVisibility(
                 visible  = visible,
@@ -239,7 +239,7 @@ fun ResultScreen(
                     // Espaço entre subtítulo e nome do material
                     Spacer(Modifier.height(if (isUnknown) 15.dp else 4.dp))
 
-                    // Nome do material — fonte grande, bold
+                    // Nome do material - fonte grande, bold
                     // isUnknown usa fonte menor pois "Desconhecido" é mais longo
                     Text(
                         text     = label.replaceFirstChar { it.titlecase() },

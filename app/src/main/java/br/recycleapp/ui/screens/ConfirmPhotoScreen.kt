@@ -52,7 +52,7 @@ import br.recycleapp.util.tryDeleteCapturedCacheFile
 /**
  * Tela de confirmação da foto antes de enviar para a IA.
  *
- * Não tem barra de navegação — o usuário volta pelos botões
+ * Não tem barra de navegação - o usuário volta pelos botões
  * "Tirar outra" / "Escolher outra" na parte inferior.
  *
  * @param retakeLabel        texto do botão esquerdo — vindo do AppNav
