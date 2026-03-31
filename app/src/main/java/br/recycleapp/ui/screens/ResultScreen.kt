@@ -245,7 +245,7 @@ fun ResultScreen(
                         text     = label.replaceFirstChar { it.titlecase() },
                         color    = WhiteText,
                         style    = MaterialTheme.typography.headlineLarge.copy(
-                            fontSize   = if (isUnknown) 35.sp else 56.sp,  // ← tamanho da fonte
+                            fontSize   = if (isUnknown) 35.sp else 56.sp,  // tamanho da fonte
                             //fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.fillMaxWidth()
@@ -270,10 +270,10 @@ fun ResultScreen(
                             contentDescription = null,
                             contentScale       = ContentScale.Fit,
                             modifier           = Modifier
-                                .size(110.dp)               // ← tamanho da lixeira
+                                .size(110.dp)               // tamanho da lixeira
                                 .offset(
-                                    x = data.binOffsetX,    // ← ajuste em dataForLabel()
-                                    y = data.binOffsetY     // ← ajuste em dataForLabel()
+                                    x = data.binOffsetX,    // ajuste em dataForLabel()
+                                    y = data.binOffsetY     // ajuste em dataForLabel()
                                 )
                                 .align(Alignment.TopEnd)
                         )
@@ -282,7 +282,7 @@ fun ResultScreen(
             }
 
             // ── Botões — ancorados na base ────────────────────────────
-            // Independentes do conteúdo acima — não sobem quando o card cresce
+            // Independentes do conteúdo acima - não sobem quando o card cresce
             AnimatedVisibility(
                 visible  = visible,
                 enter    = fadeIn(tween(400, delayMillis = 200)),
@@ -291,10 +291,10 @@ fun ResultScreen(
                 Row(
                     modifier              = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 32.dp),  // ← distância do fundo da tela
+                        .padding(bottom = 32.dp),  // distância do fundo da tela
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Botão esquerdo — "Dicas de descarte" (funcionalidade futura)
+                    // Botão esquerdo - "Dicas de descarte" (funcionalidade futura)
                     ResultButton(
                         text           = stringResource(R.string.result_btn_tips),
                         onClick        = { /* futuro */ },
@@ -302,7 +302,7 @@ fun ResultScreen(
                         modifier       = Modifier.weight(0.45f)
                     )
 
-                    // Botão direito — "Identifique outro" ou "Tente novamente"
+                    // Botão direito - "Identifique outro" ou "Tente novamente"
                     ResultButton(
                         text           = stringResource(if (isUnknown) R.string.result_btn_retry else R.string.result_btn_identify),
                         onClick        = { clearAndBack() },
