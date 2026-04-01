@@ -1,5 +1,6 @@
 package br.recycleapp.ui.screens
 
+import android.app.Activity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
@@ -91,6 +96,14 @@ fun HomeScreen(
     // ── Layout geral ──────────────────────────────────────────────────
     horizontalPadding: Dp = 20.dp    // padding lateral do conteúdo
 ) {
+    val view = LocalView.current
+
+    SideEffect {
+        val window = (view.context as Activity).window
+        WindowCompat.getInsetsController(window, view).apply {
+            show(WindowInsetsCompat.Type.navigationBars())
+        }
+    }
 
     // ── Escala de largura via WindowSizeClass ─────────────────────────
     // Aplicada a botões e título para aproveitar melhor telas maiores
@@ -107,7 +120,7 @@ fun HomeScreen(
     var visible by remember { mutableStateOf(HomeAnimationState.hasAnimated) }
     LaunchedEffect(Unit) {
         if (!HomeAnimationState.hasAnimated) {
-            delay(1100) // aguarda a splash screen terminar
+            delay(50) // aguarda a splash screen terminar
             visible = true
             HomeAnimationState.markAsAnimated()
         }
@@ -258,7 +271,7 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(warningTop))
 
-                    // Card de dica — orienta o usuário sobre como tirar a foto
+                    // Card de dica - orienta o usuário sobre como tirar a foto
                     Row(
                         modifier = Modifier
                             .padding(start = dims.leftInset)
@@ -288,7 +301,7 @@ fun HomeScreen(
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-                        // Texto da dica — máximo 2 linhas
+                        // Texto da dica - máximo 2 linhas
                         Text(
                             text  = stringResource(R.string.notice_text),
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -306,7 +319,7 @@ fun HomeScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Componentes privados — usados apenas dentro desta tela
+// Componentes privados - usados apenas dentro desta tela
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -349,7 +362,7 @@ private fun ActionButtonWithLabel(
 
 /**
  * Card quadrado elevado contendo apenas um ícone centralizado.
- * Responsável pelo visual e pelo clique — o rótulo fica em [ActionButtonWithLabel].
+ * Responsável pelo visual e pelo clique - o rótulo fica em [ActionButtonWithLabel].
  */
 @Composable
 private fun ActionSquareOnlyIcon(
@@ -383,11 +396,11 @@ private fun ActionSquareOnlyIcon(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Previews — visíveis no painel de Preview do Android Studio
+// Previews - visíveis no painel de Preview do Android Studio
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(name = "Compact — Pixel 5", device = Devices.PIXEL_5)
+@Preview(name = "Compact - Pixel 5", device = Devices.PIXEL_5)
 @Composable
 private fun HomeScreenPreviewCompact() {
     RecycleAppTheme {
@@ -402,7 +415,7 @@ private fun HomeScreenPreviewCompact() {
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(name = "Medium — Tablet pequeno", widthDp = 700, heightDp = 900)
+@Preview(name = "Medium - Tablet pequeno", widthDp = 700, heightDp = 900)
 @Composable
 private fun HomeScreenPreviewMedium() {
     RecycleAppTheme {
@@ -417,7 +430,7 @@ private fun HomeScreenPreviewMedium() {
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(name = "Expanded — Tablet", widthDp = 1000, heightDp = 800)
+@Preview(name = "Expanded - Tablet", widthDp = 1000, heightDp = 800)
 @Composable
 private fun HomeScreenPreviewExpanded() {
     RecycleAppTheme {

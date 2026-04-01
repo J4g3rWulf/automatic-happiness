@@ -24,14 +24,16 @@ import br.recycleapp.ui.screens.GalleryPickerScreen
 import br.recycleapp.ui.screens.HomeScreen
 import br.recycleapp.ui.screens.LoadingScreen
 import br.recycleapp.ui.screens.ResultScreen
+import br.recycleapp.ui.screens.SplashScreen
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
 
 /**
  * Define todas as rotas de navegação do app.
- * Cada `data object` representa uma tela — a rota é a string usada
+ * Cada `data object` representa uma tela - a rota é a string usada
  * para navegar entre elas via [NavHost].
  */
 sealed class Screen(val route: String) {
+    data object Splash : Screen("splash")
     data object Home         : Screen("home")
     data object Camera       : Screen("camera")
     data object Gallery      : Screen("gallery")
@@ -62,7 +64,21 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
     val nav       = rememberNavController()
     val viewModel : ClassificationViewModel = viewModel()
 
-    NavHost(navController = nav, startDestination = Screen.Home.route) {
+    NavHost(
+        navController    = nav,
+        startDestination = Screen.Splash.route
+    ) {
+
+        // ── Splash ────────────────────────────────────────────────────
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onSplashFinished = {
+                    nav.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         // ── Tela inicial ──────────────────────────────────────────────
         composable(Screen.Home.route) {
