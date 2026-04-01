@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Splash do sistema (Android 12+) -->
+    <!-- Splash do sistema -->
     <style name="Theme.AppSplashScreen" parent="Theme.SplashScreen">
         <!-- Fundo da splash -->
-        <item name="windowSplashScreenBackground">@color/green1</item>
-        <!-- Ícone/Logo (PNG/SVG simples) -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_main</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Ícone invisível para tela 100% branca sem logo -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_invisible</item>
         <!-- Tema aplicado após a splash -->
         <item name="postSplashScreenTheme">@style/Theme.RecycleApp</item>
+        <!-- Cor da barra de navegação igual ao fundo da splash -->
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <!-- Oculta a status bar superior -->
+        <item name="android:windowFullscreen">true</item>
     </style>
 
     <!-- Tema principal do app (Material 3, sem ActionBar) -->
     <style name="Theme.RecycleApp" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Barras translúcidas (APIs antigas usam essa cor; nas novas, edge-to-edge faz o resto) -->
+        <!-- Barras translúcidas -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="green1">#60AE1D</color>
+    <!-- Usadas apenas por themes.xml e sistema Android -->
+    <color name="splash_background">#F6F5FA</color>
+    <color name="green_primary">#60AE1D</color>
 </resources>
