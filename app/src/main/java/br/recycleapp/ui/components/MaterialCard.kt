@@ -3,9 +3,6 @@ package br.recycleapp.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.ui.theme.PlaceholderDark
-import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
 
 /**
@@ -82,21 +78,8 @@ fun MaterialCard(
 
             Spacer(Modifier.height(10.dp))
 
-            Box(
-                modifier         = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(PlaceholderLight),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector        = Icons.Filled.Place,
-                    contentDescription = null,
-                    tint               = data.tone,
-                    modifier           = Modifier.size(32.dp)
-                )
-            }
+            RecycleMapCard(toneColor = data.tone)
+
         }
     }
 }
