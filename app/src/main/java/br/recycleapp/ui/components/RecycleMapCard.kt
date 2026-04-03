@@ -71,47 +71,24 @@ private val PEVS_COLETA_SELETIVA_RIO = listOf(
     // Recebem: papel, plástico, vidro e metal
     // Fonte: Portal 1746.rio / Recicloteca.org.br
 
-    RecyclingPoint(-22.8876, -43.4637,
+    //OK
+    RecyclingPoint(-22.85046155285499, -43.46413468350324,
         "PEV Bangu",
-        "Rua Roque Barbosa, 348 – Vila Catiri"),
+        "Rua Roque Barbosa, 348 - Bangu"),
 
-    RecyclingPoint(-22.8706, -43.3358,
+    //OK
+    RecyclingPoint(-22.87516362916978, -43.33496706988172,
         "PEV Madureira",
         "Sob o Viaduto Prefeito Negrão de Lima"),
 
-    RecyclingPoint(-22.9211, -43.2343,
+    //OK
+    RecyclingPoint(-22.927124968864515, -43.229079230075605,
         "PEV Tijuca",
         "Rua Dr. Renato Rocco, 400"),
 
-    RecyclingPoint(-22.8396, -43.3058,
-        "PEV Parada de Lucas",
-        "Av. Brasil, 13.550 – frente ao viaduto"),
-
-    RecyclingPoint(-22.8631, -43.2891,
-        "PEV Ilha do Governador – Dendê",
-        "Av. Paranapuan – Comunidade do Dendê"),
-
-    RecyclingPoint(-22.8658, -43.2742,
-        "PEV Ilha do Governador – Vila Joaniza",
-        "Estrada das Canárias"),
-
-    RecyclingPoint(-22.8612, -43.2801,
-        "PEV Ilha do Governador – Parque Royal",
-        "Av. Governador Chagas Freitas"),
 
     // ── Outros pontos de coleta seletiva ─────────────────────────────────────
 
-    RecyclingPoint(-22.9471, -43.1866,
-        "Recicloteca",
-        "Rua Miranda Valverde, 118 – Botafogo (seg–sex 9h–17h)"),
-
-    RecyclingPoint(-22.9342, -43.1743,
-        "PEV Green Mining – Flamengo",
-        "Rua Paulo VI – coleta de vidro"),
-
-    RecyclingPoint(-22.9843, -43.2298,
-        "PEV Green Mining – Leblon",
-        "Av. Borges de Medeiros, 700 – coleta de vidro"),
 )
 
 // Localização padrão se o GPS não responder dentro do timeout
