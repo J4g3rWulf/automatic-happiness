@@ -1,7 +1,9 @@
 package br.recycleapp.di
 
 import android.content.Context
+import br.recycleapp.data.map.MapAvailabilityChecker
 import br.recycleapp.data.repository.ClassifierRepository
+import br.recycleapp.domain.map.IMapAvailabilityChecker
 import br.recycleapp.domain.repository.ITrashClassifier
 import br.recycleapp.domain.usecase.ClassifyImageUseCase
 
@@ -19,6 +21,9 @@ object AppModule {
     @Volatile
     private var repository: ITrashClassifier? = null
 
+    @Volatile
+    private var mapChecker: IMapAvailabilityChecker? = null
+
     /**
      * Retorna a instância única do repositório.
      * Thread-safe via double-checked locking.
@@ -26,7 +31,7 @@ object AppModule {
     fun provideClassifierRepository(context: Context): ITrashClassifier {
         return repository ?: synchronized(this) {
             repository ?: ClassifierRepository(
-                context.applicationContext  // applicationContext evita memory leak
+                context.applicationContext
             ).also { repository = it }
         }
     }
@@ -38,6 +43,18 @@ object AppModule {
         return ClassifyImageUseCase(
             provideClassifierRepository(context)
         )
+    }
+
+    /**
+     * Retorna a instância única do verificador de disponibilidade do mapa.
+     * Thread-safe via double-checked locking.
+     */
+    fun provideMapAvailabilityChecker(context: Context): IMapAvailabilityChecker {
+        return mapChecker ?: synchronized(this) {
+            mapChecker ?: MapAvailabilityChecker(
+                context.applicationContext
+            ).also { mapChecker = it }
+        }
     }
 
     /**
