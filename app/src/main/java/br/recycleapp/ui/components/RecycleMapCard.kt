@@ -136,7 +136,7 @@ fun RecycleMapCard(
 
     // Conta as negações manualmente — mais confiável que shouldShowRequestPermissionRationale,
     // que tem comportamento inconsistente entre fabricantes e versões do Android
-    var denialCount      by remember { mutableStateOf(0) }
+    var denialCount by remember { mutableIntStateOf(0) }
     val permanentlyDenied = denialCount >= 2  // bloqueado após 2 negações
 
     val enableGpsLauncher = rememberLauncherForActivityResult(
