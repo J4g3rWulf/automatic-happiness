@@ -2,11 +2,16 @@ package br.recycleapp.ui.components
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +19,7 @@ import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,8 +55,8 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
-// ── Ecopontos do Rio de Janeiro ───────────────────────────────────────────────
-// Coordenadas verificadas via Google Maps / Prefeitura do Rio.
+// ── PEVs de coleta seletiva do Rio de Janeiro ─────────────────────────────────
+// Coordenadas verificadas via Google Maps / Portal 1746.rio / Recicloteca.org.br
 // Futuramente: substituir por chamada à API de pontos de coleta.
 private data class RecyclingPoint(
     val latitude: Double,
@@ -113,14 +119,17 @@ private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
 /**
  * Card com mapa OpenStreetMap exibindo a localização do usuário
- * e os ecopontos do Rio de Janeiro.
+ * e os PEVs de coleta seletiva do Rio de Janeiro.
  *
  * Usa FusedLocationProvider para localização rápida e precisa,
  * e OpenStreetMap para renderizar o mapa (sem API key).
  *
  * Solicita permissão de localização ao ser exibido pela primeira vez.
  * Se o GPS estiver desligado, exibe diálogo nativo para ativá-lo.
- * Se a permissão for negada, exibe um placeholder informativo.
+ * Se a permissão for negada:
+ *   - 1ª negação: exibe botão "Permitir localização" + "Abrir configurações"
+ *   - 2ª negação: exibe apenas "Abrir configurações"
+ * Atualiza o estado de permissão ao retornar de outras telas (ON_RESUME).
  *
  * @param toneColor cor temática do material atual (usada no placeholder)
  */
@@ -129,18 +138,34 @@ fun RecycleMapCard(
     toneColor: Color,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
+    val context        = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var permissionGranted by remember {
         mutableStateOf(context.hasLocationPermission())
     }
 
-    // Launcher para o diálogo nativo de ativar GPS
+    // Re-verifica permissão ao retornar de outras telas (ex: Settings)
+    // Resolve o caso em que o usuário concede nas configurações e volta ao app
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                permissionGranted = context.hasLocationPermission()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Conta as negações manualmente — mais confiável que shouldShowRequestPermissionRationale,
+    // que tem comportamento inconsistente entre fabricantes e versões do Android
+    var denialCount      by remember { mutableStateOf(0) }
+    val permanentlyDenied = denialCount >= 2  // bloqueado após 2 negações
+
     val enableGpsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { /* usuário respondeu - mapa tenta obter localização normalmente */ }
+    ) { }
 
-    // Launcher de permissão - ao conceder, verifica e solicita GPS se necessário
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -151,7 +176,10 @@ fun RecycleMapCard(
         permissionGranted = granted
 
         if (granted) {
+            denialCount = 0
             requestEnableGps(context, enableGpsLauncher)
+        } else {
+            denialCount++  // incrementa a cada negação
         }
     }
 
@@ -164,7 +192,6 @@ fun RecycleMapCard(
                 )
             )
         } else {
-            // Já tinha permissão - verifica se GPS está ativo
             requestEnableGps(context, enableGpsLauncher)
         }
     }
@@ -178,7 +205,26 @@ fun RecycleMapCard(
         if (permissionGranted) {
             OsmMapView()
         } else {
-            MapPermissionPlaceholder(toneColor = toneColor)
+            MapPermissionPlaceholder(
+                toneColor           = toneColor,
+                permanentlyDenied   = permanentlyDenied,
+                onRequestPermission = {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                },
+                onOpenSettings = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null)
+                        )
+                    )
+                }
+            )
         }
     }
 }
@@ -188,14 +234,13 @@ fun RecycleMapCard(
 /**
  * Obtém a localização antes de renderizar o mapa.
  * Enquanto aguarda, exibe um indicador de carregamento.
- * Só cria o MapView quando já tem o centro correto.
+ * Só cria o MapView quando já tem o centro correto — sem pulos.
  */
 @Composable
 private fun OsmMapView() {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // null = ainda buscando | GeoPoint = localização obtida ou fallback
     var startCenter by remember { mutableStateOf<GeoPoint?>(null) }
 
     LaunchedEffect(Unit) {
@@ -206,7 +251,6 @@ private fun OsmMapView() {
     }
 
     if (startCenter == null) {
-        // Aguardando GPS - exibe loading breve
         Box(
             modifier         = Modifier
                 .fillMaxSize()
@@ -219,7 +263,6 @@ private fun OsmMapView() {
             )
         }
     } else {
-        // Localização obtida - cria o mapa já centrado corretamente
         OsmMapContent(
             startCenter    = startCenter!!,
             context        = context,
@@ -247,7 +290,6 @@ private fun OsmMapContent(
         }
     }
 
-    // MapView criado com o centro correto desde o início
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
@@ -310,8 +352,21 @@ private fun OsmMapContent(
 
 // ── Placeholder quando permissão negada ───────────────────────────────────────
 
+/**
+ * Exibido quando a permissão de localização foi negada.
+ *
+ * - [permanentlyDenied] false: botão "Permitir localização" + "Abrir configurações"
+ * - [permanentlyDenied] true:  apenas "Abrir configurações" (2ª negação atingida)
+ *
+ * Ripple neutro via Box clicável — evita a cor verde do tema Material.
+ */
 @Composable
-private fun MapPermissionPlaceholder(toneColor: Color) {
+private fun MapPermissionPlaceholder(
+    toneColor: Color,
+    permanentlyDenied: Boolean,
+    onRequestPermission: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
     Box(
         modifier         = Modifier
             .fillMaxSize()
@@ -330,11 +385,56 @@ private fun MapPermissionPlaceholder(toneColor: Color) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text      = "Permita o acesso à localização\npara ver ecopontos próximos",
+                text = if (permanentlyDenied)
+                    "Localização bloqueada.\nAcesse as configurações para permitir."
+                else
+                    "Permita o acesso à localização\npara ver pontos de coleta próximos",
                 color     = TextSecondary,
                 fontSize  = 12.sp,
                 textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(12.dp))
+
+            // Botão "Permitir localização" - visível apenas antes do bloqueio
+            if (!permanentlyDenied) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50.dp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication        = ripple(color = Color.Black.copy(alpha = 0.08f)),
+                            onClick           = onRequestPermission
+                        )
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text     = "Permitir localização",
+                        color    = toneColor,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+
+            // Botão "Abrir configurações" - sempre visível,
+            // torna-se o único após a 2ª negação
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication        = ripple(color = Color.Black.copy(alpha = 0.08f)),
+                        onClick           = onOpenSettings
+                    )
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text     = "Abrir configurações",
+                    color    = if (permanentlyDenied) toneColor else TextSecondary,
+                    fontSize = if (permanentlyDenied) 13.sp else 12.sp
+                )
+            }
         }
     }
 }
@@ -371,8 +471,8 @@ private fun requestEnableGps(
 
 /**
  * Obtém a localização do usuário de forma suspensa.
- * Tenta lastLocation primeiro (instantâneo).
- * Se null, força leitura fresca com timeout de 10 segundos.
+ * Força leitura fresca via requestLocationUpdates com timeout de 10 segundos.
+ * Garante posição atual mesmo após deslocamento — lastLocation ignorado.
  */
 @android.annotation.SuppressLint("MissingPermission")
 private suspend fun getUserLocation(context: Context): android.location.Location? {
