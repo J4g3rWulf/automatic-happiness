@@ -3,14 +3,15 @@ package br.recycleapp.ui.components
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.preference.PreferenceManager
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,8 +27,19 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -48,26 +59,68 @@ private data class RecyclingPoint(
     val description: String
 )
 
-private val ECOPONTOS_RIO = listOf(
-    RecyclingPoint(-22.9213, -43.2197, "Ecoponto Tijuca",         "Ponto de coleta seletiva"),
-    RecyclingPoint(-22.9583, -43.3658, "Ecoponto Jacarepaguá",    "Ponto de coleta seletiva"),
-    RecyclingPoint(-23.0120, -43.3650, "Ecoponto Barra da Tijuca","Ponto de coleta seletiva"),
-    RecyclingPoint(-23.0203, -43.4639, "Ecoponto Recreio",        "Ponto de coleta seletiva"),
-    RecyclingPoint(-22.8758, -43.4742, "Ecoponto Bangu",          "Ponto de coleta seletiva"),
-    RecyclingPoint(-22.9025, -43.5600, "Ecoponto Campo Grande",   "Ponto de coleta seletiva"),
-    RecyclingPoint(-22.9164, -43.6983, "Ecoponto Santa Cruz",     "Ponto de coleta seletiva"),
-    RecyclingPoint(-22.8742, -43.4286, "Ecoponto Realengo",       "Ponto de coleta seletiva"),
+private val PEVS_COLETA_SELETIVA_RIO = listOf(
+
+    // ── PEVs da Comlurb (funcionam 24h) ──────────────────────────────────────
+    // Recebem: papel, plástico, vidro e metal
+    // Fonte: Portal 1746.rio / Recicloteca.org.br
+
+    RecyclingPoint(-22.8876, -43.4637,
+        "PEV Bangu",
+        "Rua Roque Barbosa, 348 – Vila Catiri"),
+
+    RecyclingPoint(-22.8706, -43.3358,
+        "PEV Madureira",
+        "Sob o Viaduto Prefeito Negrão de Lima"),
+
+    RecyclingPoint(-22.9211, -43.2343,
+        "PEV Tijuca",
+        "Rua Dr. Renato Rocco, 400"),
+
+    RecyclingPoint(-22.8396, -43.3058,
+        "PEV Parada de Lucas",
+        "Av. Brasil, 13.550 – frente ao viaduto"),
+
+    RecyclingPoint(-22.8631, -43.2891,
+        "PEV Ilha do Governador – Dendê",
+        "Av. Paranapuan – Comunidade do Dendê"),
+
+    RecyclingPoint(-22.8658, -43.2742,
+        "PEV Ilha do Governador – Vila Joaniza",
+        "Estrada das Canárias"),
+
+    RecyclingPoint(-22.8612, -43.2801,
+        "PEV Ilha do Governador – Parque Royal",
+        "Av. Governador Chagas Freitas"),
+
+    // ── Outros pontos de coleta seletiva ─────────────────────────────────────
+
+    RecyclingPoint(-22.9471, -43.1866,
+        "Recicloteca",
+        "Rua Miranda Valverde, 118 – Botafogo (seg–sex 9h–17h)"),
+
+    RecyclingPoint(-22.9342, -43.1743,
+        "PEV Green Mining – Flamengo",
+        "Rua Paulo VI – coleta de vidro"),
+
+    RecyclingPoint(-22.9843, -43.2298,
+        "PEV Green Mining – Leblon",
+        "Av. Borges de Medeiros, 700 – coleta de vidro"),
 )
 
-// Localização padrão enquanto o GPS não responde
+// Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
 /**
  * Card com mapa OpenStreetMap exibindo a localização do usuário
- * e os ecopontos mais próximos do Rio de Janeiro.
+ * e os ecopontos do Rio de Janeiro.
+ *
+ * Usa FusedLocationProvider para localização rápida e precisa,
+ * e OpenStreetMap para renderizar o mapa (sem API key).
  *
  * Solicita permissão de localização ao ser exibido pela primeira vez.
- * Se negada, exibe um placeholder informativo.
+ * Se o GPS estiver desligado, exibe diálogo nativo para ativá-lo.
+ * Se a permissão for negada, exibe um placeholder informativo.
  *
  * @param toneColor cor temática do material atual (usada no placeholder)
  */
@@ -82,12 +135,24 @@ fun RecycleMapCard(
         mutableStateOf(context.hasLocationPermission())
     }
 
+    // Launcher para o diálogo nativo de ativar GPS
+    val enableGpsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { /* usuário respondeu - mapa tenta obter localização normalmente */ }
+
+    // Launcher de permissão - ao conceder, verifica e solicita GPS se necessário
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        permissionGranted =
+        val granted =
             permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                     permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        permissionGranted = granted
+
+        if (granted) {
+            requestEnableGps(context, enableGpsLauncher)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -98,6 +163,9 @@ fun RecycleMapCard(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
+        } else {
+            // Já tinha permissão - verifica se GPS está ativo
+            requestEnableGps(context, enableGpsLauncher)
         }
     }
 
@@ -117,50 +185,89 @@ fun RecycleMapCard(
 
 // ── Mapa OSM ──────────────────────────────────────────────────────────────────
 
+/**
+ * Obtém a localização antes de renderizar o mapa.
+ * Enquanto aguarda, exibe um indicador de carregamento.
+ * Só cria o MapView quando já tem o centro correto.
+ */
 @Composable
 private fun OsmMapView() {
-    val context      = LocalContext.current
+    val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Configura o osmdroid uma única vez
-    // Usa o cacheDir do app - sem necessidade de WRITE_EXTERNAL_STORAGE
+    // null = ainda buscando | GeoPoint = localização obtida ou fallback
+    var startCenter by remember { mutableStateOf<GeoPoint?>(null) }
+
+    LaunchedEffect(Unit) {
+        val location = getUserLocation(context)
+        startCenter  = location
+            ?.let { GeoPoint(it.latitude, it.longitude) }
+            ?: RIO_CENTER
+    }
+
+    if (startCenter == null) {
+        // Aguardando GPS - exibe loading breve
+        Box(
+            modifier         = Modifier
+                .fillMaxSize()
+                .background(PlaceholderLight),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color    = Color.Gray,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    } else {
+        // Localização obtida - cria o mapa já centrado corretamente
+        OsmMapContent(
+            startCenter    = startCenter!!,
+            context        = context,
+            lifecycleOwner = lifecycleOwner
+        )
+    }
+}
+
+/**
+ * Renderiza o MapView com o centro já definido.
+ * Separado do OsmMapView para garantir que o MapView
+ * só é criado uma vez, com a localização correta.
+ */
+@Composable
+private fun OsmMapContent(
+    startCenter: GeoPoint,
+    context: Context,
+    lifecycleOwner: LifecycleOwner
+) {
     remember {
         Configuration.getInstance().apply {
-            load(context, PreferenceManager.getDefaultSharedPreferences(context))
-            userAgentValue  = context.packageName
+            load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
+            userAgentValue    = context.packageName
             osmdroidTileCache = File(context.cacheDir, "osmdroid")
         }
     }
 
+    // MapView criado com o centro correto desde o início
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(true)
             isTilesScaledToDpi = true
-            controller.setZoom(12.0)
-            controller.setCenter(RIO_CENTER)
+            controller.setZoom(14.0)
+            controller.setCenter(startCenter)
         }
     }
 
-    // Overlay de localização do usuário - mostra o ponto azul no mapa
     val locationOverlay = remember {
         MyLocationNewOverlay(GpsMyLocationProvider(context), mapView).apply {
             enableMyLocation()
-            // Quando o GPS responder pela primeira vez, centraliza e aumenta o zoom
-            runOnFirstFix {
-                mapView.post {
-                    mapView.controller.animateTo(myLocation)
-                    mapView.controller.setZoom(14.0)
-                }
-            }
         }
     }
 
-    // Adiciona overlays uma única vez
     LaunchedEffect(mapView) {
         mapView.overlays.add(locationOverlay)
 
-        ECOPONTOS_RIO.forEach { ponto ->
+        PEVS_COLETA_SELETIVA_RIO.forEach { ponto ->
             Marker(mapView).apply {
                 position = GeoPoint(ponto.latitude, ponto.longitude)
                 title    = ponto.name
@@ -173,7 +280,6 @@ private fun OsmMapView() {
         mapView.invalidate()
     }
 
-    // Gerencia o ciclo de vida do MapView corretamente no Compose
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -181,7 +287,7 @@ private fun OsmMapView() {
                     mapView.onResume()
                     locationOverlay.enableMyLocation()
                 }
-                Lifecycle.Event.ON_PAUSE  -> {
+                Lifecycle.Event.ON_PAUSE -> {
                     mapView.onPause()
                     locationOverlay.disableMyLocation()
                 }
@@ -233,7 +339,72 @@ private fun MapPermissionPlaceholder(toneColor: Color) {
     }
 }
 
-// ── Extension helper ──────────────────────────────────────────────────────────
+// ── Extension helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Verifica se o GPS está ativo e, se não estiver,
+ * exibe o diálogo nativo do Android para ativar sem sair do app.
+ */
+private fun requestEnableGps(
+    context: Context,
+    launcher: androidx.activity.result.ActivityResultLauncher<IntentSenderRequest>
+) {
+    val request = LocationSettingsRequest.Builder()
+        .addLocationRequest(
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0).build()
+        )
+        .setAlwaysShow(true)
+        .build()
+
+    LocationServices.getSettingsClient(context)
+        .checkLocationSettings(request)
+        .addOnFailureListener { exception ->
+            if (exception is ResolvableApiException) {
+                runCatching {
+                    launcher.launch(
+                        IntentSenderRequest.Builder(exception.resolution).build()
+                    )
+                }
+            }
+        }
+}
+
+/**
+ * Obtém a localização do usuário de forma suspensa.
+ * Tenta lastLocation primeiro (instantâneo).
+ * Se null, força leitura fresca com timeout de 10 segundos.
+ */
+@android.annotation.SuppressLint("MissingPermission")
+private suspend fun getUserLocation(context: Context): android.location.Location? {
+    if (!context.hasLocationPermission()) return null
+    return try {
+        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+        val deferred    = CompletableDeferred<android.location.Location?>()
+
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
+            .setMaxUpdates(1)
+            .build()
+
+        val callback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val loc = result.locations.firstOrNull() ?: result.lastLocation
+                deferred.complete(loc)
+            }
+        }
+
+        fusedClient.requestLocationUpdates(
+            request,
+            callback,
+            android.os.Looper.getMainLooper()
+        )
+
+        val location = withTimeoutOrNull(10_000) { deferred.await() }
+        fusedClient.removeLocationUpdates(callback)
+        location
+    } catch (_: Exception) {
+        null
+    }
+}
 
 private fun Context.hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
