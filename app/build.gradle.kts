@@ -1,7 +1,25 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+// ── Leitura do local.properties ───────────────────────────────────────────────
+val mapsApiKey: String by lazy {
+    val props = Properties()
+    val file  = File(rootDir, "local.properties")
+    if (file.exists()) FileInputStream(file).use { props.load(it) }
+    props.getProperty("MAPS_API_KEY") ?: ""
+}
+
+val mapsCheckerKey: String by lazy {
+    val props = Properties()
+    val file  = File(rootDir, "local.properties")
+    if (file.exists()) FileInputStream(file).use { props.load(it) }
+    props.getProperty("MAPS_CHECKER_KEY") ?: ""
 }
 
 android {
@@ -17,9 +35,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val mapsApiKey = properties["MAPS_API_KEY"]?.toString() ?: ""
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        buildConfigField("String", "MAPS_CHECKER_KEY", "\"$mapsCheckerKey\"")
     }
 
     buildTypes {
