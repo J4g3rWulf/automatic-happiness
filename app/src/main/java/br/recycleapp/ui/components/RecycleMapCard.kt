@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -29,77 +28,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.withTimeoutOrNull
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import java.io.File
-
-// ── PEVs de coleta seletiva do Rio de Janeiro ─────────────────────────────────
-// Coordenadas verificadas via Google Maps / Portal 1746.rio / Recicloteca.org.br
-// Futuramente: substituir por chamada à API de pontos de coleta.
-private data class RecyclingPoint(
-    val latitude: Double,
-    val longitude: Double,
-    val name: String,
-    val description: String
-)
-
-private val PEVS_COLETA_SELETIVA_RIO = listOf(
-
-    // ── PEVs da Comlurb (funcionam 24h) ──────────────────────────────────────
-    // Recebem: papel, plástico, vidro e metal
-    // Fonte: Portal 1746.rio / Recicloteca.org.br
-
-    //OK
-    RecyclingPoint(-22.85046155285499, -43.46413468350324,
-        "PEV Bangu",
-        "Rua Roque Barbosa, 348 - Bangu"),
-
-    //OK
-    RecyclingPoint(-22.87516362916978, -43.33496706988172,
-        "PEV Madureira",
-        "Sob o Viaduto Prefeito Negrão de Lima"),
-
-    //OK
-    RecyclingPoint(-22.927124968864515, -43.229079230075605,
-        "PEV Tijuca",
-        "Rua Dr. Renato Rocco, 400"),
-
-
-    // ── Outros pontos de coleta seletiva ─────────────────────────────────────
-
-)
-
-// Localização padrão se o GPS não responder dentro do timeout
-private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
 /**
- * Card com mapa OpenStreetMap exibindo a localização do usuário
+ * Card com mapa exibindo a localização do usuário
  * e os PEVs de coleta seletiva do Rio de Janeiro.
- *
- * Usa FusedLocationProvider para localização rápida e precisa,
- * e OpenStreetMap para renderizar o mapa (sem API key).
  *
  * Solicita permissão de localização ao ser exibido pela primeira vez.
  * Se o GPS estiver desligado, exibe diálogo nativo para ativá-lo.
@@ -123,7 +66,6 @@ fun RecycleMapCard(
     }
 
     // Re-verifica permissão ao retornar de outras telas (ex: Settings)
-    // Resolve o caso em que o usuário concede nas configurações e volta ao app
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -134,10 +76,9 @@ fun RecycleMapCard(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Conta as negações manualmente — mais confiável que shouldShowRequestPermissionRationale,
-    // que tem comportamento inconsistente entre fabricantes e versões do Android
+    // Conta as negações manualmente
     var denialCount by remember { mutableIntStateOf(0) }
-    val permanentlyDenied = denialCount >= 2  // bloqueado após 2 negações
+    val permanentlyDenied = denialCount >= 2
 
     val enableGpsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -156,7 +97,7 @@ fun RecycleMapCard(
             denialCount = 0
             requestEnableGps(context, enableGpsLauncher)
         } else {
-            denialCount++  // incrementa a cada negação
+            denialCount++
         }
     }
 
@@ -206,127 +147,6 @@ fun RecycleMapCard(
     }
 }
 
-// ── Mapa OSM ──────────────────────────────────────────────────────────────────
-
-/**
- * Obtém a localização antes de renderizar o mapa.
- * Enquanto aguarda, exibe um indicador de carregamento.
- * Só cria o MapView quando já tem o centro correto — sem pulos.
- */
-@Composable
-private fun OsmMapView() {
-    val context        = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    var startCenter by remember { mutableStateOf<GeoPoint?>(null) }
-
-    LaunchedEffect(Unit) {
-        val location = getUserLocation(context)
-        startCenter  = location
-            ?.let { GeoPoint(it.latitude, it.longitude) }
-            ?: RIO_CENTER
-    }
-
-    if (startCenter == null) {
-        Box(
-            modifier         = Modifier
-                .fillMaxSize()
-                .background(PlaceholderLight),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                color    = Color.Gray,
-                modifier = Modifier.size(32.dp)
-            )
-        }
-    } else {
-        OsmMapContent(
-            startCenter    = startCenter!!,
-            context        = context,
-            lifecycleOwner = lifecycleOwner
-        )
-    }
-}
-
-/**
- * Renderiza o MapView com o centro já definido.
- * Separado do OsmMapView para garantir que o MapView
- * só é criado uma vez, com a localização correta.
- */
-@Composable
-private fun OsmMapContent(
-    startCenter: GeoPoint,
-    context: Context,
-    lifecycleOwner: LifecycleOwner
-) {
-    remember {
-        Configuration.getInstance().apply {
-            load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
-            userAgentValue    = context.packageName
-            osmdroidTileCache = File(context.cacheDir, "osmdroid")
-        }
-    }
-
-    val mapView = remember {
-        MapView(context).apply {
-            setTileSource(TileSourceFactory.MAPNIK)
-            setMultiTouchControls(true)
-            isTilesScaledToDpi = true
-            controller.setZoom(14.0)
-            controller.setCenter(startCenter)
-        }
-    }
-
-    val locationOverlay = remember {
-        MyLocationNewOverlay(GpsMyLocationProvider(context), mapView).apply {
-            enableMyLocation()
-        }
-    }
-
-    LaunchedEffect(mapView) {
-        mapView.overlays.add(locationOverlay)
-
-        PEVS_COLETA_SELETIVA_RIO.forEach { ponto ->
-            Marker(mapView).apply {
-                position = GeoPoint(ponto.latitude, ponto.longitude)
-                title    = ponto.name
-                snippet  = ponto.description
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                mapView.overlays.add(this)
-            }
-        }
-
-        mapView.invalidate()
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    mapView.onResume()
-                    locationOverlay.enableMyLocation()
-                }
-                Lifecycle.Event.ON_PAUSE -> {
-                    mapView.onPause()
-                    locationOverlay.disableMyLocation()
-                }
-                else -> Unit
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            locationOverlay.disableMyLocation()
-            mapView.onDetach()
-        }
-    }
-
-    AndroidView(
-        factory  = { mapView },
-        modifier = Modifier.fillMaxSize()
-    )
-}
-
 // ── Placeholder quando permissão negada ───────────────────────────────────────
 
 /**
@@ -334,8 +154,6 @@ private fun OsmMapContent(
  *
  * - [permanentlyDenied] false: botão "Permitir localização" + "Abrir configurações"
  * - [permanentlyDenied] true:  apenas "Abrir configurações" (2ª negação atingida)
- *
- * Ripple neutro via Box clicável — evita a cor verde do tema Material.
  */
 @Composable
 private fun MapPermissionPlaceholder(
@@ -372,7 +190,6 @@ private fun MapPermissionPlaceholder(
             )
             Spacer(Modifier.height(12.dp))
 
-            // Botão "Permitir localização" - visível apenas antes do bloqueio
             if (!permanentlyDenied) {
                 Box(
                     modifier = Modifier
@@ -393,8 +210,6 @@ private fun MapPermissionPlaceholder(
                 }
             }
 
-            // Botão "Abrir configurações" - sempre visível,
-            // torna-se o único após a 2ª negação
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50.dp))
@@ -447,43 +262,9 @@ private fun requestEnableGps(
 }
 
 /**
- * Obtém a localização do usuário de forma suspensa.
- * Força leitura fresca via requestLocationUpdates com timeout de 10 segundos.
- * Garante posição atual mesmo após deslocamento — lastLocation ignorado.
+ * Retorna true se o app tem permissão de localização fina ou aproximada.
  */
-@android.annotation.SuppressLint("MissingPermission")
-private suspend fun getUserLocation(context: Context): android.location.Location? {
-    if (!context.hasLocationPermission()) return null
-    return try {
-        val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-        val deferred    = CompletableDeferred<android.location.Location?>()
-
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
-            .setMaxUpdates(1)
-            .build()
-
-        val callback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                val loc = result.locations.firstOrNull() ?: result.lastLocation
-                deferred.complete(loc)
-            }
-        }
-
-        fusedClient.requestLocationUpdates(
-            request,
-            callback,
-            android.os.Looper.getMainLooper()
-        )
-
-        val location = withTimeoutOrNull(10_000) { deferred.await() }
-        fusedClient.removeLocationUpdates(callback)
-        location
-    } catch (_: Exception) {
-        null
-    }
-}
-
-private fun Context.hasLocationPermission(): Boolean =
+internal fun Context.hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
