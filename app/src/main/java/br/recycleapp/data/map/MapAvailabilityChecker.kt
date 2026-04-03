@@ -68,7 +68,7 @@ class MapAvailabilityChecker(
         try {
             val url = URL(
                 "https://maps.googleapis.com/maps/api/staticmap" +
-                        "?center=0,0&zoom=1&size=1x1&key=${BuildConfig.MAPS_API_KEY}"
+                        "?center=0,0&zoom=1&size=1x1&key=${BuildConfig.MAPS_CHECKER_KEY}"
             )
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 connectTimeout = 5_000

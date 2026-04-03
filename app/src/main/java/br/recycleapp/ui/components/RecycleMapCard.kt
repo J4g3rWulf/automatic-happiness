@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -32,6 +33,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.MapProvider
 import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
 import com.google.android.gms.common.api.ResolvableApiException
@@ -44,12 +47,13 @@ import com.google.android.gms.location.Priority
  * Card com mapa exibindo a localização do usuário
  * e os PEVs de coleta seletiva do Rio de Janeiro.
  *
+ * Usa o Google Maps como mapa principal e OpenStreetMap como mapa reserva.
+ * A troca é feita automaticamente via [br.recycleapp.data.map.MapAvailabilityChecker]:
+ * se o Google Maps estiver indisponível (cota esgotada ou sem billing),
+ * exibe o OSM com um banner informativo.
+ *
  * Solicita permissão de localização ao ser exibido pela primeira vez.
- * Se o GPS estiver desligado, exibe diálogo nativo para ativá-lo.
- * Se a permissão for negada:
- *   - 1ª negação: exibe botão "Permitir localização" + "Abrir configurações"
- *   - 2ª negação: exibe apenas "Abrir configurações"
- * Atualiza o estado de permissão ao retornar de outras telas (ON_RESUME).
+ * Se a permissão for negada exibe placeholder com opções de recuperação.
  *
  * @param toneColor cor temática do material atual (usada no placeholder)
  */
@@ -121,7 +125,7 @@ fun RecycleMapCard(
             .clip(RoundedCornerShape(12.dp))
     ) {
         if (permissionGranted) {
-            OsmMapView()
+            MapWithFallback(toneColor = toneColor)
         } else {
             MapPermissionPlaceholder(
                 toneColor           = toneColor,
@@ -144,6 +148,94 @@ fun RecycleMapCard(
                 }
             )
         }
+    }
+}
+
+// ── Orquestração dos mapas ────────────────────────────────────────────────────
+
+/**
+ * Verifica a disponibilidade do Google Maps e renderiza o mapa adequado.
+ *
+ * Enquanto verifica: exibe loading.
+ * Google disponível:  exibe [GoogleMapView].
+ * Google indisponível: exibe [OsmMapView] + [MapFallbackBanner].
+ *
+ * @param toneColor cor temática usada no banner de fallback
+ */
+@Composable
+private fun MapWithFallback(toneColor: Color) {
+    val context = LocalContext.current
+
+    var mapProvider  by remember { mutableStateOf<MapProvider?>(null) }
+    var isChecking   by remember { mutableStateOf(true) }
+
+    // Verifica disponibilidade ao montar o composable
+    LaunchedEffect(Unit) {
+        val checker  = AppModule.provideMapAvailabilityChecker(context)
+        mapProvider  = checker.getAvailableProvider()
+        isChecking   = false
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            // ── Verificando disponibilidade ───────────────────────────
+            isChecking -> {
+                Box(
+                    modifier         = Modifier
+                        .fillMaxSize()
+                        .background(PlaceholderLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color    = Color.Gray,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+
+            // ── Google Maps disponível ────────────────────────────────
+            mapProvider == MapProvider.GOOGLE -> {
+                GoogleMapView()
+            }
+
+            // ── Mapa reserva (OSM) ────────────────────────────────────
+            else -> {
+                OsmMapView()
+                MapFallbackBanner(
+                    toneColor = toneColor,
+                    modifier  = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+        }
+    }
+}
+
+// ── Banner de fallback ────────────────────────────────────────────────────────
+
+/**
+ * Banner exibido quando o Google Maps está indisponível.
+ * Informa o usuário que o mapa reserva está ativo.
+ *
+ * @param toneColor cor temática do material atual
+ */
+@Composable
+private fun MapFallbackBanner(
+    toneColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.60f))
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text      = "Mapa principal indisponível — exibindo mapa reserva",
+            color     = Color.White,
+            fontSize  = 11.sp,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
