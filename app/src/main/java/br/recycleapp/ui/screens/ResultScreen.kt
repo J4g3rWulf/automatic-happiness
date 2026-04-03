@@ -57,8 +57,8 @@ private data class MaterialData(
     val btnRight: Color,
     val binOffsetX: Dp = 0.dp,
     val binOffsetY: Dp = 0.dp,
-    @DrawableRes val binIcon: Int,
-    @DrawableRes val bgImage: Int,
+    @param:DrawableRes val binIcon: Int,
+    @param:DrawableRes val bgImage: Int,
     val cardData: MaterialCardData
 )
 
@@ -165,7 +165,7 @@ private fun dataForLabel(label: String): MaterialData =
  * Para o caso "Indefinido", exibe dois cards de orientação.
  *
  * Animações:
- * - [AnimatedVisibility] com fadeIn + slideInVertically — entrada do conteúdo
+ * - [AnimatedVisibility] com fadeIn + slideInVertically - entrada do conteúdo
  */
 @Composable
 fun ResultScreen(
@@ -229,7 +229,7 @@ fun ResultScreen(
                     // isUnknown tem valor menor para compensar o título menor
                     Spacer(Modifier.height(if (isUnknown) 30.dp else 40.dp))
 
-                    // "Material identificado como" — 70% de opacidade
+                    // "Material identificado como" - 70% de opacidade
                     Text(
                         text  = stringResource(R.string.result_identified_as),
                         color = WhiteText.copy(alpha = 0.70f),
@@ -245,7 +245,7 @@ fun ResultScreen(
                         text     = label.replaceFirstChar { it.titlecase() },
                         color    = WhiteText,
                         style    = MaterialTheme.typography.headlineLarge.copy(
-                            fontSize   = if (isUnknown) 35.sp else 56.sp,  // tamanho da fonte
+                            fontSize   = if (isUnknown) 35.sp else 56.sp,
                             //fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.fillMaxWidth()
@@ -264,7 +264,7 @@ fun ResultScreen(
                             MaterialCard(data = data.cardData)
                         }
 
-                        // Lixeira — ancoraa no canto superior direito do Box
+                        // Lixeira - ancoraa no canto superior direito do Box
                         Image(
                             painter            = painterResource(data.binIcon),
                             contentDescription = null,
