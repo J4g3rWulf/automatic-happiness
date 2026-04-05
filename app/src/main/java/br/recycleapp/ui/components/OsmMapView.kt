@@ -18,6 +18,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -138,6 +139,17 @@ private fun OsmMapContent(
                 title    = point.name
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+                // Cor diferente por tipo — OSM usa ícones padrão por cor
+                icon = when (point.type) {
+                    PointType.PEV      -> androidx.core.content.ContextCompat.getDrawable(
+                        context, org.osmdroid.library.R.drawable.marker_default
+                    )
+                    PointType.ECOPONTO -> androidx.core.content.ContextCompat.getDrawable(
+                        context, org.osmdroid.library.R.drawable.person
+                    )
+                }
+
                 setOnMarkerClickListener { _, _ ->
                     onMarkerClick(point)
                     true
