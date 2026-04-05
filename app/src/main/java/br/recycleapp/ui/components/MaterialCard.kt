@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
+import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderDark
 import br.recycleapp.ui.theme.TextSecondary
 
@@ -41,6 +42,7 @@ data class MaterialCardData(
 @Composable
 fun MaterialCard(
     data: MaterialCardData,
+    onMarkerClick: (RecyclingPoint) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -78,7 +80,10 @@ fun MaterialCard(
 
             Spacer(Modifier.height(10.dp))
 
-            RecycleMapCard(toneColor = data.tone)
+            RecycleMapCard(
+                toneColor     = data.tone,
+                onMarkerClick = onMarkerClick
+            )
 
         }
     }
