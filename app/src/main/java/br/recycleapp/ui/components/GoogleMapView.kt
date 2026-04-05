@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -28,58 +30,30 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 
-// ── PEVs de coleta seletiva do Rio de Janeiro ─────────────────────────────────
-// Mesmos pontos do OsmMapView - fonte única futuramente substituída por API
-private data class GoogleRecyclingPoint(
-    val latitude: Double,
-    val longitude: Double,
-    val name: String,
-    val snippet: String
-)
-
-private val PEVS_GOOGLE = listOf(
-
-    // ── PEVs da Comlurb (funcionam 24h) ──────────────────────────────────────
-    // Recebem: papel, plástico, vidro e metal
-
-    GoogleRecyclingPoint(
-        -22.85046155285499, -43.46413468350324,
-        "PEV Bangu",
-        "Rua Roque Barbosa, 348 - Bangu"
-    ),
-    GoogleRecyclingPoint(
-        -22.87516362916978, -43.33496706988172,
-        "PEV Madureira",
-        "Sob o Viaduto Prefeito Negrão de Lima"
-    ),
-    GoogleRecyclingPoint(
-        -22.927124968864515, -43.229079230075605,
-        "PEV Tijuca",
-        "Rua Dr. Renato Rocco, 400"
-    ),
-)
-
 // Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
 
 /**
- * Mapa Google Maps com a localização do usuário e os PEVs de coleta seletiva.
- *
- * Obtém a localização via FusedLocationProvider antes de renderizar,
- * exibindo um indicador de carregamento enquanto aguarda.
+ * Mapa Google Maps com a localização do usuário e os pontos de coleta
+ * buscados via Places API (com cache geográfico).
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
+ *
+ * @param onMarkerClick callback chamado quando o usuário toca num marcador
  */
 @android.annotation.SuppressLint("MissingPermission")
 @Composable
-fun GoogleMapView() {
+fun GoogleMapView(
+    onMarkerClick: (RecyclingPoint) -> Unit = {}
+) {
     val context = LocalContext.current
 
-    var userLocation by remember { mutableStateOf<LatLng?>(null) }
-    var locationReady by remember { mutableStateOf(false) }
+    var userLocation  by remember { mutableStateOf<LatLng?>(null) }
+    var recyclingPoints by remember { mutableStateOf<List<RecyclingPoint>>(emptyList()) }
+    var isLoading     by remember { mutableStateOf(true) }
 
-    // Obtém localização antes de renderizar o mapa
     LaunchedEffect(Unit) {
+        // Obtém localização
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
         val deferred    = CompletableDeferred<LatLng?>()
 
@@ -103,12 +77,17 @@ fun GoogleMapView() {
         val location = withTimeoutOrNull(10_000) { deferred.await() }
         fusedClient.removeLocationUpdates(callback)
 
-        userLocation  = location ?: RIO_CENTER_GOOGLE
-        locationReady = true
+        val center = location ?: RIO_CENTER_GOOGLE
+        userLocation = center
+
+        // Busca pontos de coleta via repositório (cache ou API)
+        val repository = AppModule.provideRecyclingPointRepository(context)
+        recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
+
+        isLoading = false
     }
 
-    if (!locationReady) {
-        // ── Loading enquanto obtém localização ────────────────────────
+    if (isLoading) {
         Box(
             modifier         = Modifier
                 .fillMaxSize()
@@ -121,20 +100,23 @@ fun GoogleMapView() {
             )
         }
     } else {
-        // ── Mapa Google Maps ──────────────────────────────────────────
-        GoogleMapContent(center = userLocation ?: RIO_CENTER_GOOGLE)
+        GoogleMapContent(
+            center         = userLocation ?: RIO_CENTER_GOOGLE,
+            points         = recyclingPoints,
+            onMarkerClick  = onMarkerClick
+        )
     }
 }
 
 /**
- * Renderiza o GoogleMap com câmera centrada em [center] e marcadores dos PEVs.
- * Separado do [GoogleMapView] para garantir que o mapa só é criado
- * uma vez, com a localização correta.
- *
- * @param center posição inicial da câmera
+ * Renderiza o GoogleMap com câmera centrada em [center] e marcadores dos pontos de coleta.
  */
 @Composable
-private fun GoogleMapContent(center: LatLng) {
+private fun GoogleMapContent(
+    center: LatLng,
+    points: List<RecyclingPoint>,
+    onMarkerClick: (RecyclingPoint) -> Unit
+) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(center, 14f)
     }
@@ -144,18 +126,21 @@ private fun GoogleMapContent(center: LatLng) {
         cameraPositionState = cameraPositionState,
         properties          = MapProperties(isMyLocationEnabled = true),
         uiSettings          = MapUiSettings(
-            zoomControlsEnabled  = false,
+            zoomControlsEnabled     = false,
             myLocationButtonEnabled = true
         )
     ) {
-        // ── Marcadores dos PEVs ───────────────────────────────────────
-        PEVS_GOOGLE.forEach { ponto ->
+        points.forEach { point ->
             Marker(
                 state   = MarkerState(
-                    position = LatLng(ponto.latitude, ponto.longitude)
+                    position = LatLng(point.latitude, point.longitude)
                 ),
-                title   = ponto.name,
-                snippet = ponto.snippet
+                title   = point.name,
+                snippet = point.address,
+                onClick = {
+                    onMarkerClick(point)
+                    false // false = comportamento padrão (abre info window)
+                }
             )
         }
     }
