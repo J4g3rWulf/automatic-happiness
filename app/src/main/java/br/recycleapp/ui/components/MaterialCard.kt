@@ -32,7 +32,8 @@ data class MaterialCardData(
     val cardTitleColor: Color,
     val cardTitle: Int,
     val tip1: Int,
-    val tip2: Int
+    val tip2: Int,
+    val mapColor: Color = tone
 )
 
 /**
@@ -42,8 +43,8 @@ data class MaterialCardData(
 @Composable
 fun MaterialCard(
     data: MaterialCardData,
-    onMarkerClick: (RecyclingPoint) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMarkerClick: (RecyclingPoint) -> Unit = {}
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -81,7 +82,7 @@ fun MaterialCard(
             Spacer(Modifier.height(10.dp))
 
             RecycleMapCard(
-                toneColor     = data.tone,
+                toneColor     = data.mapColor,
                 onMarkerClick = onMarkerClick
             )
 
