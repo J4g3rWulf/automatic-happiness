@@ -35,6 +35,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.di.AppModule
 import br.recycleapp.domain.map.MapProvider
+import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
 import com.google.android.gms.common.api.ResolvableApiException
@@ -45,21 +46,18 @@ import com.google.android.gms.location.Priority
 
 /**
  * Card com mapa exibindo a localização do usuário
- * e os PEVs de coleta seletiva do Rio de Janeiro.
+ * e os pontos de coleta seletiva próximos.
  *
  * Usa o Google Maps como mapa principal e OpenStreetMap como mapa reserva.
- * A troca é feita automaticamente via [br.recycleapp.data.map.MapAvailabilityChecker]:
- * se o Google Maps estiver indisponível (cota esgotada ou sem billing),
- * exibe o OSM com um banner informativo.
+ * A troca é feita automaticamente via [br.recycleapp.data.map.MapAvailabilityChecker].
  *
- * Solicita permissão de localização ao ser exibido pela primeira vez.
- * Se a permissão for negada exibe placeholder com opções de recuperação.
- *
- * @param toneColor cor temática do material atual (usada no placeholder)
+ * @param toneColor     cor temática do material atual (usada no placeholder)
+ * @param onMarkerClick callback chamado quando o usuário toca num marcador
  */
 @Composable
 fun RecycleMapCard(
     toneColor: Color,
+    onMarkerClick: (RecyclingPoint) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context        = LocalContext.current
@@ -69,7 +67,6 @@ fun RecycleMapCard(
         mutableStateOf(context.hasLocationPermission())
     }
 
-    // Re-verifica permissão ao retornar de outras telas (ex: Settings)
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -80,7 +77,6 @@ fun RecycleMapCard(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Conta as negações manualmente
     var denialCount by remember { mutableIntStateOf(0) }
     val permanentlyDenied = denialCount >= 2
 
@@ -125,7 +121,10 @@ fun RecycleMapCard(
             .clip(RoundedCornerShape(12.dp))
     ) {
         if (permissionGranted) {
-            MapWithFallback(toneColor = toneColor)
+            MapWithFallback(
+                toneColor     = toneColor,
+                onMarkerClick = onMarkerClick
+            )
         } else {
             MapPermissionPlaceholder(
                 toneColor           = toneColor,
@@ -153,32 +152,24 @@ fun RecycleMapCard(
 
 // ── Orquestração dos mapas ────────────────────────────────────────────────────
 
-/**
- * Verifica a disponibilidade do Google Maps e renderiza o mapa adequado.
- *
- * Enquanto verifica: exibe loading.
- * Google disponível:  exibe [GoogleMapView].
- * Google indisponível: exibe [OsmMapView] + [MapFallbackBanner].
- *
- * @param toneColor cor temática usada no banner de fallback
- */
 @Composable
-private fun MapWithFallback(toneColor: Color) {
+private fun MapWithFallback(
+    toneColor: Color,
+    onMarkerClick: (RecyclingPoint) -> Unit
+) {
     val context = LocalContext.current
 
-    var mapProvider  by remember { mutableStateOf<MapProvider?>(null) }
-    var isChecking   by remember { mutableStateOf(true) }
+    var mapProvider by remember { mutableStateOf<MapProvider?>(null) }
+    var isChecking  by remember { mutableStateOf(true) }
 
-    // Verifica disponibilidade ao montar o composable
     LaunchedEffect(Unit) {
-        val checker  = AppModule.provideMapAvailabilityChecker(context)
-        mapProvider  = checker.getAvailableProvider()
-        isChecking   = false
+        val checker = AppModule.provideMapAvailabilityChecker(context)
+        mapProvider = checker.getAvailableProvider()
+        isChecking  = false
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            // ── Verificando disponibilidade ───────────────────────────
             isChecking -> {
                 Box(
                     modifier         = Modifier
@@ -193,14 +184,12 @@ private fun MapWithFallback(toneColor: Color) {
                 }
             }
 
-            // ── Google Maps disponível ────────────────────────────────
             mapProvider == MapProvider.GOOGLE -> {
-                GoogleMapView()
+                GoogleMapView(onMarkerClick = onMarkerClick)
             }
 
-            // ── Mapa reserva (OSM) ────────────────────────────────────
             else -> {
-                OsmMapView()
+                OsmMapView(onMarkerClick = onMarkerClick)
                 MapFallbackBanner(
                     toneColor = toneColor,
                     modifier  = Modifier.align(Alignment.BottomCenter)
@@ -212,12 +201,6 @@ private fun MapWithFallback(toneColor: Color) {
 
 // ── Banner de fallback ────────────────────────────────────────────────────────
 
-/**
- * Banner exibido quando o Google Maps está indisponível.
- * Informa o usuário que o mapa reserva está ativo.
- *
- * @param toneColor cor temática do material atual
- */
 @Composable
 private fun MapFallbackBanner(
     toneColor: Color,
@@ -241,12 +224,6 @@ private fun MapFallbackBanner(
 
 // ── Placeholder quando permissão negada ───────────────────────────────────────
 
-/**
- * Exibido quando a permissão de localização foi negada.
- *
- * - [permanentlyDenied] false: botão "Permitir localização" + "Abrir configurações"
- * - [permanentlyDenied] true:  apenas "Abrir configurações" (2ª negação atingida)
- */
 @Composable
 private fun MapPermissionPlaceholder(
     toneColor: Color,
@@ -325,10 +302,6 @@ private fun MapPermissionPlaceholder(
 
 // ── Extension helpers ─────────────────────────────────────────────────────────
 
-/**
- * Verifica se o GPS está ativo e, se não estiver,
- * exibe o diálogo nativo do Android para ativar sem sair do app.
- */
 private fun requestEnableGps(
     context: Context,
     launcher: androidx.activity.result.ActivityResultLauncher<IntentSenderRequest>
@@ -353,9 +326,6 @@ private fun requestEnableGps(
         }
 }
 
-/**
- * Retorna true se o app tem permissão de localização fina ou aproximada.
- */
 internal fun Context.hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED ||

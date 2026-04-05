@@ -17,6 +17,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -34,65 +36,38 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
-// ── PEVs de coleta seletiva do Rio de Janeiro ─────────────────────────────────
-// Coordenadas verificadas via Google Maps / Portal 1746.rio / Recicloteca.org.br
-// Futuramente: substituir por chamada à API de pontos de coleta.
-private data class RecyclingPoint(
-    val latitude: Double,
-    val longitude: Double,
-    val name: String,
-    val description: String
-)
-
-private val PEVS_COLETA_SELETIVA_RIO = listOf(
-
-    // ── PEVs da Comlurb (funcionam 24h) ──────────────────────────────────────
-    // Recebem: papel, plástico, vidro e metal
-    // Fonte: Portal 1746.rio / Recicloteca.org.br
-
-    RecyclingPoint(
-        -22.85046155285499, -43.46413468350324,
-        "PEV Bangu",
-        "Rua Roque Barbosa, 348 - Bangu"
-    ),
-    RecyclingPoint(
-        -22.87516362916978, -43.33496706988172,
-        "PEV Madureira",
-        "Sob o Viaduto Prefeito Negrão de Lima"
-    ),
-    RecyclingPoint(
-        -22.927124968864515, -43.229079230075605,
-        "PEV Tijuca",
-        "Rua Dr. Renato Rocco, 400"
-    ),
-
-    // ── Outros pontos de coleta seletiva ─────────────────────────────────────
-
-)
-
 // Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
 /**
- * Mapa OpenStreetMap com a localização do usuário e os PEVs de coleta seletiva.
- *
- * Obtém a localização via FusedLocationProvider antes de renderizar,
- * exibindo um indicador de carregamento enquanto aguarda.
+ * Mapa OpenStreetMap com a localização do usuário e os pontos de coleta
+ * buscados via repositório (mesmo cache do GoogleMapView).
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
+ *
+ * @param onMarkerClick callback chamado quando o usuário toca num marcador
  */
 @Composable
-fun OsmMapView() {
+fun OsmMapView(
+    onMarkerClick: (RecyclingPoint) -> Unit = {}
+) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var startCenter by remember { mutableStateOf<GeoPoint?>(null) }
+    var startCenter     by remember { mutableStateOf<GeoPoint?>(null) }
+    var recyclingPoints by remember { mutableStateOf<List<RecyclingPoint>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         val location = getUserLocation(context)
-        startCenter  = location
+        val center   = location
             ?.let { GeoPoint(it.latitude, it.longitude) }
             ?: RIO_CENTER
+
+        startCenter = center
+
+        // Busca pontos de coleta via repositório (mesmo cache do GoogleMapView)
+        val repository  = AppModule.provideRecyclingPointRepository(context)
+        recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
     }
 
     if (startCenter == null) {
@@ -110,22 +85,24 @@ fun OsmMapView() {
     } else {
         OsmMapContent(
             startCenter    = startCenter!!,
+            points         = recyclingPoints,
             context        = context,
-            lifecycleOwner = lifecycleOwner
+            lifecycleOwner = lifecycleOwner,
+            onMarkerClick  = onMarkerClick
         )
     }
 }
 
 /**
- * Renderiza o MapView com o centro já definido.
- * Separado do [OsmMapView] para garantir que o MapView
- * só é criado uma vez, com a localização correta.
+ * Renderiza o MapView OSM com marcadores dos pontos de coleta.
  */
 @Composable
 private fun OsmMapContent(
     startCenter: GeoPoint,
+    points: List<RecyclingPoint>,
     context: Context,
-    lifecycleOwner: LifecycleOwner
+    lifecycleOwner: LifecycleOwner,
+    onMarkerClick: (RecyclingPoint) -> Unit
 ) {
     remember {
         Configuration.getInstance().apply {
@@ -151,15 +128,20 @@ private fun OsmMapContent(
         }
     }
 
-    LaunchedEffect(mapView) {
+    LaunchedEffect(mapView, points) {
+        mapView.overlays.clear()
         mapView.overlays.add(locationOverlay)
 
-        PEVS_COLETA_SELETIVA_RIO.forEach { ponto ->
+        points.forEach { point ->
             Marker(mapView).apply {
-                position = GeoPoint(ponto.latitude, ponto.longitude)
-                title    = ponto.name
-                snippet  = ponto.description
+                position = GeoPoint(point.latitude, point.longitude)
+                title    = point.name
+                snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                setOnMarkerClickListener { _, _ ->
+                    onMarkerClick(point)
+                    true
+                }
                 mapView.overlays.add(this)
             }
         }
@@ -198,8 +180,7 @@ private fun OsmMapContent(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
- * Obtém a localização do usuário de forma suspensa.
- * Força leitura fresca via requestLocationUpdates com timeout de 10 segundos.
+ * Obtém a localização do usuário de forma suspensa com timeout de 10 segundos.
  */
 @android.annotation.SuppressLint("MissingPermission")
 private suspend fun getUserLocation(context: Context): android.location.Location? {
