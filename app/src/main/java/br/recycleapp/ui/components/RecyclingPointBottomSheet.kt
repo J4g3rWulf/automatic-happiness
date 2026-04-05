@@ -28,32 +28,26 @@ import br.recycleapp.domain.map.RecyclingPoint
  * Mostra nome, tipo, endereço e banner de materiais aceitos.
  * Oferece botão para abrir o local no Google Maps nativo.
  *
- * @param point     ponto de coleta selecionado
- * @param onDismiss callback para fechar o sheet
+ * @param point      ponto de coleta selecionado
+ * @param sheetColor cor de fundo do sheet — deve corresponder ao material da tela
+ * @param onDismiss  callback para fechar o sheet
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecyclingPointBottomSheet(
     point: RecyclingPoint,
+    sheetColor: Color = Color(0xFF1565C0),
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
 
-    val sheetBackground = Color(0xFF1565C0) // azul escuro
-
     ModalBottomSheet(
-        onDismissRequest  = onDismiss,
-        shape             = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        containerColor    = sheetBackground,
-        dragHandle        = {
-            // Handle branco para contrastar com o fundo azul
+        onDismissRequest = onDismiss,
+        shape            = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        containerColor   = sheetColor,
+        dragHandle       = {
             Box(
-                modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .size(width = 32.dp, height = 4.dp)
-                    .then(
-                        Modifier.wrapContentSize()
-                    ),
+                modifier         = Modifier.padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 HorizontalDivider(
@@ -154,7 +148,7 @@ fun RecyclingPointBottomSheet(
                 shape    = RoundedCornerShape(50.dp),
                 colors   = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
-                    contentColor   = Color(0xFF1565C0)
+                    contentColor   = sheetColor
                 )
             ) {
                 Text(

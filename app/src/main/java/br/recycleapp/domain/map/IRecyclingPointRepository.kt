@@ -10,8 +10,8 @@ interface IRecyclingPointRepository {
     /**
      * Retorna os pontos de coleta próximos à localização informada.
      *
-     * Usa cache se o usuário estiver dentro de [cacheRadiusKm] km
-     * da última busca e o cache tiver menos de [cacheDays] dias.
+     * Usa cache geográfico se o usuário estiver na mesma região
+     * da última busca e o cache ainda for válido.
      * Caso contrário, chama a Places API.
      *
      * @param latitude   latitude atual do usuário

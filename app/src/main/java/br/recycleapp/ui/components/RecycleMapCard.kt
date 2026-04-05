@@ -185,13 +185,16 @@ private fun MapWithFallback(
             }
 
             mapProvider == MapProvider.GOOGLE -> {
-                GoogleMapView(onMarkerClick = onMarkerClick)
+                GoogleMapView(
+                    toneColor     = toneColor,
+                    onMarkerClick = onMarkerClick)
             }
 
             else -> {
-                OsmMapView(onMarkerClick = onMarkerClick)
+                OsmMapView(
+                    toneColor     = toneColor,
+                    onMarkerClick = onMarkerClick)
                 MapFallbackBanner(
-                    toneColor = toneColor,
                     modifier  = Modifier.align(Alignment.BottomCenter)
                 )
             }
@@ -203,7 +206,6 @@ private fun MapWithFallback(
 
 @Composable
 private fun MapFallbackBanner(
-    toneColor: Color,
     modifier: Modifier = Modifier
 ) {
     Box(

@@ -67,7 +67,8 @@ private fun dataForLabel(label: String): MaterialData =
                 cardTitleColor = GlassCardTitle,
                 cardTitle      = R.string.result_glass_title,
                 tip1           = R.string.result_glass_tip1,
-                tip2           = R.string.result_glass_tip2
+                tip2           = R.string.result_glass_tip2,
+                mapColor       = GlassBg
             )
         )
         "plástico", "plastico" -> MaterialData(
@@ -84,7 +85,8 @@ private fun dataForLabel(label: String): MaterialData =
                 cardTitleColor = PlasticCardTitle,
                 cardTitle      = R.string.result_plastic_title,
                 tip1           = R.string.result_plastic_tip1,
-                tip2           = R.string.result_plastic_tip2
+                tip2           = R.string.result_plastic_tip2,
+                mapColor       = PlasticBg
             )
         )
         "papel" -> MaterialData(
@@ -101,7 +103,8 @@ private fun dataForLabel(label: String): MaterialData =
                 cardTitleColor = PaperCardTitle,
                 cardTitle      = R.string.result_paper_title,
                 tip1           = R.string.result_paper_tip1,
-                tip2           = R.string.result_paper_tip2
+                tip2           = R.string.result_paper_tip2,
+                mapColor       = PaperBg
             )
         )
         "metal" -> MaterialData(
@@ -118,7 +121,8 @@ private fun dataForLabel(label: String): MaterialData =
                 cardTitleColor = MetalCardTitle,
                 cardTitle      = R.string.result_metal_title,
                 tip1           = R.string.result_metal_tip1,
-                tip2           = R.string.result_metal_tip2
+                tip2           = R.string.result_metal_tip2,
+                mapColor       = MetalBg
             )
         )
         else -> MaterialData(
@@ -135,7 +139,8 @@ private fun dataForLabel(label: String): MaterialData =
                 cardTitleColor = UnknownCardTitle,
                 cardTitle      = R.string.result_unknown_title,
                 tip1           = R.string.result_unknown_subtitle,
-                tip2           = R.string.result_unknown_subtitle
+                tip2           = R.string.result_unknown_subtitle,
+                mapColor       = UnknownBg
             )
         )
     }
@@ -274,6 +279,7 @@ fun ResultScreen(
     selectedPoint?.let { point ->
         RecyclingPointBottomSheet(
             point     = point,
+            sheetColor = data.background,
             onDismiss = { selectedPoint = null }
         )
     }

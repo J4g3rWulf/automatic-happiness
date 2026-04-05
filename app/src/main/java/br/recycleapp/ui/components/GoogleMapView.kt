@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import br.recycleapp.di.AppModule
-import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -46,6 +45,7 @@ private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
 @android.annotation.SuppressLint("MissingPermission")
 @Composable
 fun GoogleMapView(
+    toneColor: Color = Color(0xFF1565C0),
     onMarkerClick: (RecyclingPoint) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -105,6 +105,7 @@ fun GoogleMapView(
         GoogleMapContent(
             center         = userLocation ?: RIO_CENTER_GOOGLE,
             points         = recyclingPoints,
+            toneColor      = toneColor,
             onMarkerClick  = onMarkerClick
         )
     }
@@ -117,6 +118,7 @@ fun GoogleMapView(
 private fun GoogleMapContent(
     center: LatLng,
     points: List<RecyclingPoint>,
+    toneColor: Color,
     onMarkerClick: (RecyclingPoint) -> Unit
 ) {
     val cameraPositionState = rememberCameraPositionState {
@@ -139,9 +141,7 @@ private fun GoogleMapContent(
                 ),
                 title   = point.name,
                 snippet = point.address,
-                icon    = BitmapDescriptorFactory.defaultMarker(
-                    BitmapDescriptorFactory.HUE_AZURE
-                ),
+                icon = BitmapDescriptorFactory.defaultMarker(toneColor.toMapHue()),
                 onClick = {
                     onMarkerClick(point)
                     false
@@ -149,4 +149,19 @@ private fun GoogleMapContent(
             )
         }
     }
+}
+
+/**
+ * Converte uma cor Compose para o valor de matiz (hue) HSV
+ * aceito pelo BitmapDescriptorFactory do Google Maps.
+ */
+private fun Color.toMapHue(): Float {
+    val hsv = FloatArray(3)
+    android.graphics.Color.RGBToHSV(
+        (red * 255).toInt(),
+        (green * 255).toInt(),
+        (blue * 255).toInt(),
+        hsv
+    )
+    return hsv[0]
 }

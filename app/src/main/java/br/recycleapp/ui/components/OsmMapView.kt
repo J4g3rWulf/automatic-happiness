@@ -10,15 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.di.AppModule
-import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -50,6 +52,7 @@ private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
  */
 @Composable
 fun OsmMapView(
+    toneColor: Color = Color(0xFF1565C0),
     onMarkerClick: (RecyclingPoint) -> Unit = {}
 ) {
     val context        = LocalContext.current
@@ -87,6 +90,7 @@ fun OsmMapView(
         OsmMapContent(
             startCenter    = startCenter!!,
             points         = recyclingPoints,
+            toneColor      = toneColor,
             context        = context,
             lifecycleOwner = lifecycleOwner,
             onMarkerClick  = onMarkerClick
@@ -101,6 +105,7 @@ fun OsmMapView(
 private fun OsmMapContent(
     startCenter: GeoPoint,
     points: List<RecyclingPoint>,
+    toneColor: Color,
     context: Context,
     lifecycleOwner: LifecycleOwner,
     onMarkerClick: (RecyclingPoint) -> Unit
@@ -140,14 +145,11 @@ private fun OsmMapContent(
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                // Cor diferente por tipo — OSM usa ícones padrão por cor
-                icon = when (point.type) {
-                    PointType.PEV      -> androidx.core.content.ContextCompat.getDrawable(
-                        context, org.osmdroid.library.R.drawable.marker_default
-                    )
-                    PointType.ECOPONTO -> androidx.core.content.ContextCompat.getDrawable(
-                        context, org.osmdroid.library.R.drawable.person
-                    )
+                // Ícone tintado com a cor do material da tela atual
+                icon = ContextCompat.getDrawable(
+                    context, android.R.drawable.ic_menu_mylocation
+                )?.mutate()?.also { drawable ->
+                    DrawableCompat.setTint(drawable, toneColor.toArgb())
                 }
 
                 setOnMarkerClickListener { _, _ ->
