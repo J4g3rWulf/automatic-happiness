@@ -1,9 +1,12 @@
 package br.recycleapp.di
 
 import android.content.Context
+import br.recycleapp.BuildConfig
 import br.recycleapp.data.map.MapAvailabilityChecker
+import br.recycleapp.data.map.PlacesRecyclingRepository
 import br.recycleapp.data.repository.ClassifierRepository
 import br.recycleapp.domain.map.IMapAvailabilityChecker
+import br.recycleapp.domain.map.IRecyclingPointRepository
 import br.recycleapp.domain.repository.ITrashClassifier
 import br.recycleapp.domain.usecase.ClassifyImageUseCase
 
@@ -23,6 +26,9 @@ object AppModule {
 
     @Volatile
     private var mapChecker: IMapAvailabilityChecker? = null
+
+    @Volatile
+    private var recyclingPointRepository: IRecyclingPointRepository? = null
 
     /**
      * Retorna a instância única do repositório.
@@ -54,6 +60,19 @@ object AppModule {
             mapChecker ?: MapAvailabilityChecker(
                 context.applicationContext
             ).also { mapChecker = it }
+        }
+    }
+
+    /**
+     * Retorna a instância única do repositório de pontos de coleta.
+     * Thread-safe via double-checked locking.
+     */
+    fun provideRecyclingPointRepository(context: Context): IRecyclingPointRepository {
+        return recyclingPointRepository ?: synchronized(this) {
+            recyclingPointRepository ?: PlacesRecyclingRepository(
+                context  = context.applicationContext,
+                apiKey   = BuildConfig.MAPS_API_KEY
+            ).also { recyclingPointRepository = it }
         }
     }
 
