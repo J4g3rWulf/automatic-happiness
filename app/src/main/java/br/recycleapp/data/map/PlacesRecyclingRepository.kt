@@ -3,6 +3,7 @@ package br.recycleapp.data.map
 import android.content.Context
 import androidx.core.content.edit
 import br.recycleapp.domain.map.IRecyclingPointRepository
+import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.CircularBounds
@@ -23,6 +24,7 @@ import kotlin.math.*
  * 1. Verifica se há cache válido (mesmo raio + menos de 7 dias)
  * 2. Se sim → retorna dados cacheados sem chamar a API
  * 3. Se não → chama Places API Nearby Search → cacheia resultado
+ *    Se a API retornar vazio → usa lista estática de fallback
  *
  * Cache geográfico: se o usuário estiver dentro de [CACHE_RADIUS_KM] km
  * da última busca, os dados em cache são reutilizados.
@@ -54,11 +56,11 @@ class PlacesRecyclingRepository(
     ): List<RecyclingPoint> {
         getCachedPoints(latitude, longitude)?.let { return it }
 
-        val points = fetchFromApi(latitude, longitude)
-        if (points.isNotEmpty()) {
-            cachePoints(points, latitude, longitude)
-        }
-        return points
+        val apiPoints = fetchFromApi(latitude, longitude)
+        val result    = apiPoints.ifEmpty { STATIC_FALLBACK }
+
+        cacheProvider(result, latitude, longitude)
+        return result
     }
 
     // ── Cache geográfico ──────────────────────────────────────────────────────
@@ -71,15 +73,15 @@ class PlacesRecyclingRepository(
 
         if (cachedJson == null || cachedLat == Double.MIN_VALUE) return null
 
-        val expired    = System.currentTimeMillis() - timestamp > CACHE_DURATION_MS
-        val farAway    = distanceKm(latitude, longitude, cachedLat, cachedLng) > CACHE_RADIUS_KM
+        val expired = System.currentTimeMillis() - timestamp > CACHE_DURATION_MS
+        val farAway = distanceKm(latitude, longitude, cachedLat, cachedLng) > CACHE_RADIUS_KM
 
         if (expired || farAway) return null
 
         return parsePointsFromJson(cachedJson)
     }
 
-    private fun cachePoints(points: List<RecyclingPoint>, latitude: Double, longitude: Double) {
+    private fun cacheProvider(points: List<RecyclingPoint>, latitude: Double, longitude: Double) {
         prefs.edit {
             putFloat(KEY_LAT, latitude.toFloat())
             putFloat(KEY_LNG, longitude.toFloat())
@@ -145,6 +147,8 @@ class PlacesRecyclingRepository(
                 put("address", point.address)
                 put("lat", point.latitude)
                 put("lng", point.longitude)
+                put("type", point.type.name)
+                put("materials", JSONArray(point.materials))
             })
         }
         return array.toString()
@@ -154,13 +158,22 @@ class PlacesRecyclingRepository(
         return try {
             val array = JSONArray(json)
             (0 until array.length()).map { i ->
-                val obj = array.getJSONObject(i)
+                val obj       = array.getJSONObject(i)
+                val materials = obj.optJSONArray("materials")?.let { arr ->
+                    (0 until arr.length()).map { arr.getString(it) }
+                } ?: emptyList()
+                val type = runCatching {
+                    PointType.valueOf(obj.optString("type", PointType.PEV.name))
+                }.getOrDefault(PointType.PEV)
+
                 RecyclingPoint(
                     id        = obj.getString("id"),
                     name      = obj.getString("name"),
                     address   = obj.getString("address"),
                     latitude  = obj.getDouble("lat"),
-                    longitude = obj.getDouble("lng")
+                    longitude = obj.getDouble("lng"),
+                    materials = materials,
+                    type      = type
                 )
             }
         } catch (_: Exception) {
@@ -177,10 +190,10 @@ class PlacesRecyclingRepository(
         lat1: Double, lng1: Double,
         lat2: Double, lng2: Double
     ): Double {
-        val r     = 6371.0
-        val dLat  = Math.toRadians(lat2 - lat1)
-        val dLng  = Math.toRadians(lng2 - lng1)
-        val a     = sin(dLat / 2).pow(2) +
+        val r    = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a    = sin(dLat / 2).pow(2) +
                 cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
                 sin(dLng / 2).pow(2)
         return r * 2 * atan2(sqrt(a), sqrt(1 - a))
@@ -189,13 +202,61 @@ class PlacesRecyclingRepository(
     // ── Constantes ────────────────────────────────────────────────────────────
 
     companion object {
-        private const val PREFS_NAME          = "recycling_points_cache"
-        private const val KEY_LAT             = "cache_lat"
-        private const val KEY_LNG             = "cache_lng"
-        private const val KEY_TIMESTAMP       = "cache_timestamp"
-        private const val KEY_POINTS          = "cache_points"
-        private const val CACHE_RADIUS_KM     = 5.0    // reusa cache dentro de 5km
-        private const val CACHE_DURATION_MS   = 7 * 24 * 60 * 60 * 1_000L // 7 dias
-        private const val SEARCH_RADIUS_METERS = 10_000.0 // busca num raio de 10km
+        private const val PREFS_NAME           = "recycling_points_cache"
+        private const val KEY_LAT              = "cache_lat"
+        private const val KEY_LNG              = "cache_lng"
+        private const val KEY_TIMESTAMP        = "cache_timestamp"
+        private const val KEY_POINTS           = "cache_points"
+        private const val CACHE_RADIUS_KM      = 5.0
+        private const val CACHE_DURATION_MS    = 7 * 24 * 60 * 60 * 1_000L
+        private const val SEARCH_RADIUS_METERS = 10_000.0
+
+        // ── Lista estática de fallback ────────────────────────────────────────
+        // Usada quando a Places API não retorna resultados.
+        // Coordenadas verificadas manualmente via Google Maps.
+        val STATIC_FALLBACK = listOf(
+
+            // ── PEVs da Comlurb (funcionam 24h) ──────────────────────────────
+            // Recebem: papel, plástico, vidro e metal
+            RecyclingPoint(
+                id        = "pev_bangu",
+                name      = "PEV Bangu",
+                address   = "Rua Roque Barbosa, 348 - Bangu",
+                latitude  = -22.85046155285499,
+                longitude = -43.46413468350324,
+                materials = listOf("Papel", "Plástico", "Vidro", "Metal"),
+                type      = PointType.PEV
+            ),
+            RecyclingPoint(
+                id        = "pev_madureira",
+                name      = "PEV Madureira",
+                address   = "Sob o Viaduto Prefeito Negrão de Lima - Madureira",
+                latitude  = -22.87516362916978,
+                longitude = -43.33496706988172,
+                materials = listOf("Papel", "Plástico", "Vidro", "Metal"),
+                type      = PointType.PEV
+            ),
+            RecyclingPoint(
+                id        = "pev_tijuca",
+                name      = "PEV Tijuca",
+                address   = "Rua Dr. Renato Rocco, 400 - Tijuca",
+                latitude  = -22.927124968864515,
+                longitude = -43.229079230075605,
+                materials = listOf("Papel", "Plástico", "Vidro", "Metal"),
+                type      = PointType.PEV
+            ),
+
+            // ── Ecoponto de exemplo (próximo ao PEV Bangu) ───────────────────
+            // ATENÇÃO: localização fictícia — substituir por coordenada real
+            RecyclingPoint(
+                id        = "ecoponto_bangu_exemplo",
+                name      = "Ecoponto Bangu (exemplo)",
+                address   = "Próximo ao PEV Bangu - Bangu",
+                latitude  = -22.852,
+                longitude = -43.466,
+                materials = listOf("Lixo domiciliar", "Entulho", "Bens inservíveis"),
+                type      = PointType.ECOPONTO
+            )
+        )
     }
 }
