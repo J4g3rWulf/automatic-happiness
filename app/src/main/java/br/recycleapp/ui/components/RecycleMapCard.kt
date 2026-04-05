@@ -57,8 +57,8 @@ import com.google.android.gms.location.Priority
 @Composable
 fun RecycleMapCard(
     toneColor: Color,
-    onMarkerClick: (RecyclingPoint) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMarkerClick: (RecyclingPoint) -> Unit = {}
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
