@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.maps.compose)
     implementation(libs.osmdroid)
+    implementation(libs.places)
     implementation(libs.play.services.location)
     implementation(libs.play.services.maps)
 
