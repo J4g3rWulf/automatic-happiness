@@ -16,11 +16,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.scale
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.recycleapp.R
 import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -29,6 +33,8 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -39,6 +45,7 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
+
 // Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
@@ -48,6 +55,7 @@ private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
+ * @param toneColor     cor temática do material atual — usada nos marcadores de PEV
  * @param onMarkerClick callback chamado quando o usuário toca num marcador
  */
 @Composable
@@ -69,7 +77,6 @@ fun OsmMapView(
 
         startCenter = center
 
-        // Busca pontos de coleta via repositório (mesmo cache do GoogleMapView)
         val repository  = AppModule.provideRecyclingPointRepository(context)
         recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
     }
@@ -100,6 +107,9 @@ fun OsmMapView(
 
 /**
  * Renderiza o MapView OSM com marcadores dos pontos de coleta.
+ *
+ * PEVs usam marcador padrão tintado com [toneColor].
+ * Ecopontos usam ícone personalizado carregado de forma assíncrona em [Dispatchers.IO].
  */
 @Composable
 private fun OsmMapContent(
@@ -135,6 +145,17 @@ private fun OsmMapContent(
     }
 
     LaunchedEffect(mapView, points) {
+        // ── Carrega ícone do Ecoponto em background ───────────────────
+        val iconEcoponto = withContext(Dispatchers.IO) {
+            val density  = context.resources.displayMetrics.density
+            val widthPx  = (40 * density).toInt()
+            val heightPx = (40 * density).toInt()
+            android.graphics.BitmapFactory
+                .decodeResource(context.resources, R.drawable.pin_ecoponto_rio)
+                .scale(widthPx, heightPx)
+                .toDrawable(context.resources)
+        }
+
         mapView.overlays.clear()
         mapView.overlays.add(locationOverlay)
 
@@ -145,11 +166,15 @@ private fun OsmMapContent(
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                // Ícone tintado com a cor do material da tela atual
-                icon = ContextCompat.getDrawable(
-                    context, android.R.drawable.ic_menu_mylocation
-                )?.mutate()?.also { drawable ->
-                    DrawableCompat.setTint(drawable, toneColor.toArgb())
+                // PEV: marcador padrão tintado com a cor do material
+                // Ecoponto: ícone personalizado da Comlurb
+                icon = when (point.type) {
+                    PointType.PEV      -> ContextCompat.getDrawable(
+                        context, android.R.drawable.ic_menu_mylocation
+                    )?.mutate()?.also { drawable ->
+                        DrawableCompat.setTint(drawable, toneColor.toArgb())
+                    }
+                    PointType.ECOPONTO -> iconEcoponto
                 }
 
                 setOnMarkerClickListener { _, _ ->
