@@ -1,10 +1,8 @@
 package br.recycleapp.ui.components
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,7 +25,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -177,17 +174,18 @@ private fun GoogleMapContent(
 
             // ── Visual do marcador individual ─────────────────────────
             clusterItemContent = { item ->
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(
-                            color = when (item.point.type) {
-                                PointType.PEV      -> toneColor
-                                PointType.ECOPONTO -> Color(0xFF1565C0)
-                            },
-                            shape = CircleShape
-                        )
-                )
+                when (item.point.type) {
+                    PointType.ECOPONTO -> androidx.compose.foundation.Image(
+                        painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_rio),
+                        contentDescription = "Ecoponto",
+                        modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                    )
+                    PointType.PEV -> androidx.compose.foundation.Image(
+                        painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_rio),
+                        contentDescription = "PEV",
+                        modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                    )
+                }
             }
         )
     }
