@@ -1,17 +1,25 @@
 package br.recycleapp.ui.components
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import br.recycleapp.R
 import br.recycleapp.di.AppModule
+import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -25,8 +33,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.MapsComposeExperimentalApi
+import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
@@ -38,9 +46,13 @@ private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
  * Mapa Google Maps com a localização do usuário e os pontos de coleta
  * buscados via Places API (com cache geográfico).
  *
+ * Usa Marker Clustering para agrupar marcadores próximos, evitando
+ * sobrecarga de memória ao renderizar 100+ pontos simultaneamente.
+ *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
- * @param onMarkerClick callback chamado quando o usuário toca num marcador
+ * @param toneColor     cor temática do material atual — usada nos clusters e marcadores de PEV
+ * @param onMarkerClick callback chamado quando o usuário toca num marcador individual
  */
 @android.annotation.SuppressLint("MissingPermission")
 @Composable
@@ -50,12 +62,11 @@ fun GoogleMapView(
 ) {
     val context = LocalContext.current
 
-    var userLocation  by remember { mutableStateOf<LatLng?>(null) }
+    var userLocation    by remember { mutableStateOf<LatLng?>(null) }
     var recyclingPoints by remember { mutableStateOf<List<RecyclingPoint>>(emptyList()) }
-    var isLoading     by remember { mutableStateOf(true) }
+    var isLoading       by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        // Obtém localização
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
         val deferred    = CompletableDeferred<LatLng?>()
 
@@ -70,23 +81,16 @@ fun GoogleMapView(
             }
         }
 
-        fusedClient.requestLocationUpdates(
-            request,
-            callback,
-            android.os.Looper.getMainLooper()
-        )
+        fusedClient.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
 
-        val location = withTimeoutOrNull(10_000) { deferred.await() }
+        val location    = withTimeoutOrNull(10_000) { deferred.await() }
         fusedClient.removeLocationUpdates(callback)
 
-        val center = location ?: RIO_CENTER_GOOGLE
-        userLocation = center
-
-        // Busca pontos de coleta via repositório (cache ou API)
-        val repository = AppModule.provideRecyclingPointRepository(context)
+        val center      = location ?: RIO_CENTER_GOOGLE
+        userLocation    = center
+        val repository  = AppModule.provideRecyclingPointRepository(context)
         recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
-
-        isLoading = false
+        isLoading       = false
     }
 
     if (isLoading) {
@@ -103,17 +107,21 @@ fun GoogleMapView(
         }
     } else {
         GoogleMapContent(
-            center         = userLocation ?: RIO_CENTER_GOOGLE,
-            points         = recyclingPoints,
-            toneColor      = toneColor,
-            onMarkerClick  = onMarkerClick
+            center        = userLocation ?: RIO_CENTER_GOOGLE,
+            points        = recyclingPoints,
+            toneColor     = toneColor,
+            onMarkerClick = onMarkerClick
         )
     }
 }
 
 /**
- * Renderiza o GoogleMap com câmera centrada em [center] e marcadores dos pontos de coleta.
+ * Renderiza o GoogleMap com clustering automático dos pontos de coleta.
+ *
+ * Marcadores próximos são agrupados em clusters numerados.
+ * Ao aumentar o zoom, os clusters se dividem nos pins individuais.
  */
+@OptIn(MapsComposeExperimentalApi::class)
 @Composable
 private fun GoogleMapContent(
     center: LatLng,
@@ -122,7 +130,11 @@ private fun GoogleMapContent(
     onMarkerClick: (RecyclingPoint) -> Unit
 ) {
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(center, 14f)
+        position = CameraPosition.fromLatLngZoom(center, 12f)
+    }
+
+    val clusterItems = remember(points) {
+        points.map { RecyclingPointClusterItem(it) }
     }
 
     GoogleMap(
@@ -134,34 +146,49 @@ private fun GoogleMapContent(
             myLocationButtonEnabled = true
         )
     ) {
-        points.forEach { point ->
-            Marker(
-                state   = MarkerState(
-                    position = LatLng(point.latitude, point.longitude)
-                ),
-                title   = point.name,
-                snippet = point.address,
-                icon = BitmapDescriptorFactory.defaultMarker(toneColor.toMapHue()),
-                onClick = {
-                    onMarkerClick(point)
-                    false
-                }
-            )
-        }
-    }
-}
+        Clustering(
+            items = clusterItems,
 
-/**
- * Converte uma cor Compose para o valor de matiz (hue) HSV
- * aceito pelo BitmapDescriptorFactory do Google Maps.
- */
-private fun Color.toMapHue(): Float {
-    val hsv = FloatArray(3)
-    android.graphics.Color.RGBToHSV(
-        (red * 255).toInt(),
-        (green * 255).toInt(),
-        (blue * 255).toInt(),
-        hsv
-    )
-    return hsv[0]
+            // ── Toque no cluster → apenas previne comportamento padrão ─
+            onClusterClick = { false },
+
+            // ── Toque no marcador individual → abre bottom sheet ───────
+            onClusterItemClick = { item ->
+                onMarkerClick(item.point)
+                false
+            },
+
+            // ── Visual do cluster (bolha numerada) ────────────────────
+            clusterContent = { cluster ->
+                Box(
+                    modifier         = Modifier
+                        .size(40.dp)
+                        .background(toneColor.copy(alpha = 0.85f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text       = cluster.size.toString(),
+                        color      = Color.White,
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+
+            // ── Visual do marcador individual ─────────────────────────
+            clusterItemContent = { item ->
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = when (item.point.type) {
+                                PointType.PEV      -> toneColor
+                                PointType.ECOPONTO -> Color(0xFF1565C0)
+                            },
+                            shape = CircleShape
+                        )
+                )
+            }
+        )
+    }
 }

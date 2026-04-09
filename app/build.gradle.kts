@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.tensorflow.lite.support)
     implementation(libs.lottie.compose)
     implementation(libs.maps.compose)
+    implementation(libs.maps.compose.utils)
     implementation(libs.osmdroid)
     implementation(libs.places)
     implementation(libs.play.services.location)
