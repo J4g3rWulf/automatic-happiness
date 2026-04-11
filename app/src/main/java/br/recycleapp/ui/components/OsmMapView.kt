@@ -10,12 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.scale
 import androidx.lifecycle.Lifecycle
@@ -45,7 +42,6 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
 
-
 // Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
@@ -55,7 +51,7 @@ private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
- * @param toneColor     cor temática do material atual — usada nos marcadores de PEV
+ * @param toneColor     cor temática do material atual
  * @param onMarkerClick callback chamado quando o usuário toca num marcador
  */
 @Composable
@@ -97,7 +93,6 @@ fun OsmMapView(
         OsmMapContent(
             startCenter    = startCenter!!,
             points         = recyclingPoints,
-            toneColor      = toneColor,
             context        = context,
             lifecycleOwner = lifecycleOwner,
             onMarkerClick  = onMarkerClick
@@ -108,14 +103,12 @@ fun OsmMapView(
 /**
  * Renderiza o MapView OSM com marcadores dos pontos de coleta.
  *
- * PEVs usam marcador padrão tintado com [toneColor].
- * Ecopontos usam ícone personalizado carregado de forma assíncrona em [Dispatchers.IO].
+ * Ícones de PEV e Ecoponto carregados de forma assíncrona em [Dispatchers.IO].
  */
 @Composable
 private fun OsmMapContent(
     startCenter: GeoPoint,
     points: List<RecyclingPoint>,
-    toneColor: Color,
     context: Context,
     lifecycleOwner: LifecycleOwner,
     onMarkerClick: (RecyclingPoint) -> Unit
@@ -145,11 +138,19 @@ private fun OsmMapContent(
     }
 
     LaunchedEffect(mapView, points) {
-        // ── Carrega ícone do Ecoponto em background ───────────────────
+        // ── Carrega ícones em background para não bloquear a UI ───────
+        val density  = context.resources.displayMetrics.density
+        val widthPx  = (32 * density).toInt()
+        val heightPx = (48 * density).toInt()
+
+        val iconPev = withContext(Dispatchers.IO) {
+            android.graphics.BitmapFactory
+                .decodeResource(context.resources, R.drawable.pin_pev_rio)
+                .scale(widthPx, heightPx)
+                .toDrawable(context.resources)
+        }
+
         val iconEcoponto = withContext(Dispatchers.IO) {
-            val density  = context.resources.displayMetrics.density
-            val widthPx  = (40 * density).toInt()
-            val heightPx = (40 * density).toInt()
             android.graphics.BitmapFactory
                 .decodeResource(context.resources, R.drawable.pin_ecoponto_rio)
                 .scale(widthPx, heightPx)
@@ -166,14 +167,9 @@ private fun OsmMapContent(
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-                // PEV: marcador padrão tintado com a cor do material
-                // Ecoponto: ícone personalizado da Comlurb
+                // Ícone personalizado por tipo de ponto de coleta
                 icon = when (point.type) {
-                    PointType.PEV      -> ContextCompat.getDrawable(
-                        context, android.R.drawable.ic_menu_mylocation
-                    )?.mutate()?.also { drawable ->
-                        DrawableCompat.setTint(drawable, toneColor.toArgb())
-                    }
+                    PointType.PEV      -> iconPev
                     PointType.ECOPONTO -> iconEcoponto
                 }
 
