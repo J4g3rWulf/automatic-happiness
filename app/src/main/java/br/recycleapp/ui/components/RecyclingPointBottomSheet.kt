@@ -75,9 +75,10 @@ fun RecyclingPointBottomSheet(
 
             // ── Subtítulo por tipo ────────────────────────────────────
             Text(
-                text     = when (point.type) {
-                    PointType.PEV      -> "Ponto de Entrega Voluntária"
-                    PointType.ECOPONTO -> "Ecoponto Comlurb"
+                text = when (point.type) {
+                    PointType.PEV            -> "Ponto de Entrega Voluntária"
+                    PointType.ECOPONTO       -> "Ecoponto Comlurb"
+                    PointType.ECOPONTO_LIGHT -> "Ecoponto Light Recicla"
                 },
                 fontSize = 13.sp,
                 color    = Color.White.copy(alpha = 0.75f)
@@ -119,10 +120,11 @@ fun RecyclingPointBottomSheet(
 
             // ── Banner de materiais ───────────────────────────────────
             Image(
-                painter            = painterResource(
+                painter = painterResource(
                     when (point.type) {
-                        PointType.PEV      -> R.drawable.materiais_pev
-                        PointType.ECOPONTO -> R.drawable.materiais_eco_pontos
+                        PointType.PEV            -> R.drawable.materiais_pev
+                        PointType.ECOPONTO       -> R.drawable.materiais_eco_pontos
+                        PointType.ECOPONTO_LIGHT -> R.drawable.materiais_light
                     }
                 ),
                 contentDescription = "Materiais aceitos",

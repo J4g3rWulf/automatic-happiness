@@ -125,15 +125,17 @@ private fun GoogleMapContent(
         position = CameraPosition.fromLatLngZoom(center, 12f)
     }
 
-    var showPev         by remember { mutableStateOf(true) }
-    var showEcoponto    by remember { mutableStateOf(true) }
-    var showFilterSheet by remember { mutableStateOf(false) }
+    var showPev            by remember { mutableStateOf(true) }
+    var showEcoponto       by remember { mutableStateOf(true) }
+    var showEcopontoLight  by remember { mutableStateOf(true) }
+    var showFilterSheet    by remember { mutableStateOf(false) }
 
-    val filteredPoints = remember(points, showPev, showEcoponto) {
+    val filteredPoints = remember(points, showPev, showEcoponto, showEcopontoLight) {
         points.filter { point ->
             when (point.type) {
-                PointType.PEV      -> showPev
-                PointType.ECOPONTO -> showEcoponto
+                PointType.PEV            -> showPev
+                PointType.ECOPONTO       -> showEcoponto
+                PointType.ECOPONTO_LIGHT -> showEcopontoLight
             }
         }
     }
@@ -186,6 +188,11 @@ private fun GoogleMapContent(
                             contentDescription = "PEV",
                             modifier           = Modifier.size(width = 32.dp, height = 48.dp)
                         )
+                        PointType.ECOPONTO_LIGHT -> androidx.compose.foundation.Image(
+                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_light),
+                            contentDescription = "Ecoponto Light",
+                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                        )
                     }
                 }
             )
@@ -202,12 +209,14 @@ private fun GoogleMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev        = showPev,
-                showEcoponto   = showEcoponto,
-                toneColor      = toneColor,
-                onTogglePev      = { showPev = !showPev },
-                onToggleEcoponto = { showEcoponto = !showEcoponto },
-                onDismiss      = { showFilterSheet = false }
+                showPev               = showPev,
+                showEcoponto          = showEcoponto,
+                showEcopontoLight     = showEcopontoLight,
+                toneColor             = toneColor,
+                onTogglePev           = { showPev = !showPev },
+                onToggleEcoponto      = { showEcoponto = !showEcoponto },
+                onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
+                onDismiss             = { showFilterSheet = false }
             )
         }
     }

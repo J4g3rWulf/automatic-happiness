@@ -73,10 +73,12 @@ class PlacesRecyclingRepository(
 
         if (cachedJson == null || cachedLat == Double.MIN_VALUE) return null
 
-        val expired = System.currentTimeMillis() - timestamp > CACHE_DURATION_MS
-        val farAway = distanceKm(latitude, longitude, cachedLat, cachedLng) > CACHE_RADIUS_KM
+        val expired      = System.currentTimeMillis() - timestamp > CACHE_DURATION_MS
+        val farAway      = distanceKm(latitude, longitude, cachedLat, cachedLng) > CACHE_RADIUS_KM
+        val cachedHash   = prefs.getString(KEY_STATIC_HASH, null)
+        val outdatedData = cachedHash != staticFallbackHash()
 
-        if (expired || farAway) return null
+        if (expired || farAway || outdatedData) return null
 
         return parsePointsFromJson(cachedJson)
     }
@@ -87,8 +89,20 @@ class PlacesRecyclingRepository(
             putFloat(KEY_LNG, longitude.toFloat())
             putLong(KEY_TIMESTAMP, System.currentTimeMillis())
             putString(KEY_POINTS, serializePointsToJson(points))
+            putString(KEY_STATIC_HASH, staticFallbackHash())
         }
     }
+
+    /**
+     * Gera um hash do conteúdo da [STATIC_FALLBACK].
+     * Se qualquer ponto for adicionado, removido ou alterado,
+     * o hash muda e o cache é descartado automaticamente.
+     */
+    private fun staticFallbackHash(): String =
+        STATIC_FALLBACK
+            .joinToString(separator = "|") { "${it.id}${it.latitude}${it.longitude}" }
+            .hashCode()
+            .toString()
 
     // ── Places API ────────────────────────────────────────────────────────────
 
@@ -202,11 +216,12 @@ class PlacesRecyclingRepository(
     // ── Constantes ────────────────────────────────────────────────────────────
 
     companion object {
-        private const val PREFS_NAME           = "recycling_points_cache_v2"
+        private const val PREFS_NAME           = "recycling_points_cache"
         private const val KEY_LAT              = "cache_lat"
         private const val KEY_LNG              = "cache_lng"
         private const val KEY_TIMESTAMP        = "cache_timestamp"
         private const val KEY_POINTS           = "cache_points"
+        private const val KEY_STATIC_HASH      = "cache_static_hash"
         private const val CACHE_RADIUS_KM      = 5.0
         private const val CACHE_DURATION_MS    = 7 * 24 * 60 * 60 * 1_000L
         private const val SEARCH_RADIUS_METERS = 10_000.0
@@ -245,6 +260,82 @@ class PlacesRecyclingRepository(
                 longitude = -43.229079230075605,
                 materials = listOf("Papel", "Plástico", "Vidro", "Metal"),
                 type      = PointType.PEV
+            ),
+
+            // ── Ecopontos Light Recicla ──────────────────────────────────────────────────
+            // Recebem: plástico, metal, vidro, papel e óleo vegetal
+            // Fonte: Light S.A. - light.com.br/light-recicla
+            RecyclingPoint(
+                id        = "light_espaco_ciencia_viva",
+                name      = "Ecoponto Light Recicla - Espaço Ciência Viva",
+                address   = "Av. Heitor Beltrão, 321 - Tijuca, Rio de Janeiro",
+                latitude  = -22.92252778,
+                longitude = -43.22980556,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_shopping_carioca",
+                name      = "Ecoponto Light Recicla - Shopping Carioca",
+                address   = "Av. Vicente de Carvalho, 909 - Vila da Penha, Rio de Janeiro",
+                latitude  = -22.84997222,
+                longitude = -43.31102778,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_humaita",
+                name      = "Ecoponto Light Recicla - Humaitá",
+                address   = "R. Humaitá, 19 - Humaitá, Rio de Janeiro",
+                latitude  = -22.95397222,
+                longitude = -43.19700000,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_plano_inclinado",
+                name      = "Ecoponto Light Recicla - Plano Inclinado",
+                address   = "R. Mal. Francisco de Moura, s/nº - Santa Marta, Rio de Janeiro",
+                latitude  = -22.94877778,
+                longitude = -43.19294444,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_sao_carlos",
+                name      = "Ecoponto Light Recicla - São Carlos",
+                address   = "Rua Estácio de Sá, esq. com Rua Hélio Beltrão, próx. ao nº 60 - Estácio",
+                latitude  = -22.91375000,
+                longitude = -43.20458333,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_assai_duque_de_caxias",
+                name      = "Ecoponto Light Recicla - Assaí Duque de Caxias",
+                address   = "Av. Gov. Leonel Moura Brizola, 2973 - Vila Centenário, Duque de Caxias",
+                latitude  = -22.77627778,
+                longitude = -43.30863889,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_assai_ilha_do_governador",
+                name      = "Ecoponto Light Recicla - Assaí Ilha do Governador",
+                address   = "Av. Maestro Paulo e Silva, 100 - Jardim Carioca, Rio de Janeiro",
+                latitude  = -22.80305556,
+                longitude = -43.20294444,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
+            ),
+            RecyclingPoint(
+                id        = "light_lar_frei_luiz",
+                name      = "Ecoponto Light Recicla - Lar Frei Luiz",
+                address   = "Estr. da Boiúna, 1367 - Taquara, Rio de Janeiro",
+                latitude  = -22.91163889,
+                longitude = -43.40591667,
+                materials = listOf("Plástico", "Metal", "Vidro", "Papel", "Óleo vegetal"),
+                type      = PointType.ECOPONTO_LIGHT
             ),
 
             // ── Ecopontos da Comlurb ─────────────────────────────────────────────────

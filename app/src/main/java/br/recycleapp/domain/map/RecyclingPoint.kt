@@ -24,10 +24,12 @@ data class RecyclingPoint(
 /**
  * Tipo do ponto de coleta.
  *
- * [PEV]      Ponto de Entrega Voluntária — aceita recicláveis (plástico, vidro, papel, metal).
- * [ECOPONTO] Ecoponto da Comlurb — aceita lixo domiciliar, entulho e bens inservíveis.
+ * [PEV]            Ponto de Entrega Voluntária - aceita recicláveis (plástico, vidro, papel, metal).
+ * [ECOPONTO]       Ecoponto da Comlurb - aceita lixo domiciliar, entulho e bens inservíveis.
+ * [ECOPONTO_LIGHT] Ecoponto Light Recicla - aceita recicláveis + óleo vegetal.
  */
 enum class PointType {
     PEV,
-    ECOPONTO
+    ECOPONTO,
+    ECOPONTO_LIGHT
 }

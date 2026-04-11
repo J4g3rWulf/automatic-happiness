@@ -33,12 +33,14 @@ import br.recycleapp.R
 fun MapFilterBottomSheet(
     showPev: Boolean,
     showEcoponto: Boolean,
+    showEcopontoLight: Boolean,
     toneColor: Color,
     onTogglePev: () -> Unit,
     onToggleEcoponto: () -> Unit,
+    onToggleEcopontoLight: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val allEnabled = showPev && showEcoponto
+    val allEnabled = showPev && showEcoponto && showEcopontoLight
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -64,7 +66,6 @@ fun MapFilterBottomSheet(
                 .padding(bottom = 32.dp)
         ) {
 
-            // ── Título ────────────────────────────────────────────────
             Text(
                 text       = "Filtros",
                 fontSize   = 20.sp,
@@ -76,17 +77,19 @@ fun MapFilterBottomSheet(
 
             // ── Habilitar todos ───────────────────────────────────────
             FilterToggleRow(
-                label   = "Habilitar todos",
-                checked = allEnabled,
-                bold    = true,
+                label     = "Habilitar todos",
+                checked   = allEnabled,
+                bold      = true,
                 toneColor = toneColor,
                 onCheckedChange = {
                     if (allEnabled) {
                         onTogglePev()
                         onToggleEcoponto()
+                        onToggleEcopontoLight()
                     } else {
-                        if (!showPev)      onTogglePev()
-                        if (!showEcoponto) onToggleEcoponto()
+                        if (!showPev)            onTogglePev()
+                        if (!showEcoponto)       onToggleEcoponto()
+                        if (!showEcopontoLight)  onToggleEcopontoLight()
                     }
                 }
             )
@@ -95,7 +98,6 @@ fun MapFilterBottomSheet(
             HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
             Spacer(Modifier.height(4.dp))
 
-            // ── Rótulo de seção ───────────────────────────────────────
             Text(
                 text     = "TIPOS DE PONTO",
                 fontSize = 11.sp,
@@ -120,9 +122,9 @@ fun MapFilterBottomSheet(
 
             Spacer(Modifier.height(4.dp))
 
-            // ── Ecopontos ─────────────────────────────────────────────
+            // ── Ecopontos Comlurb ─────────────────────────────────────
             FilterToggleRow(
-                label     = "Ecopontos",
+                label     = "Ecopontos Comlurb",
                 checked   = showEcoponto,
                 toneColor = toneColor,
                 leadingContent = {
@@ -134,11 +136,26 @@ fun MapFilterBottomSheet(
                 },
                 onCheckedChange = { onToggleEcoponto() }
             )
+
+            Spacer(Modifier.height(4.dp))
+
+            // ── Ecopontos Light ───────────────────────────────────────
+            FilterToggleRow(
+                label     = "Ecopontos Light",
+                checked   = showEcopontoLight,
+                toneColor = toneColor,
+                leadingContent = {
+                    Image(
+                        painter            = painterResource(R.drawable.pin_ecoponto_light),
+                        contentDescription = null,
+                        modifier           = Modifier.size(width = 20.dp, height = 30.dp)
+                    )
+                },
+                onCheckedChange = { onToggleEcopontoLight() }
+            )
         }
     }
 }
-
-// ── Linha de toggle reutilizável ──────────────────────────────────────────────
 
 @Composable
 private fun FilterToggleRow(
@@ -173,10 +190,10 @@ private fun FilterToggleRow(
             checked         = checked,
             onCheckedChange = { onCheckedChange() },
             colors          = SwitchDefaults.colors(
-                checkedThumbColor   = toneColor,
-                checkedTrackColor   = Color.White,
-                uncheckedThumbColor = Color.White.copy(alpha = 0.6f),
-                uncheckedTrackColor = Color.White.copy(alpha = 0.2f),
+                checkedThumbColor    = toneColor,
+                checkedTrackColor    = Color.White,
+                uncheckedThumbColor  = Color.White.copy(alpha = 0.6f),
+                uncheckedTrackColor  = Color.White.copy(alpha = 0.2f),
                 uncheckedBorderColor = Color.White.copy(alpha = 0.35f)
             )
         )
