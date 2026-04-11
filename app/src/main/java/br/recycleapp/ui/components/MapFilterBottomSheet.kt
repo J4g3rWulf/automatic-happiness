@@ -107,7 +107,7 @@ fun MapFilterBottomSheet(
 
             // ── PEVs ──────────────────────────────────────────────────
             FilterToggleRow(
-                label     = "PEVs",
+                label     = "PEVs Comlurb",
                 checked   = showPev,
                 toneColor = toneColor,
                 leadingContent = {
