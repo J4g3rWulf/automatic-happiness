@@ -4,9 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -110,10 +108,7 @@ fun OsmMapView(
 }
 
 /**
- * Renderiza o MapView OSM com clustering via [RadiusMarkerClusterer].
- *
- * Ícones de PEV e Ecoponto carregados de forma assíncrona em [Dispatchers.IO].
- * O cluster é representado por um círculo colorido com [toneColor].
+ * Renderiza o MapView OSM com clustering via [RadiusMarkerClusterer] e filtros por tipo.
  */
 @Composable
 private fun OsmMapContent(
@@ -148,12 +143,25 @@ private fun OsmMapContent(
         }
     }
 
-    LaunchedEffect(mapView, points) {
+    var showPev         by remember { mutableStateOf(true) }
+    var showEcoponto    by remember { mutableStateOf(true) }
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+
+    val filteredPoints = remember(points, showPev, showEcoponto) {
+        points.filter { point ->
+            when (point.type) {
+                PointType.PEV      -> showPev
+                PointType.ECOPONTO -> showEcoponto
+            }
+        }
+    }
+
+    LaunchedEffect(mapView, filteredPoints) {
         val density  = context.resources.displayMetrics.density
         val widthPx  = (32 * density).toInt()
         val heightPx = (48 * density).toInt()
 
-        // ── Carrega ícones em background ──────────────────────────────
         val iconPev = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
                 .decodeResource(context.resources, R.drawable.pin_pev_rio)
@@ -171,36 +179,27 @@ private fun OsmMapContent(
         mapView.overlays.clear()
         mapView.overlays.add(locationOverlay)
 
-        // ── Cria o clusterer ──────────────────────────────────────────
-        val clusterer = RadiusMarkerClusterer(context)
-
-        // ── Desenha o ícone do cluster como círculo colorido ──────────
+        val clusterer     = RadiusMarkerClusterer(context)
         val radiusPx      = (20 * density).toInt()
         val clusterBitmap = createBitmap(radiusPx * 2, radiusPx * 2)
         val canvas        = Canvas(clusterBitmap)
-        val paint         = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = toneColor.toArgb()
-        }
+        val paint         = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = toneColor.toArgb() }
         canvas.drawCircle(radiusPx.toFloat(), radiusPx.toFloat(), radiusPx.toFloat(), paint)
 
         clusterer.setIcon(clusterBitmap)
-        clusterer.mTextAnchorU          = Marker.ANCHOR_CENTER
-        clusterer.mTextAnchorV          = Marker.ANCHOR_CENTER
+        clusterer.mTextAnchorU = Marker.ANCHOR_CENTER
+        clusterer.mTextAnchorV = Marker.ANCHOR_CENTER
 
-        // ── Adiciona marcadores ao clusterer ──────────────────────────
-        points.forEach { point ->
+        filteredPoints.forEach { point ->
             val marker = Marker(mapView).apply {
                 position = GeoPoint(point.latitude, point.longitude)
                 title    = point.name
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-                // Ícone personalizado por tipo de ponto de coleta
                 icon = when (point.type) {
                     PointType.PEV      -> iconPev
                     PointType.ECOPONTO -> iconEcoponto
                 }
-
                 setOnMarkerClickListener { _, _ ->
                     onMarkerClick(point)
                     true
@@ -211,6 +210,33 @@ private fun OsmMapContent(
 
         mapView.overlays.add(clusterer)
         mapView.invalidate()
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            factory  = { mapView },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // ── Filtros ───────────────────────────────────────────────────
+        MapFilterBar(
+            toneColor    = toneColor,
+            onOpenFilter = { showFilterSheet = true },
+            modifier     = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp)
+        )
+
+        if (showFilterSheet) {
+            MapFilterBottomSheet(
+                showPev          = showPev,
+                showEcoponto     = showEcoponto,
+                toneColor        = toneColor,
+                onTogglePev      = { showPev = !showPev },
+                onToggleEcoponto = { showEcoponto = !showEcoponto },
+                onDismiss        = { showFilterSheet = false }
+            )
+        }
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -234,18 +260,10 @@ private fun OsmMapContent(
             mapView.onDetach()
         }
     }
-
-    AndroidView(
-        factory  = { mapView },
-        modifier = Modifier.fillMaxSize()
-    )
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/**
- * Obtém a localização do usuário de forma suspensa com timeout de 10 segundos.
- */
 @android.annotation.SuppressLint("MissingPermission")
 private suspend fun getUserLocation(context: Context): android.location.Location? {
     if (!context.hasLocationPermission()) return null
