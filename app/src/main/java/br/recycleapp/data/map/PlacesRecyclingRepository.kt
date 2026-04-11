@@ -57,7 +57,7 @@ class PlacesRecyclingRepository(
         getCachedPoints(latitude, longitude)?.let { return it }
 
         val apiPoints = fetchFromApi(latitude, longitude)
-        val result    = apiPoints.ifEmpty { STATIC_FALLBACK }
+        val result = apiPoints.ifEmpty { RecyclingPointsData.ALL }
 
         cacheProvider(result, latitude, longitude)
         return result
@@ -99,7 +99,7 @@ class PlacesRecyclingRepository(
      * o hash muda e o cache é descartado automaticamente.
      */
     private fun staticFallbackHash(): String =
-        STATIC_FALLBACK
+        RecyclingPointsData.ALL
             .joinToString(separator = "|") { "${it.id}${it.latitude}${it.longitude}" }
             .hashCode()
             .toString()
