@@ -262,7 +262,7 @@ class PlacesRecyclingRepository(
             RecyclingPoint(
                 id        = "ecoponto_barreira_do_vasco",
                 name      = "Ecoponto Barreira do Vasco",
-                address   = "Rua Bela, sn, Vasco da Gama (São Cristóvão)",
+                address   = "Rua Bela, s/n, Vasco da Gama (São Cristóvão)",
                 latitude  = -22.88697222,
                 longitude = -43.22652778,
                 materials = listOf("Lixo domiciliar", "Entulho", "Bens inservíveis", "Galhadas"),

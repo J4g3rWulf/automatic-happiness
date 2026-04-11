@@ -1,9 +1,7 @@
 package br.recycleapp.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -48,7 +46,7 @@ private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
- * @param toneColor     cor temática do material atual — usada nos clusters e marcadores de PEV
+ * @param toneColor     cor temática do material atual — usada nos clusters
  * @param onMarkerClick callback chamado quando o usuário toca num marcador individual
  */
 @android.annotation.SuppressLint("MissingPermission")
@@ -113,10 +111,7 @@ fun GoogleMapView(
 }
 
 /**
- * Renderiza o GoogleMap com clustering automático dos pontos de coleta.
- *
- * Marcadores próximos são agrupados em clusters numerados.
- * Ao aumentar o zoom, os clusters se dividem nos pins individuais.
+ * Renderiza o GoogleMap com clustering automático e filtros por tipo de ponto.
  */
 @OptIn(MapsComposeExperimentalApi::class)
 @Composable
@@ -130,63 +125,90 @@ private fun GoogleMapContent(
         position = CameraPosition.fromLatLngZoom(center, 12f)
     }
 
-    val clusterItems = remember(points) {
-        points.map { RecyclingPointClusterItem(it) }
+    var showPev         by remember { mutableStateOf(true) }
+    var showEcoponto    by remember { mutableStateOf(true) }
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+    val filteredPoints = remember(points, showPev, showEcoponto) {
+        points.filter { point ->
+            when (point.type) {
+                PointType.PEV      -> showPev
+                PointType.ECOPONTO -> showEcoponto
+            }
+        }
     }
 
-    GoogleMap(
-        modifier            = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        properties          = MapProperties(isMyLocationEnabled = true),
-        uiSettings          = MapUiSettings(
-            zoomControlsEnabled     = false,
-            myLocationButtonEnabled = true
-        )
-    ) {
-        Clustering(
-            items = clusterItems,
+    val clusterItems = remember(filteredPoints) {
+        filteredPoints.map { RecyclingPointClusterItem(it) }
+    }
 
-            // ── Toque no cluster → apenas previne comportamento padrão ─
-            onClusterClick = { false },
-
-            // ── Toque no marcador individual → abre bottom sheet ───────
-            onClusterItemClick = { item ->
-                onMarkerClick(item.point)
-                false
-            },
-
-            // ── Visual do cluster (bolha numerada) ────────────────────
-            clusterContent = { cluster ->
-                Box(
-                    modifier         = Modifier
-                        .size(40.dp)
-                        .background(toneColor.copy(alpha = 0.85f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text       = cluster.size.toString(),
-                        color      = Color.White,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier            = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties          = MapProperties(isMyLocationEnabled = true),
+            uiSettings          = MapUiSettings(
+                zoomControlsEnabled     = false,
+                myLocationButtonEnabled = true
+            )
+        ) {
+            Clustering(
+                items              = clusterItems,
+                onClusterClick     = { false },
+                onClusterItemClick = { item ->
+                    onMarkerClick(item.point)
+                    false
+                },
+                clusterContent = { cluster ->
+                    Box(
+                        modifier         = Modifier
+                            .size(40.dp)
+                            .background(toneColor.copy(alpha = 0.85f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text       = cluster.size.toString(),
+                            color      = Color.White,
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                clusterItemContent = { item ->
+                    when (item.point.type) {
+                        PointType.ECOPONTO -> androidx.compose.foundation.Image(
+                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_rio),
+                            contentDescription = "Ecoponto",
+                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                        )
+                        PointType.PEV -> androidx.compose.foundation.Image(
+                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_rio),
+                            contentDescription = "PEV",
+                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                        )
+                    }
                 }
-            },
+            )
+        }
 
-            // ── Visual do marcador individual ─────────────────────────
-            clusterItemContent = { item ->
-                when (item.point.type) {
-                    PointType.ECOPONTO -> androidx.compose.foundation.Image(
-                        painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_rio),
-                        contentDescription = "Ecoponto",
-                        modifier           = Modifier.size(width = 32.dp, height = 48.dp)
-                    )
-                    PointType.PEV -> androidx.compose.foundation.Image(
-                        painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_rio),
-                        contentDescription = "PEV",
-                        modifier           = Modifier.size(width = 32.dp, height = 48.dp)
-                    )
-                }
-            }
+        // ── Filtros ───────────────────────────────────────────────────
+        MapFilterBar(
+            toneColor    = toneColor,
+            onOpenFilter = { showFilterSheet = true },
+            modifier     = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 12.dp)
         )
+
+        if (showFilterSheet) {
+            MapFilterBottomSheet(
+                showPev        = showPev,
+                showEcoponto   = showEcoponto,
+                toneColor      = toneColor,
+                onTogglePev      = { showPev = !showPev },
+                onToggleEcoponto = { showEcoponto = !showEcoponto },
+                onDismiss      = { showFilterSheet = false }
+            )
+        }
     }
 }
