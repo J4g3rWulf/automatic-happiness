@@ -15,19 +15,17 @@ import org.json.JSONObject
  * Fonte de dados remota que busca pontos de coleta no Cloud Firestore.
  *
  * Fluxo de resolução:
- * 1. Tenta buscar a coleção [COLLECTION] no Firestore
- * 2. Se bem-sucedido → persiste resultado em SharedPreferences e retorna
- * 3. Se falhar ou vazio → tenta carregar o último fetch salvo localmente
- * 4. Se não houver nada salvo → retorna [RecyclingPointsData.ALL] como último recurso
- *
- * Isso garante que, em modo offline com cache expirado, o app sempre exibe
- * os dados mais recentes que o Firestore conseguiu entregar alguma vez.
+ * 1. Busca `last_updated` em metadata/recycling_points (1 leitura)
+ * 2. Compara com o timestamp salvo localmente
+ * 3. Se igual → retorna last-known salvo (zero leituras extras)
+ * 4. Se diferente → busca coleção completa, salva last-known e timestamp
+ * 5. Se qualquer erro → tenta last-known salvo → fallback estático
  *
  * @param context usado para acessar o SharedPreferences de persistência
  */
 class FirestorePointsSource(private val context: Context) {
 
-    private val db by lazy { Firebase.firestore }
+    private val db get() = Firebase.firestore
 
     private val prefs by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -35,47 +33,71 @@ class FirestorePointsSource(private val context: Context) {
 
     // ── API pública ───────────────────────────────────────────────────────────
 
-    /**
-     * Retorna os pontos de coleta, priorizando dados frescos do Firestore.
-     * Garante fallback progressivo: Firestore → último fetch salvo → lista estática.
-     */
     suspend fun getPoints(): List<RecyclingPoint> {
         return try {
-            val snapshot = db.collection(COLLECTION).get().await()
+            val remoteTimestamp = fetchRemoteTimestamp()
 
-            if (snapshot.isEmpty) {
-                Log.w(TAG, "Coleção '$COLLECTION' vazia — tentando último fetch salvo")
+            if (remoteTimestamp != null && remoteTimestamp == localTimestamp) {
+                Log.d(TAG, "Dados sem alteração (timestamp igual) — usando last-known")
                 return loadLastKnownOrFallback()
             }
 
-            val points = snapshot.documents.mapNotNull { doc ->
-                runCatching { doc.toRecyclingPoint() }
-                    .onFailure { Log.w(TAG, "Erro ao mapear documento ${doc.id}: $it") }
-                    .getOrNull()
-            }
+            val points = fetchAllPoints()
 
             if (points.isEmpty()) {
-                Log.w(TAG, "Nenhum documento mapeado — tentando último fetch salvo")
+                Log.w(TAG, "Nenhum ponto retornado — usando last-known")
                 return loadLastKnownOrFallback()
             }
 
-            // Firestore respondeu com sucesso → persiste para uso offline futuro
-            saveLastKnown(points)
+            saveLastKnown(points, remoteTimestamp)
             points
 
         } catch (e: Exception) {
-            Log.e(TAG, "Firestore indisponível — tentando último fetch salvo", e)
+            Log.e(TAG, "Erro ao buscar Firestore — usando last-known", e)
             loadLastKnownOrFallback()
         }
     }
 
-    // ── Persistência "last known good" ────────────────────────────────────────
+    // ── Timestamp remoto ──────────────────────────────────────────────────────
 
-    /**
-     * Salva a lista de pontos no SharedPreferences como "último fetch bem-sucedido".
-     * Chamado sempre que o Firestore retorna dados válidos.
-     */
-    private fun saveLastKnown(points: List<RecyclingPoint>) {
+    private suspend fun fetchRemoteTimestamp(): String? {
+        return try {
+            val doc = db.collection(METADATA_COLLECTION)
+                .document(METADATA_DOCUMENT)
+                .get()
+                .await()
+            doc.getString(FIELD_LAST_UPDATED).also {
+                Log.d(TAG, "Timestamp remoto: $it")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Falha ao buscar timestamp remoto: $e")
+            null
+        }
+    }
+
+    private val localTimestamp: String?
+        get() = prefs.getString(KEY_TIMESTAMP, null)
+
+    // ── Busca completa dos pontos ─────────────────────────────────────────────
+
+    private suspend fun fetchAllPoints(): List<RecyclingPoint> {
+        val snapshot = db.collection(POINTS_COLLECTION).get().await()
+
+        if (snapshot.isEmpty) {
+            Log.w(TAG, "Coleção '$POINTS_COLLECTION' vazia")
+            return emptyList()
+        }
+
+        return snapshot.documents.mapNotNull { doc ->
+            runCatching { doc.toRecyclingPoint() }
+                .onFailure { Log.w(TAG, "Erro ao mapear ${doc.id}: $it") }
+                .getOrNull()
+        }
+    }
+
+    // ── Persistência last-known ───────────────────────────────────────────────
+
+    private fun saveLastKnown(points: List<RecyclingPoint>, timestamp: String?) {
         try {
             val array = JSONArray()
             points.forEach { point ->
@@ -89,27 +111,26 @@ class FirestorePointsSource(private val context: Context) {
                     put("materials", JSONArray(point.materials))
                 })
             }
-            prefs.edit { putString(KEY_LAST_KNOWN, array.toString()) }
-            Log.d(TAG, "Último fetch salvo com ${points.size} pontos")
+            prefs.edit {
+                putString(KEY_LAST_KNOWN, array.toString())
+                putString(KEY_TIMESTAMP, timestamp)
+            }
+            Log.d(TAG, "Last-known salvo: ${points.size} pontos, timestamp: $timestamp")
         } catch (e: Exception) {
-            Log.w(TAG, "Falha ao salvar último fetch: $e")
+            Log.w(TAG, "Falha ao salvar last-known: $e")
         }
     }
 
-    /**
-     * Carrega o último fetch bem-sucedido do Firestore salvo localmente.
-     * Se não houver nada salvo, retorna [RecyclingPointsData.ALL] como último recurso.
-     */
     private fun loadLastKnownOrFallback(): List<RecyclingPoint> {
         val json = prefs.getString(KEY_LAST_KNOWN, null)
         if (json != null) {
             val points = parsePointsFromJson(json)
             if (points.isNotEmpty()) {
-                Log.d(TAG, "Usando último fetch salvo (${points.size} pontos)")
+                Log.d(TAG, "Usando last-known (${points.size} pontos)")
                 return points
             }
         }
-        Log.w(TAG, "Nenhum fetch anterior salvo — usando lista estática")
+        Log.w(TAG, "Sem last-known — usando lista estática")
         return RecyclingPointsData.ALL
     }
 
@@ -119,7 +140,6 @@ class FirestorePointsSource(private val context: Context) {
             (0 until array.length()).mapNotNull { i ->
                 runCatching {
                     val obj = array.getJSONObject(i)
-                    @Suppress("UNCHECKED_CAST")
                     val materials = obj.optJSONArray("materials")?.let { arr ->
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList()
@@ -169,9 +189,13 @@ class FirestorePointsSource(private val context: Context) {
     // ── Constantes ────────────────────────────────────────────────────────────
 
     private companion object {
-        const val COLLECTION    = "recycling_points"
-        const val PREFS_NAME    = "firestore_points_cache"
-        const val KEY_LAST_KNOWN = "last_known_points"
-        const val TAG           = "FirestorePointsSource"
+        const val POINTS_COLLECTION   = "recycling_points"
+        const val METADATA_COLLECTION = "metadata"
+        const val METADATA_DOCUMENT   = "recycling_points"
+        const val FIELD_LAST_UPDATED  = "last_updated"
+        const val PREFS_NAME          = "firestore_points_cache"
+        const val KEY_LAST_KNOWN      = "last_known_points"
+        const val KEY_TIMESTAMP       = "last_updated_timestamp"
+        const val TAG                 = "FirestorePointsSource"
     }
 }
