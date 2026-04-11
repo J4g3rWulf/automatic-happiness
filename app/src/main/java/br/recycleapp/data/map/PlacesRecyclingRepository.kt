@@ -57,7 +57,7 @@ class PlacesRecyclingRepository(
         getCachedPoints(latitude, longitude)?.let { return it }
 
         val apiPoints = fetchFromApi(latitude, longitude)
-        val result = apiPoints.ifEmpty { RecyclingPointsData.ALL }
+        val result    = (apiPoints + RecyclingPointsData.ALL).distinctBy { it.id }
 
         cacheProvider(result, latitude, longitude)
         return result
