@@ -27,7 +27,7 @@ import org.json.JSONObject
  */
 class FirestorePointsSource(private val context: Context) {
 
-    private val db = Firebase.firestore
+    private val db by lazy { Firebase.firestore }
 
     private val prefs by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
