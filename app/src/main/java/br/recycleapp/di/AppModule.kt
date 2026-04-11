@@ -2,6 +2,7 @@ package br.recycleapp.di
 
 import android.content.Context
 import br.recycleapp.BuildConfig
+import br.recycleapp.data.map.FirestorePointsSource
 import br.recycleapp.data.map.MapAvailabilityChecker
 import br.recycleapp.data.map.PlacesRecyclingRepository
 import br.recycleapp.data.repository.ClassifierRepository
@@ -66,12 +67,17 @@ object AppModule {
     /**
      * Retorna a instância única do repositório de pontos de coleta.
      * Thread-safe via double-checked locking.
+     *
+     * O [FirestorePointsSource] é criado aqui e injetado no repositório,
+     * permitindo que o Firestore persista o último fetch bem-sucedido
+     * para uso offline futuro.
      */
     fun provideRecyclingPointRepository(context: Context): IRecyclingPointRepository {
         return recyclingPointRepository ?: synchronized(this) {
             recyclingPointRepository ?: PlacesRecyclingRepository(
-                context  = context.applicationContext,
-                apiKey   = BuildConfig.MAPS_API_KEY
+                context         = context.applicationContext,
+                apiKey          = BuildConfig.MAPS_API_KEY,
+                firestoreSource = FirestorePointsSource(context.applicationContext)
             ).also { recyclingPointRepository = it }
         }
     }
