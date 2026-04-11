@@ -143,16 +143,18 @@ private fun OsmMapContent(
         }
     }
 
-    var showPev         by remember { mutableStateOf(true) }
-    var showEcoponto    by remember { mutableStateOf(true) }
-    var showFilterSheet by remember { mutableStateOf(false) }
+    var showPev            by remember { mutableStateOf(true) }
+    var showEcoponto       by remember { mutableStateOf(true) }
+    var showEcopontoLight  by remember { mutableStateOf(true) }
+    var showFilterSheet    by remember { mutableStateOf(false) }
 
 
-    val filteredPoints = remember(points, showPev, showEcoponto) {
+    val filteredPoints = remember(points, showPev, showEcoponto, showEcopontoLight) {
         points.filter { point ->
             when (point.type) {
-                PointType.PEV      -> showPev
-                PointType.ECOPONTO -> showEcoponto
+                PointType.PEV            -> showPev
+                PointType.ECOPONTO       -> showEcoponto
+                PointType.ECOPONTO_LIGHT -> showEcopontoLight
             }
         }
     }
@@ -172,6 +174,13 @@ private fun OsmMapContent(
         val iconEcoponto = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
                 .decodeResource(context.resources, R.drawable.pin_ecoponto_rio)
+                .scale(widthPx, heightPx)
+                .toDrawable(context.resources)
+        }
+
+        val iconEcopontoLight = withContext(Dispatchers.IO) {
+            android.graphics.BitmapFactory
+                .decodeResource(context.resources, R.drawable.pin_ecoponto_light)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
@@ -197,8 +206,9 @@ private fun OsmMapContent(
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 icon = when (point.type) {
-                    PointType.PEV      -> iconPev
-                    PointType.ECOPONTO -> iconEcoponto
+                    PointType.PEV            -> iconPev
+                    PointType.ECOPONTO       -> iconEcoponto
+                    PointType.ECOPONTO_LIGHT -> iconEcopontoLight
                 }
                 setOnMarkerClickListener { _, _ ->
                     onMarkerClick(point)
@@ -229,12 +239,14 @@ private fun OsmMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev          = showPev,
-                showEcoponto     = showEcoponto,
-                toneColor        = toneColor,
-                onTogglePev      = { showPev = !showPev },
-                onToggleEcoponto = { showEcoponto = !showEcoponto },
-                onDismiss        = { showFilterSheet = false }
+                showPev               = showPev,
+                showEcoponto          = showEcoponto,
+                showEcopontoLight     = showEcopontoLight,
+                toneColor             = toneColor,
+                onTogglePev           = { showPev = !showPev },
+                onToggleEcoponto      = { showEcoponto = !showEcoponto },
+                onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
+                onDismiss             = { showFilterSheet = false }
             )
         }
     }
