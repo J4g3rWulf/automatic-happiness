@@ -33,6 +33,19 @@ class FirestorePointsSource(private val context: Context) {
 
     // ── API pública ───────────────────────────────────────────────────────────
 
+    /**
+     * Verifica em 1 leitura se o Firestore tem dados mais recentes que o cache local.
+     * Retorna true se o timestamp remoto for diferente do salvo localmente.
+     */
+    suspend fun hasRemoteChanges(): Boolean {
+        val remote = fetchRemoteTimestamp() ?: return false
+        val hasChanges = remote != localTimestamp
+        if (hasChanges) {
+            Log.d(TAG, "Mudança detectada no Firestore — invalidando cache geográfico")
+        }
+        return hasChanges
+    }
+
     suspend fun getPoints(): List<RecyclingPoint> {
         return try {
             val remoteTimestamp = fetchRemoteTimestamp()
