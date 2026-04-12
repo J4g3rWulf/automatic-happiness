@@ -56,7 +56,9 @@ class PlacesRecyclingRepository(
         latitude: Double,
         longitude: Double
     ): List<RecyclingPoint> {
-        getCachedPoints(latitude, longitude)?.let { return it }
+        if (!firestoreSource.hasRemoteChanges()) {
+            getCachedPoints(latitude, longitude)?.let { return it }
+        }
 
         val apiPoints       = fetchFromApi(latitude, longitude)
         val firestorePoints = firestoreSource.getPoints()
