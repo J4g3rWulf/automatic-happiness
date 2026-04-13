@@ -143,17 +143,17 @@ private fun OsmMapContent(
         }
     }
 
-    var showPev            by remember { mutableStateOf(true) }
-    var showEcoponto       by remember { mutableStateOf(true) }
+    var showPevComlurb            by remember { mutableStateOf(true) }
+    var showEcopontoComlurb       by remember { mutableStateOf(true) }
     var showEcopontoLight  by remember { mutableStateOf(true) }
     var showFilterSheet    by remember { mutableStateOf(false) }
 
 
-    val filteredPoints = remember(points, showPev, showEcoponto, showEcopontoLight) {
+    val filteredPoints = remember(points, showPevComlurb, showEcopontoComlurb, showEcopontoLight) {
         points.filter { point ->
             when (point.type) {
-                PointType.PEV            -> showPev
-                PointType.ECOPONTO       -> showEcoponto
+                PointType.PEV_COMLURB          -> showPevComlurb
+                PointType.ECOPONTO_COMLURB     -> showEcopontoComlurb
                 PointType.ECOPONTO_LIGHT -> showEcopontoLight
             }
         }
@@ -164,16 +164,16 @@ private fun OsmMapContent(
         val widthPx  = (32 * density).toInt()
         val heightPx = (48 * density).toInt()
 
-        val iconPev = withContext(Dispatchers.IO) {
+        val iconPevComlurb = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
-                .decodeResource(context.resources, R.drawable.pin_pev_rio)
+                .decodeResource(context.resources, R.drawable.pin_pev_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
 
-        val iconEcoponto = withContext(Dispatchers.IO) {
+        val iconEcopontoComlurb = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
-                .decodeResource(context.resources, R.drawable.pin_ecoponto_rio)
+                .decodeResource(context.resources, R.drawable.pin_ecoponto_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
@@ -206,8 +206,8 @@ private fun OsmMapContent(
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 icon = when (point.type) {
-                    PointType.PEV            -> iconPev
-                    PointType.ECOPONTO       -> iconEcoponto
+                    PointType.PEV_COMLURB              -> iconPevComlurb
+                    PointType.ECOPONTO_COMLURB       -> iconEcopontoComlurb
                     PointType.ECOPONTO_LIGHT -> iconEcopontoLight
                 }
                 setOnMarkerClickListener { _, _ ->
@@ -239,12 +239,12 @@ private fun OsmMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev               = showPev,
-                showEcoponto          = showEcoponto,
+                showPev               = showPevComlurb,
+                showEcoponto          = showEcopontoComlurb,
                 showEcopontoLight     = showEcopontoLight,
                 toneColor             = toneColor,
-                onTogglePev           = { showPev = !showPev },
-                onToggleEcoponto      = { showEcoponto = !showEcoponto },
+                onTogglePev           = { showPevComlurb = !showPevComlurb },
+                onToggleEcoponto      = { showEcopontoComlurb = !showEcopontoComlurb },
                 onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
                 onDismiss             = { showFilterSheet = false }
             )

@@ -125,16 +125,16 @@ private fun GoogleMapContent(
         position = CameraPosition.fromLatLngZoom(center, 12f)
     }
 
-    var showPev            by remember { mutableStateOf(true) }
-    var showEcoponto       by remember { mutableStateOf(true) }
+    var showPevComlurb            by remember { mutableStateOf(true) }
+    var showEcopontoComlurb       by remember { mutableStateOf(true) }
     var showEcopontoLight  by remember { mutableStateOf(true) }
     var showFilterSheet    by remember { mutableStateOf(false) }
 
-    val filteredPoints = remember(points, showPev, showEcoponto, showEcopontoLight) {
+    val filteredPoints = remember(points, showPevComlurb, showEcopontoComlurb, showEcopontoLight) {
         points.filter { point ->
             when (point.type) {
-                PointType.PEV            -> showPev
-                PointType.ECOPONTO       -> showEcoponto
+                PointType.PEV_COMLURB    -> showPevComlurb
+                PointType.ECOPONTO_COMLURB -> showEcopontoComlurb
                 PointType.ECOPONTO_LIGHT -> showEcopontoLight
             }
         }
@@ -178,14 +178,14 @@ private fun GoogleMapContent(
                 },
                 clusterItemContent = { item ->
                     when (item.point.type) {
-                        PointType.ECOPONTO -> androidx.compose.foundation.Image(
-                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_rio),
-                            contentDescription = "Ecoponto",
+                        PointType.ECOPONTO_COMLURB -> androidx.compose.foundation.Image(
+                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_comlurb),
+                            contentDescription = "Ecoponto Comlurb",
                             modifier           = Modifier.size(width = 32.dp, height = 48.dp)
                         )
-                        PointType.PEV -> androidx.compose.foundation.Image(
-                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_rio),
-                            contentDescription = "PEV",
+                        PointType.PEV_COMLURB -> androidx.compose.foundation.Image(
+                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_comlurb),
+                            contentDescription = "PEV Comlurb",
                             modifier           = Modifier.size(width = 32.dp, height = 48.dp)
                         )
                         PointType.ECOPONTO_LIGHT -> androidx.compose.foundation.Image(
@@ -209,12 +209,12 @@ private fun GoogleMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev               = showPev,
-                showEcoponto          = showEcoponto,
+                showPev               = showPevComlurb,
+                showEcoponto          = showEcopontoComlurb,
                 showEcopontoLight     = showEcopontoLight,
                 toneColor             = toneColor,
-                onTogglePev           = { showPev = !showPev },
-                onToggleEcoponto      = { showEcoponto = !showEcoponto },
+                onTogglePev           = { showPevComlurb = !showPevComlurb },
+                onToggleEcoponto      = { showEcopontoComlurb = !showEcopontoComlurb },
                 onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
                 onDismiss             = { showFilterSheet = false }
             )
