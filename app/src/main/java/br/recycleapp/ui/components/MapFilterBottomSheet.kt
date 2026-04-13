@@ -112,7 +112,7 @@ fun MapFilterBottomSheet(
                 toneColor = toneColor,
                 leadingContent = {
                     Image(
-                        painter            = painterResource(R.drawable.pin_pev_rio),
+                        painter            = painterResource(R.drawable.pin_pev_comlurb),
                         contentDescription = null,
                         modifier           = Modifier.size(width = 20.dp, height = 30.dp)
                     )
@@ -129,7 +129,7 @@ fun MapFilterBottomSheet(
                 toneColor = toneColor,
                 leadingContent = {
                     Image(
-                        painter            = painterResource(R.drawable.pin_ecoponto_rio),
+                        painter            = painterResource(R.drawable.pin_ecoponto_comlurb),
                         contentDescription = null,
                         modifier           = Modifier.size(width = 20.dp, height = 30.dp)
                     )
