@@ -21,6 +21,10 @@ import org.json.JSONObject
  * 4. Se diferente → busca coleção completa, salva last-known e timestamp
  * 5. Se qualquer erro → tenta last-known salvo → fallback estático
  *
+ * Compatibilidade legada: os campos `type` antigos ("PEV", "ECOPONTO") são
+ * mapeados para os novos valores do enum durante a leitura, garantindo que
+ * documentos ainda não migrados no Firestore sejam lidos corretamente.
+ *
  * @param context usado para acessar o SharedPreferences de persistência
  */
 class FirestorePointsSource(private val context: Context) {
@@ -117,11 +121,14 @@ class FirestorePointsSource(private val context: Context) {
                 array.put(JSONObject().apply {
                     put("id",        point.id)
                     put("name",      point.name)
+                    put("subtitle",  point.subtitle)
                     put("address",   point.address)
                     put("lat",       point.latitude)
                     put("lng",       point.longitude)
                     put("type",      point.type.name)
                     put("materials", JSONArray(point.materials))
+                    put("schedule",  point.schedule)
+                    put("benefit",   point.benefit)
                 })
             }
             prefs.edit {
@@ -156,18 +163,18 @@ class FirestorePointsSource(private val context: Context) {
                     val materials = obj.optJSONArray("materials")?.let { arr ->
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList()
-                    val type = runCatching {
-                        PointType.valueOf(obj.optString("type", PointType.PEV.name))
-                    }.getOrDefault(PointType.PEV)
 
                     RecyclingPoint(
                         id        = obj.getString("id"),
                         name      = obj.getString("name"),
+                        subtitle  = obj.optString("subtitle", ""),
                         address   = obj.getString("address"),
                         latitude  = obj.getDouble("lat"),
                         longitude = obj.getDouble("lng"),
                         materials = materials,
-                        type      = type
+                        type      = parsePointType(obj.optString("type", "")),
+                        schedule  = obj.optString("schedule", ""),
+                        benefit   = obj.optString("benefit",  "")
                     )
                 }.getOrNull()
             }
@@ -184,19 +191,31 @@ class FirestorePointsSource(private val context: Context) {
             ?.filterIsInstance<String>()
             ?: emptyList()
 
-        val type = getString("type")
-            ?.let { runCatching { PointType.valueOf(it) }.getOrDefault(PointType.PEV) }
-            ?: PointType.PEV
-
         return RecyclingPoint(
             id        = id,
             name      = getString("name")      ?: "",
+            subtitle  = getString("subtitle")  ?: "",
             address   = getString("address")   ?: "",
             latitude  = getDouble("latitude")  ?: 0.0,
             longitude = getDouble("longitude") ?: 0.0,
             materials = materials,
-            type      = type
+            type      = parsePointType(getString("type") ?: ""),
+            schedule  = getString("schedule")  ?: "",
+            benefit   = getString("benefit")   ?: ""
         )
+    }
+
+    /**
+     * Mapeia a string do campo `type` para o enum [PointType].
+     *
+     * Aceita tanto os valores novos (PEV_COMLURB, ECOPONTO_COMLURB) quanto os
+     * legados (PEV, ECOPONTO) para garantir compatibilidade durante a migração.
+     */
+    private fun parsePointType(raw: String): PointType = when (raw.uppercase().trim()) {
+        "PEV_COMLURB", "PEV"                     -> PointType.PEV_COMLURB
+        "ECOPONTO_COMLURB", "ECOPONTO"            -> PointType.ECOPONTO_COMLURB
+        "ECOPONTO_LIGHT"                          -> PointType.ECOPONTO_LIGHT
+        else                                      -> PointType.PEV_COMLURB
     }
 
     // ── Constantes ────────────────────────────────────────────────────────────
