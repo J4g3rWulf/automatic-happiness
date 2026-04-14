@@ -168,17 +168,20 @@ class PlacesRecyclingRepository(
                     (0 until arr.length()).map { arr.getString(it) }
                 } ?: emptyList()
                 val type = runCatching {
-                    PointType.valueOf(obj.optString("type", PointType.PEV.name))
-                }.getOrDefault(PointType.PEV)
+                    PointType.valueOf(obj.optString("type", PointType.PEV_COMLURB.name))
+                }.getOrDefault(PointType.PEV_COMLURB)
 
                 RecyclingPoint(
                     id        = obj.getString("id"),
                     name      = obj.getString("name"),
+                    subtitle  = obj.optString("subtitle", ""),
                     address   = obj.getString("address"),
                     latitude  = obj.getDouble("lat"),
                     longitude = obj.getDouble("lng"),
                     materials = materials,
-                    type      = type
+                    type      = type,
+                    schedule  = obj.optString("schedule", ""),
+                    benefit   = obj.optString("benefit",  "")
                 )
             }
         } catch (_: Exception) {
