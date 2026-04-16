@@ -1,5 +1,8 @@
 package br.recycleapp.domain.map
 
+import androidx.annotation.DrawableRes
+import br.recycleapp.R
+
 /**
  * Representa um ponto de coleta seletiva.
  *
@@ -67,4 +70,42 @@ enum class PointType {
     ECOPONTO_DUQUE_DE_CAXIAS,
     PEV_ANGRA_DOS_REIS,
     ECOPONTO_ANGRA_DOS_REIS,
+}
+
+/**
+ * Retorna true se este tipo pertence à categoria PEV para fins de filtro.
+ * Todos os tipos de PEV (independente do município) respondem ao mesmo toggle.
+ */
+fun PointType.isPev(): Boolean = this in setOf(
+    PointType.PEV,
+    PointType.PEV_COMLURB,
+    PointType.PEV_NITEROI,
+    PointType.PEV_ANGRA_DOS_REIS
+)
+
+/**
+ * Retorna true se este tipo pertence à categoria Ecoponto para fins de filtro.
+ */
+fun PointType.isEcoponto(): Boolean = this in setOf(
+    PointType.ECOPONTO,
+    PointType.ECOPONTO_COMLURB,
+    PointType.ECOPONTO_NITEROI,
+    PointType.ECOPONTO_SAO_GONCALO,
+    PointType.ECOPONTO_DUQUE_DE_CAXIAS,
+    PointType.ECOPONTO_ANGRA_DOS_REIS
+)
+
+@DrawableRes
+fun PointType.toPinDrawable(): Int = when (this) {
+    PointType.PEV,
+    PointType.PEV_COMLURB              -> R.drawable.pin_pev_comlurb
+    PointType.ECOPONTO,
+    PointType.ECOPONTO_COMLURB         -> R.drawable.pin_ecoponto_comlurb
+    PointType.ECOPONTO_LIGHT           -> R.drawable.pin_ecoponto_light
+    PointType.ECOPONTO_NITEROI         -> R.drawable.pin_ecoponto_clin_niteroi
+    PointType.PEV_NITEROI              -> R.drawable.pin_pev_niteroi_puds
+    PointType.ECOPONTO_SAO_GONCALO     -> R.drawable.pin_ecoponto_sao_goncalo
+    PointType.ECOPONTO_DUQUE_DE_CAXIAS -> R.drawable.pin_ecoponto_duque_de_caxias
+    PointType.PEV_ANGRA_DOS_REIS,
+    PointType.ECOPONTO_ANGRA_DOS_REIS  -> R.drawable.pin_ecopontos_pevs_angra
 }
