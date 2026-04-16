@@ -3,46 +3,54 @@ package br.recycleapp.domain.map
 /**
  * Representa um ponto de coleta seletiva.
  *
- * @param id        identificador único — formato: tipo_operador_local (ex: pev_comlurb_bangu)
+ * @param id        identificador único (kebab-case)
  * @param name      nome do local
- * @param subtitle  subtítulo exibido no card — livre por pin (ex: "Ponto de Entrega Voluntária Comlurb")
- * @param address   endereço formatado (vazio → linha oculta no card)
- * @param latitude  latitude
- * @param longitude longitude
- * @param materials materiais aceitos — cada item tem imagem própria no carrossel
- * @param type      tipo do ponto — controla pin no mapa e filtro; não gera texto automático
- * @param schedule  horário de funcionamento (vazio → linha oculta no card)
- * @param benefit   benefício oferecido ao usuário (vazio → linha oculta no card)
+ * @param address   endereço formatado para exibição
+ * @param latitude  latitude decimal
+ * @param longitude longitude decimal
+ * @param materials materiais aceitos
+ * @param type      tipo do ponto — ver [PointType]
  */
 data class RecyclingPoint(
     val id: String,
     val name: String,
-    val subtitle: String = "",
     val address: String,
     val latitude: Double,
     val longitude: Double,
     val materials: List<String> = emptyList(),
-    val type: PointType = PointType.PEV_COMLURB,
-    val schedule: String = "",
-    val benefit: String = ""
+    val type: PointType = PointType.PEV
 )
 
 /**
  * Tipo do ponto de coleta.
  *
- * Controla exclusivamente:
- *   - a imagem do pin exibida no mapa
- *   - o toggle de filtro correspondente
+ * Tipos legados mantidos para compatibilidade:
+ * [PEV]     — fallback genérico para resultados da Places API.
+ * [ECOPONTO] — será removido na refatoração do BottomSheet.
  *
- * O texto do subtítulo do card vem do campo [RecyclingPoint.subtitle],
- * não do tipo — o que permite subtítulos diferentes para pins do mesmo tipo.
- *
- * [PEV_COMLURB]    Ponto de Entrega Voluntária da Comlurb.
- * [ECOPONTO_COMLURB] Ecoponto da Comlurb.
- * [ECOPONTO_LIGHT] Ecoponto Light Recicla.
+ * Tipos explícitos (schema v2):
+ * [PEV_COMLURB]             Ponto de Entrega Voluntária da Comlurb.
+ * [ECOPONTO_COMLURB]        Ecoponto da Comlurb (entulho, bens inservíveis).
+ * [ECOPONTO_LIGHT]          Ecoponto Light Recicla (recicláveis + óleo vegetal).
+ * [PEV_NITEROI]             PUD — Ponto de Entrega Voluntária de Niterói.
+ * [ECOPONTO_NITEROI]        Ecoponto da CLIN (Niterói).
+ * [ECOPONTO_SAO_GONCALO]    Ecoponto de São Gonçalo.
+ * [ECOPONTO_DUQUE_DE_CAXIAS] Ecoponto de Duque de Caxias.
+ * [PEV_ANGRA_DOS_REIS]      PEV de Angra dos Reis.
+ * [ECOPONTO_ANGRA_DOS_REIS] Ecoponto de Angra dos Reis.
  */
 enum class PointType {
+    // Legados
+    PEV,
+    ECOPONTO,
+    // Explícitos
     PEV_COMLURB,
     ECOPONTO_COMLURB,
-    ECOPONTO_LIGHT
+    ECOPONTO_LIGHT,
+    PEV_NITEROI,
+    ECOPONTO_NITEROI,
+    ECOPONTO_SAO_GONCALO,
+    ECOPONTO_DUQUE_DE_CAXIAS,
+    PEV_ANGRA_DOS_REIS,
+    ECOPONTO_ANGRA_DOS_REIS,
 }
