@@ -127,7 +127,8 @@ class PlacesRecyclingRepository(
                                 name      = place.displayName ?: "Ponto de coleta",
                                 address   = place.formattedAddress ?: "",
                                 latitude  = location.latitude,
-                                longitude = location.longitude
+                                longitude = location.longitude,
+                                type      = PointType.UNKNOWN  // origem desconhecida da Places API
                             )
                         }
                         continuation.resume(points)
@@ -182,8 +183,8 @@ class PlacesRecyclingRepository(
                     } ?: emptyList()
 
                     val type = runCatching {
-                        PointType.valueOf(obj.optString("type", PointType.PEV.name))
-                    }.getOrDefault(PointType.PEV)
+                        PointType.valueOf(obj.optString("type", PointType.UNKNOWN.name))
+                    }.getOrDefault(PointType.UNKNOWN)
 
                     RecyclingPoint(
                         id               = obj.getString("id"),

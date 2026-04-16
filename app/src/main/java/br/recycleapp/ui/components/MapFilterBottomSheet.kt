@@ -40,10 +40,10 @@ fun MapFilterBottomSheet(
     toneColor: Color,
     onDismiss: () -> Unit
 ) {
-    // Tipos exibidos no filtro — exclui os legados PEV e ECOPONTO que são
-    // usados internamente pela Places API e não têm pin próprio no mapa
+    // Tipos exibidos no filtro — exclui UNKNOWN, usado internamente como
+    // fallback para resultados da Places API sem tipo definido
     val displayedTypes = PointType.entries.filter { type ->
-        type != PointType.PEV && type != PointType.ECOPONTO
+        type != PointType.UNKNOWN
     }
 
     val allEnabled = displayedTypes.all { typeVisibility[it] != false }

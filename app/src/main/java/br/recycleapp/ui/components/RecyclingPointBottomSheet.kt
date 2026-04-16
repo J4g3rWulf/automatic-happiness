@@ -29,7 +29,7 @@ import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
 
 /**
- * Bottom sheet exibido quando o usuário toca num marcador do mapa.
+ * Bottom sheet exibido quando o usuário toca em um marcador do mapa.
  *
  * Exibe nome, subtítulo, endereço, referência, horários, benefícios
  * e os ícones individuais dos materiais aceitos pelo ponto.

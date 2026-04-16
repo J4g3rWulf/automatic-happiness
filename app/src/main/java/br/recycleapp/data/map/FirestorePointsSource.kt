@@ -138,8 +138,8 @@ class FirestorePointsSource(private val context: Context) {
             ?.filterIsInstance<String>() ?: emptyList()
 
         val type = getString("type")
-            ?.let { runCatching { PointType.valueOf(it) }.getOrDefault(PointType.PEV) }
-            ?: PointType.PEV
+            ?.let { runCatching { PointType.valueOf(it) }.getOrDefault(PointType.UNKNOWN) }
+            ?: PointType.UNKNOWN
 
         return RecyclingPoint(
             id               = id,
@@ -221,8 +221,8 @@ class FirestorePointsSource(private val context: Context) {
                     } ?: emptyList()
 
                     val type = runCatching {
-                        PointType.valueOf(obj.optString("type", PointType.PEV.name))
-                    }.getOrDefault(PointType.PEV)
+                        PointType.valueOf(obj.optString("type", PointType.UNKNOWN.name))
+                    }.getOrDefault(PointType.UNKNOWN)
 
                     RecyclingPoint(
                         id               = obj.getString("id"),
