@@ -13,10 +13,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.recycleapp.R
 import br.recycleapp.di.AppModule
 import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
+import br.recycleapp.domain.map.isEcoponto
+import br.recycleapp.domain.map.isPev
+import br.recycleapp.domain.map.toPinDrawable
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -132,10 +134,11 @@ private fun GoogleMapContent(
 
     val filteredPoints = remember(points, showPevComlurb, showEcopontoComlurb, showEcopontoLight) {
         points.filter { point ->
-            when (point.type) {
-                PointType.PEV_COMLURB    -> showPevComlurb
-                PointType.ECOPONTO_COMLURB -> showEcopontoComlurb
-                PointType.ECOPONTO_LIGHT -> showEcopontoLight
+            when {
+                point.type.isPev()                         -> showPevComlurb
+                point.type.isEcoponto()                    -> showEcopontoComlurb
+                point.type == PointType.ECOPONTO_LIGHT     -> showEcopontoLight
+                else                                       -> true
             }
         }
     }
@@ -177,23 +180,11 @@ private fun GoogleMapContent(
                     }
                 },
                 clusterItemContent = { item ->
-                    when (item.point.type) {
-                        PointType.ECOPONTO_COMLURB -> androidx.compose.foundation.Image(
-                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_comlurb),
-                            contentDescription = "Ecoponto Comlurb",
-                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
-                        )
-                        PointType.PEV_COMLURB -> androidx.compose.foundation.Image(
-                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_pev_comlurb),
-                            contentDescription = "PEV Comlurb",
-                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
-                        )
-                        PointType.ECOPONTO_LIGHT -> androidx.compose.foundation.Image(
-                            painter            = androidx.compose.ui.res.painterResource(R.drawable.pin_ecoponto_light),
-                            contentDescription = "Ecoponto Light",
-                            modifier           = Modifier.size(width = 32.dp, height = 48.dp)
-                        )
-                    }
+                    androidx.compose.foundation.Image(
+                        painter            = androidx.compose.ui.res.painterResource(item.point.type.toPinDrawable()),
+                        contentDescription = item.point.name,
+                        modifier           = Modifier.size(width = 32.dp, height = 48.dp)
+                    )
                 }
             )
         }
