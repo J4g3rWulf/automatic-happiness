@@ -5,17 +5,40 @@ import br.recycleapp.domain.map.RecyclingPoint
 
 /**
  * Lista estática de pontos de coleta verificados manualmente.
- * Usada como fallback quando o Firestore e o cache local estão indisponíveis.
  *
- * Gerada a partir dos 9 arquivos Excel do projeto (153 pontos).
- * Organização: Angra dos Reis, PEVs Angra, Comlurb Ecopontos,
- * PEVs Comlurb, Duque de Caxias, Light, Niterói Ecopontos,
- * PEVs Niterói, São Gonçalo.
+ * NÃO EDITE ESTE ARQUIVO MANUALMENTE.
+ * Ele é gerado automaticamente pelo script populate_firestore_v2.py
+ * com a flag --gen-fallback. Para atualizar, edite os arquivos Excel
+ * e rode: python populate_firestore_v2.py --gen-fallback
+ *
+ * QUANDO ESTE ARQUIVO É USADO:
+ * O app Android busca pontos de coleta em três camadas:
+ *   1. Firestore       → fonte primária (atualizada em runtime)
+ *   2. last-known      → cache local (SharedPreferences), atualizado
+ *                        automaticamente quando o Firestore responde
+ *   3. Este arquivo    → fallback estático compilado no APK, usado
+ *                        APENAS no primeiro acesso sem nenhuma internet
+ *
+ * Qualquer usuário que já abriu o app com internet ao menos uma vez
+ * nunca chegará a usar este fallback — o last-known já estará atualizado.
+ * Este arquivo garante uma experiência mínima para instalações offline.
+ *
+ * Gerado em: 2026-04-16T03:46:57.249898+00:00
+ * Total de pontos: 153
+ * Arquivos fonte:
+ *   - angra_dos_reis_ecopontos_rio_v2.xlsx
+ *   - angra_dos_reis_pev_rio_v2.xlsx
+ *   - comlurb_ecopontos_v2.xlsx
+ *   - comlurb_pev_rio_v2.xlsx
+ *   - duque_de_caxias_ecopontos_rio_v2.xlsx
+ *   - light_ecopontos_rio_v2.xlsx
+ *   - niteroi_ecopontos_rio_v2.xlsx
+ *   - niteroi_pev_rio_v2.xlsx
+ *   - sao_goncalo_ecopontos_rio_v2.xlsx
  */
 internal object RecyclingPointsData {
 
-
-    // ── Ecopontos de Angra dos Reis ────────────────────────────
+    // ── Ecopontos de Angra dos Reis ───────────────────────────
     private val angra_dos_reis_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-angra-dos-reis-japuiba",
@@ -157,7 +180,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── PEVs de Angra dos Reis ─────────────────────────────────
+    // ── PEVs de Angra dos Reis ────────────────────────────────
     private val angra_dos_reis_pev = listOf(
         RecyclingPoint(
             id               = "pev-angra-dos-reis-balneario",
@@ -183,7 +206,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── Ecopontos Comlurb ──────────────────────────────────────
+    // ── Ecopontos Comlurb ─────────────────────────────────────
     private val comlurb_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-comlurb-arara",
@@ -1320,7 +1343,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── PEVs Comlurb ───────────────────────────────────────────
+    // ── PEVs Comlurb ──────────────────────────────────────────
     private val comlurb_pev = listOf(
         RecyclingPoint(
             id               = "pev-comlurb-bangu",
@@ -1393,7 +1416,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── Ecopontos de Duque de Caxias ───────────────────────────
+    // ── Ecopontos de Duque de Caxias ──────────────────────────
     private val duque_de_caxias_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-duque-de-caxias-parque-vila-nova",
@@ -1409,7 +1432,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── Ecopontos Light Recicla ────────────────────────────────
+    // ── Ecopontos Light Recicla ───────────────────────────────
     private val light_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-light-espaco-ciencia-viva",
@@ -1524,7 +1547,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── Ecopontos de Niterói (CLIN) ────────────────────────────
+    // ── Ecopontos de Niterói (CLIN) ───────────────────────────
     private val niteroi_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-niteroi-barreto",
@@ -1634,7 +1657,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── PEVs de Niterói ────────────────────────────────────────
+    // ── PEVs de Niterói ───────────────────────────────────────
     private val niteroi_pev = listOf(
         RecyclingPoint(
             id               = "pev-niteroi-pud-engenhoca",
@@ -1666,7 +1689,7 @@ internal object RecyclingPointsData {
         ),
     )
 
-    // ── Ecopontos de São Gonçalo ───────────────────────────────
+    // ── Ecopontos de São Gonçalo ──────────────────────────────
     private val sao_goncalo_ecopontos = listOf(
         RecyclingPoint(
             id               = "ecoponto-sao-goncalo-barro-vermelho",
@@ -1678,7 +1701,8 @@ internal object RecyclingPointsData {
             materials        = listOf("Vidro", "Plástico", "Papel", "Metal", "Óleo vegetal", "Eletrônicos"),
             type             = PointType.ECOPONTO_SAO_GONCALO,
             scheduleWeekdays = "Segunda - Sexta: 8h às 17h",
-            benefits         = listOf("Dinheiro digital creditado em cartão para uso em conta corrente ou estabelecimentos de São Gonçalo"),
+            benefitsProgram  = "Programa Limpa São Gonçalo",
+            benefits         = listOf("Dinheiro digital creditado em cartão (uso em conta corrente ou estabelecimentos de São Gonçalo)"),
         ),
         RecyclingPoint(
             id               = "ecoponto-sao-goncalo-santa-luzia",
@@ -1691,7 +1715,8 @@ internal object RecyclingPointsData {
             materials        = listOf("Vidro", "Plástico", "Papel", "Metal", "Óleo vegetal", "Eletrônicos"),
             type             = PointType.ECOPONTO_SAO_GONCALO,
             scheduleWeekdays = "Segunda - Sexta: 8h às 17h",
-            benefits         = listOf("Dinheiro digital creditado em cartão para uso em conta corrente ou estabelecimentos de São Gonçalo"),
+            benefitsProgram  = "Programa Limpa São Gonçalo",
+            benefits         = listOf("Dinheiro digital creditado em cartão (uso em conta corrente ou estabelecimentos de São Gonçalo)"),
         ),
         RecyclingPoint(
             id               = "ecoponto-sao-goncalo-ze-garoto",
@@ -1704,7 +1729,8 @@ internal object RecyclingPointsData {
             materials        = listOf("Vidro", "Plástico", "Papel", "Metal", "Óleo vegetal", "Eletrônicos"),
             type             = PointType.ECOPONTO_SAO_GONCALO,
             scheduleWeekdays = "Segunda - Sexta: 8h às 17h",
-            benefits         = listOf("Dinheiro digital creditado em cartão para uso em conta corrente ou estabelecimentos de São Gonçalo"),
+            benefitsProgram  = "Programa Limpa São Gonçalo",
+            benefits         = listOf("Dinheiro digital creditado em cartão (uso em conta corrente ou estabelecimentos de São Gonçalo)"),
         ),
     )
 

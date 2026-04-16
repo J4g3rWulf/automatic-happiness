@@ -73,28 +73,27 @@ enum class PointType {
 }
 
 /**
- * Retorna true se este tipo pertence à categoria PEV para fins de filtro.
- * Todos os tipos de PEV (independente do município) respondem ao mesmo toggle.
+ * Retorna o label de exibição no filtro do mapa.
+ * Tipos legados compartilham label com seus equivalentes explícitos.
  */
-fun PointType.isPev(): Boolean = this in setOf(
+fun PointType.toFilterLabel(): String = when (this) {
     PointType.PEV,
-    PointType.PEV_COMLURB,
-    PointType.PEV_NITEROI,
-    PointType.PEV_ANGRA_DOS_REIS
-)
+    PointType.PEV_COMLURB              -> "PEVs Comlurb"
+    PointType.ECOPONTO,
+    PointType.ECOPONTO_COMLURB         -> "Ecopontos Comlurb"
+    PointType.ECOPONTO_LIGHT           -> "Ecopontos Light Recicla"
+    PointType.PEV_NITEROI              -> "PEVs Niterói"
+    PointType.ECOPONTO_NITEROI         -> "Ecopontos Niterói"
+    PointType.ECOPONTO_SAO_GONCALO     -> "Ecopontos São Gonçalo"
+    PointType.ECOPONTO_DUQUE_DE_CAXIAS -> "Ecopontos Duque de Caxias"
+    PointType.PEV_ANGRA_DOS_REIS       -> "PEVs Angra dos Reis"
+    PointType.ECOPONTO_ANGRA_DOS_REIS  -> "Ecopontos Angra dos Reis"
+}
 
 /**
- * Retorna true se este tipo pertence à categoria Ecoponto para fins de filtro.
+ * Retorna o drawable do pin correspondente ao tipo do ponto.
+ * Cada município tem seu próprio pin para diferenciação visual no mapa.
  */
-fun PointType.isEcoponto(): Boolean = this in setOf(
-    PointType.ECOPONTO,
-    PointType.ECOPONTO_COMLURB,
-    PointType.ECOPONTO_NITEROI,
-    PointType.ECOPONTO_SAO_GONCALO,
-    PointType.ECOPONTO_DUQUE_DE_CAXIAS,
-    PointType.ECOPONTO_ANGRA_DOS_REIS
-)
-
 @DrawableRes
 fun PointType.toPinDrawable(): Int = when (this) {
     PointType.PEV,

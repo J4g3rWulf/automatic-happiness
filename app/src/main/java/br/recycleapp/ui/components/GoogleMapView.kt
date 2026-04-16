@@ -16,8 +16,6 @@ import androidx.compose.ui.unit.sp
 import br.recycleapp.di.AppModule
 import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
-import br.recycleapp.domain.map.isEcoponto
-import br.recycleapp.domain.map.isPev
 import br.recycleapp.domain.map.toPinDrawable
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
@@ -36,7 +34,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 
-// Localização padrão se o GPS não responder dentro do timeout
 private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
 
 /**
@@ -113,7 +110,10 @@ fun GoogleMapView(
 }
 
 /**
- * Renderiza o GoogleMap com clustering automático e filtros por tipo de ponto.
+ * Renderiza o GoogleMap com clustering automático e filtros individuais por tipo.
+ *
+ * O estado de visibilidade é um Map<PointType, Boolean> — novos tipos adicionados
+ * ao enum aparecem automaticamente no filtro como visíveis sem alterar este arquivo.
  */
 @OptIn(MapsComposeExperimentalApi::class)
 @Composable
@@ -127,20 +127,16 @@ private fun GoogleMapContent(
         position = CameraPosition.fromLatLngZoom(center, 12f)
     }
 
-    var showPevComlurb            by remember { mutableStateOf(true) }
-    var showEcopontoComlurb       by remember { mutableStateOf(true) }
-    var showEcopontoLight  by remember { mutableStateOf(true) }
-    var showFilterSheet    by remember { mutableStateOf(false) }
+    // Visibilidade por tipo: todos visíveis por padrão.
+    // Tipos não presentes no mapa retornam true (visível) via ?: true.
+    var typeVisibility by remember {
+        mutableStateOf(PointType.entries.associateWith { true })
+    }
 
-    val filteredPoints = remember(points, showPevComlurb, showEcopontoComlurb, showEcopontoLight) {
-        points.filter { point ->
-            when {
-                point.type.isPev()                         -> showPevComlurb
-                point.type.isEcoponto()                    -> showEcopontoComlurb
-                point.type == PointType.ECOPONTO_LIGHT     -> showEcopontoLight
-                else                                       -> true
-            }
-        }
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+    val filteredPoints = remember(points, typeVisibility) {
+        points.filter { point -> typeVisibility[point.type] != false }
     }
 
     val clusterItems = remember(filteredPoints) {
@@ -181,7 +177,9 @@ private fun GoogleMapContent(
                 },
                 clusterItemContent = { item ->
                     androidx.compose.foundation.Image(
-                        painter            = androidx.compose.ui.res.painterResource(item.point.type.toPinDrawable()),
+                        painter            = androidx.compose.ui.res.painterResource(
+                            item.point.type.toPinDrawable()
+                        ),
                         contentDescription = item.point.name,
                         modifier           = Modifier.size(width = 32.dp, height = 48.dp)
                     )
@@ -189,7 +187,6 @@ private fun GoogleMapContent(
             )
         }
 
-        // ── Filtros ───────────────────────────────────────────────────
         MapFilterBar(
             toneColor    = toneColor,
             onOpenFilter = { showFilterSheet = true },
@@ -200,14 +197,14 @@ private fun GoogleMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev               = showPevComlurb,
-                showEcoponto          = showEcopontoComlurb,
-                showEcopontoLight     = showEcopontoLight,
-                toneColor             = toneColor,
-                onTogglePev           = { showPevComlurb = !showPevComlurb },
-                onToggleEcoponto      = { showEcopontoComlurb = !showEcopontoComlurb },
-                onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
-                onDismiss             = { showFilterSheet = false }
+                typeVisibility = typeVisibility,
+                onToggle       = { type ->
+                    typeVisibility = typeVisibility.toMutableMap().apply {
+                        this[type] = !(this[type] ?: true)
+                    }
+                },
+                toneColor      = toneColor,
+                onDismiss      = { showFilterSheet = false }
             )
         }
     }
