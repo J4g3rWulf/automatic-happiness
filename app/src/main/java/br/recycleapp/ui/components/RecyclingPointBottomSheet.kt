@@ -3,10 +3,13 @@ package br.recycleapp.ui.components
 import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,6 +18,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,10 +35,16 @@ import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
 
 /**
- * Bottom sheet exibido quando o usuário toca em um marcador do mapa.
+ * Bottom sheet exibido quando o usuário toca num marcador do mapa.
  *
  * Exibe nome, subtítulo, endereço, referência, horários, benefícios
  * e os ícones individuais dos materiais aceitos pelo ponto.
+ *
+ * O carrossel de materiais usa [BoxWithConstraints] para calcular o tamanho
+ * dos itens dinamicamente, garantindo que sempre apareça ~3.5 itens visíveis
+ * independente do tamanho da tela — criando um peek natural do próximo item.
+ * Os dots de paginação representam as posições de scroll disponíveis,
+ * não o número total de itens.
  *
  * @param point      ponto de coleta selecionado
  * @param sheetColor cor de fundo — deve corresponder ao material da tela
@@ -101,8 +113,8 @@ fun RecyclingPointBottomSheet(
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
                         modifier           = Modifier
+                            .padding(top = 4.dp)
                             .size(16.dp)
-                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {
@@ -127,15 +139,15 @@ fun RecyclingPointBottomSheet(
                     point.scheduleSaturday.isNotEmpty() ||
                     point.scheduleSunday.isNotEmpty()
             if (hasSchedule) {
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(
                         imageVector        = Icons.Filled.AccessTime,
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
                         modifier           = Modifier
+                            .padding(top = 4.dp)
                             .size(16.dp)
-                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {
@@ -168,15 +180,15 @@ fun RecyclingPointBottomSheet(
             val hasBenefits = point.benefitsProgram.isNotEmpty() ||
                     point.benefits.isNotEmpty()
             if (hasBenefits) {
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(
                         imageVector        = Icons.Filled.Redeem,
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
                         modifier           = Modifier
+                            .padding(top = 4.dp)
                             .size(16.dp)
-                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {
@@ -224,14 +236,66 @@ fun RecyclingPointBottomSheet(
                 .map { it.toMaterialDrawable() }
                 .ifEmpty { listOf(R.drawable.ic_material_unknown) }
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(materialIcons) { res ->
-                    Image(
-                        painter            = painterResource(res),
-                        contentDescription = null,
-                        contentScale       = ContentScale.Fit,
-                        modifier           = Modifier.size(72.dp)
-                    )
+            val listState    = rememberLazyListState()
+            val spacing      = 8.dp
+
+            // Quantos itens são visíveis por vez (usado para calcular dots)
+            // 3.5 garante que o próximo item sempre apareça cortado na borda,
+            // deixando claro visualmente que o carrossel é scrollável
+            val visibleCount = 3.5f
+            val pageSize     = visibleCount.toInt()  // = 3
+
+            // BoxWithConstraints mede a largura disponível em tempo de composição,
+            // permitindo calcular o tamanho exato de cada item para que sempre
+            // apareçam exatamente 3.5 itens independente do tamanho da tela
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val itemSize = (maxWidth - spacing * (visibleCount - 1)) / visibleCount
+
+                LazyRow(
+                    state                 = listState,
+                    horizontalArrangement = Arrangement.spacedBy(spacing),
+                ) {
+                    items(materialIcons) { res ->
+                        Image(
+                            painter            = painterResource(res),
+                            contentDescription = null,
+                            contentScale       = ContentScale.Fit,
+                            modifier           = Modifier.size(itemSize)
+                        )
+                    }
+                }
+            }
+
+            // ── Dots de paginação ─────────────────────────────────────
+            // Exibidos apenas quando há itens fora da área visível.
+            // O número de dots representa as posições de scroll disponíveis
+            // (total de itens − itens visíveis por vez), não o total de itens.
+            // Exemplo: 6 materiais com 3 visíveis → 3 dots (posições 0, 1, 2).
+            val numberOfDots = (materialIcons.size - pageSize).coerceAtLeast(0)
+            val currentDot by remember(numberOfDots) {
+                derivedStateOf {
+                    listState.firstVisibleItemIndex.coerceIn(0, (numberOfDots - 1).coerceAtLeast(0))
+                }
+            }
+
+            if (numberOfDots > 1) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier              = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    (0 until numberOfDots).forEach { index ->
+                        val isSelected = currentDot == index
+                        Box(
+                            modifier = Modifier
+                                .size(if (isSelected) 6.dp else 4.dp)
+                                .background(
+                                    color = if (isSelected) Color.White
+                                    else Color.White.copy(alpha = 0.4f),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
                 }
             }
 
