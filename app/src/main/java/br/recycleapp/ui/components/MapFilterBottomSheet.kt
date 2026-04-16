@@ -2,7 +2,9 @@ package br.recycleapp.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,38 +14,44 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.recycleapp.R
+import br.recycleapp.domain.map.PointType
+import br.recycleapp.domain.map.toFilterLabel
+import br.recycleapp.domain.map.toPinDrawable
 
 /**
  * Bottom sheet de filtros do mapa.
  *
- * Exibe toggles para habilitar/desabilitar a visualização de PEVs e Ecopontos,
- * com um atalho "Habilitar todos" no topo. Segue o padrão visual do
- * [RecyclingPointBottomSheet], usando [toneColor] como fundo.
+ * Exibe um toggle individual para cada [PointType] presente em [typeVisibility].
+ * A ordem dos tipos segue a declaração do enum, garantindo consistência visual.
  *
- * @param showPev          estado atual do filtro de PEVs
- * @param showEcoponto     estado atual do filtro de Ecopontos
- * @param toneColor        cor temática do material atual
- * @param onTogglePev      callback ao alternar filtro de PEVs
- * @param onToggleEcoponto callback ao alternar filtro de Ecopontos
- * @param onDismiss        callback para fechar o sheet
+ * Para adicionar um novo tipo ao filtro, basta adicioná-lo ao enum [PointType]
+ * — ele aparecerá automaticamente aqui, visível por padrão.
+ *
+ * @param typeVisibility mapa de visibilidade por tipo — chave: tipo, valor: visível
+ * @param onToggle       callback ao alternar um tipo específico
+ * @param toneColor      cor temática do material atual
+ * @param onDismiss      callback para fechar o sheet
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapFilterBottomSheet(
-    showPev: Boolean,
-    showEcoponto: Boolean,
-    showEcopontoLight: Boolean,
+    typeVisibility: Map<PointType, Boolean>,
+    onToggle: (PointType) -> Unit,
     toneColor: Color,
-    onTogglePev: () -> Unit,
-    onToggleEcoponto: () -> Unit,
-    onToggleEcopontoLight: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val allEnabled = showPev && showEcoponto && showEcopontoLight
+    // Tipos exibidos no filtro — exclui os legados PEV e ECOPONTO que são
+    // usados internamente pela Places API e não têm pin próprio no mapa
+    val displayedTypes = PointType.entries.filter { type ->
+        type != PointType.PEV && type != PointType.ECOPONTO
+    }
+
+    val allEnabled = displayedTypes.all { typeVisibility[it] != false }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState       = sheetState,
         shape            = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         containerColor   = toneColor,
         dragHandle       = {
@@ -62,6 +70,7 @@ fun MapFilterBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
         ) {
@@ -82,14 +91,11 @@ fun MapFilterBottomSheet(
                 bold      = true,
                 toneColor = toneColor,
                 onCheckedChange = {
-                    if (allEnabled) {
-                        onTogglePev()
-                        onToggleEcoponto()
-                        onToggleEcopontoLight()
-                    } else {
-                        if (!showPev)            onTogglePev()
-                        if (!showEcoponto)       onToggleEcoponto()
-                        if (!showEcopontoLight)  onToggleEcopontoLight()
+                    displayedTypes.forEach { type ->
+                        val isVisible = typeVisibility[type] != false
+                        // Se todos estão ligados, desliga todos. Senão, liga os que estão desligados.
+                        if (allEnabled && isVisible) onToggle(type)
+                        else if (!allEnabled && !isVisible) onToggle(type)
                     }
                 }
             )
@@ -105,54 +111,24 @@ fun MapFilterBottomSheet(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            // ── PEVs ──────────────────────────────────────────────────
-            FilterToggleRow(
-                label     = "PEVs Comlurb",
-                checked   = showPev,
-                toneColor = toneColor,
-                leadingContent = {
-                    Image(
-                        painter            = painterResource(R.drawable.pin_pev_comlurb),
-                        contentDescription = null,
-                        modifier           = Modifier.size(width = 20.dp, height = 30.dp)
-                    )
-                },
-                onCheckedChange = { onTogglePev() }
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            // ── Ecopontos Comlurb ─────────────────────────────────────
-            FilterToggleRow(
-                label     = "Ecopontos Comlurb",
-                checked   = showEcoponto,
-                toneColor = toneColor,
-                leadingContent = {
-                    Image(
-                        painter            = painterResource(R.drawable.pin_ecoponto_comlurb),
-                        contentDescription = null,
-                        modifier           = Modifier.size(width = 20.dp, height = 30.dp)
-                    )
-                },
-                onCheckedChange = { onToggleEcoponto() }
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            // ── Ecopontos Light ───────────────────────────────────────
-            FilterToggleRow(
-                label     = "Ecopontos Light",
-                checked   = showEcopontoLight,
-                toneColor = toneColor,
-                leadingContent = {
-                    Image(
-                        painter            = painterResource(R.drawable.pin_ecoponto_light),
-                        contentDescription = null,
-                        modifier           = Modifier.size(width = 20.dp, height = 30.dp)
-                    )
-                },
-                onCheckedChange = { onToggleEcopontoLight() }
-            )
+            // ── Toggle por tipo ───────────────────────────────────────
+            // Gerado automaticamente a partir do enum — novos tipos aparecem aqui
+            displayedTypes.forEach { type ->
+                FilterToggleRow(
+                    label     = type.toFilterLabel(),
+                    checked   = typeVisibility[type] != false,
+                    toneColor = toneColor,
+                    leadingContent = {
+                        Image(
+                            painter            = painterResource(type.toPinDrawable()),
+                            contentDescription = null,
+                            modifier           = Modifier.size(width = 20.dp, height = 30.dp)
+                        )
+                    },
+                    onCheckedChange = { onToggle(type) }
+                )
+                Spacer(Modifier.height(4.dp))
+            }
         }
     }
 }

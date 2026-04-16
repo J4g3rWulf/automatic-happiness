@@ -45,10 +45,12 @@ fun RecyclingPointBottomSheet(
     sheetColor: Color = Color(0xFF1565C0),
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
+    val context    = LocalContext.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState       = sheetState,
         shape            = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         containerColor   = sheetColor,
         dragHandle       = {
@@ -98,7 +100,9 @@ fun RecyclingPointBottomSheet(
                         imageVector        = Icons.Filled.LocationOn,
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
-                        modifier           = Modifier.size(16.dp)
+                        modifier           = Modifier
+                            .size(16.dp)
+                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {
@@ -129,7 +133,9 @@ fun RecyclingPointBottomSheet(
                         imageVector        = Icons.Filled.AccessTime,
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
-                        modifier           = Modifier.size(16.dp)
+                        modifier           = Modifier
+                            .size(16.dp)
+                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {
@@ -168,7 +174,9 @@ fun RecyclingPointBottomSheet(
                         imageVector        = Icons.Filled.Redeem,
                         contentDescription = null,
                         tint               = Color.White.copy(alpha = 0.85f),
-                        modifier           = Modifier.size(16.dp)
+                        modifier           = Modifier
+                            .size(16.dp)
+                            .padding(top = 2.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Column {

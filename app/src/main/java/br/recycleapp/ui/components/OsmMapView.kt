@@ -25,8 +25,6 @@ import br.recycleapp.R
 import br.recycleapp.di.AppModule
 import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
-import br.recycleapp.domain.map.isEcoponto
-import br.recycleapp.domain.map.isPev
 import br.recycleapp.ui.theme.PlaceholderLight
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -114,6 +112,9 @@ fun OsmMapView(
  * O OSM carrega 3 bitmaps de pin (PEV, Ecoponto, Light) compartilhados entre
  * todos os tipos do mesmo grupo — pins específicos por município aparecem
  * apenas no Google Maps via PointType.toPinDrawable().
+ *
+ * O estado de visibilidade é um Map<PointType, Boolean> — novos tipos adicionados
+ * ao enum aparecem automaticamente no filtro como visíveis sem alterar este arquivo.
  */
 @Composable
 private fun OsmMapContent(
@@ -148,21 +149,15 @@ private fun OsmMapContent(
         }
     }
 
-    var showPev           by remember { mutableStateOf(true) }
-    var showEcoponto      by remember { mutableStateOf(true) }
-    var showEcopontoLight by remember { mutableStateOf(true) }
-    var showFilterSheet   by remember { mutableStateOf(false) }
+    // Visibilidade por tipo: todos visíveis por padrão.
+    // Tipos não presentes no mapa retornam true (visível) via ?: true.
+    var typeVisibility by remember {
+        mutableStateOf(PointType.entries.associateWith { true })
+    }
+    var showFilterSheet by remember { mutableStateOf(false) }
 
-    // Usa as extensões isPev() e isEcoponto() para cobrir todos os tipos de cada grupo
-    val filteredPoints = remember(points, showPev, showEcoponto, showEcopontoLight) {
-        points.filter { point ->
-            when {
-                point.type.isPev()                         -> showPev
-                point.type.isEcoponto()                    -> showEcoponto
-                point.type == PointType.ECOPONTO_LIGHT     -> showEcopontoLight
-                else                                       -> true
-            }
-        }
+    val filteredPoints = remember(points, typeVisibility) {
+        points.filter { point -> typeVisibility[point.type] != false }
     }
 
     LaunchedEffect(mapView, filteredPoints) {
@@ -170,6 +165,8 @@ private fun OsmMapContent(
         val widthPx  = (32 * density).toInt()
         val heightPx = (48 * density).toInt()
 
+        // OSM usa 3 bitmaps agrupados por categoria — um por grupo de tipo.
+        // Pins específicos por município são exclusivos do Google Maps.
         val iconPev = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
                 .decodeResource(context.resources, R.drawable.pin_pev_comlurb)
@@ -206,17 +203,20 @@ private fun OsmMapContent(
         clusterer.mTextAnchorV = Marker.ANCHOR_CENTER
 
         filteredPoints.forEach { point ->
+            val pointIcon = when (point.type) {
+                PointType.PEV,
+                PointType.PEV_COMLURB,
+                PointType.PEV_NITEROI,
+                PointType.PEV_ANGRA_DOS_REIS   -> iconPev
+                PointType.ECOPONTO_LIGHT       -> iconEcopontoLight
+                else                           -> iconEcoponto
+            }
             val marker = Marker(mapView).apply {
                 position = GeoPoint(point.latitude, point.longitude)
                 title    = point.name
                 snippet  = point.address
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                // Usa as extensões para cobrir todos os tipos sem when não-exaustivo
-                icon = when {
-                    point.type.isPev()                     -> iconPev
-                    point.type == PointType.ECOPONTO_LIGHT -> iconEcopontoLight
-                    else                                   -> iconEcoponto
-                }
+                icon     = pointIcon
                 setOnMarkerClickListener { _, _ ->
                     onMarkerClick(point)
                     true
@@ -245,14 +245,14 @@ private fun OsmMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                showPev               = showPev,
-                showEcoponto          = showEcoponto,
-                showEcopontoLight     = showEcopontoLight,
-                toneColor             = toneColor,
-                onTogglePev           = { showPev = !showPev },
-                onToggleEcoponto      = { showEcoponto = !showEcoponto },
-                onToggleEcopontoLight = { showEcopontoLight = !showEcopontoLight },
-                onDismiss             = { showFilterSheet = false }
+                typeVisibility = typeVisibility,
+                onToggle       = { type ->
+                    typeVisibility = typeVisibility.toMutableMap().apply {
+                        this[type] = !(this[type] ?: true)
+                    }
+                },
+                toneColor      = toneColor,
+                onDismiss      = { showFilterSheet = false }
             )
         }
     }
