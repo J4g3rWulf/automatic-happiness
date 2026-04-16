@@ -21,9 +21,7 @@ import org.json.JSONObject
  * 4. Se diferente → busca coleção completa, salva last-known e timestamp
  * 5. Se qualquer erro → tenta last-known salvo → fallback estático
  *
- * Compatibilidade legada: os campos `type` antigos ("PEV", "ECOPONTO") são
- * mapeados para os novos valores do enum durante a leitura, garantindo que
- * documentos ainda não migrados no Firestore sejam lidos corretamente.
+ * Compatível com schema v2 (address e coordinates como objetos nested).
  *
  * @param context usado para acessar o SharedPreferences de persistência
  */
@@ -37,16 +35,10 @@ class FirestorePointsSource(private val context: Context) {
 
     // ── API pública ───────────────────────────────────────────────────────────
 
-    /**
-     * Verifica em 1 leitura se o Firestore tem dados mais recentes que o cache local.
-     * Retorna true se o timestamp remoto for diferente do salvo localmente.
-     */
     suspend fun hasRemoteChanges(): Boolean {
         val remote = fetchRemoteTimestamp() ?: return false
         val hasChanges = remote != localTimestamp
-        if (hasChanges) {
-            Log.d(TAG, "Mudança detectada no Firestore — invalidando cache geográfico")
-        }
+        if (hasChanges) Log.d(TAG, "Mudança detectada no Firestore — invalidando cache geográfico")
         return hasChanges
     }
 
@@ -112,23 +104,82 @@ class FirestorePointsSource(private val context: Context) {
         }
     }
 
+    // ── Mapeamento Firestore → domínio (schema v2) ────────────────────────────
+
+    @Suppress("UNCHECKED_CAST")
+    private fun com.google.firebase.firestore.DocumentSnapshot.toRecyclingPoint(): RecyclingPoint {
+
+        // address{} nested
+        val addrObj      = get("address") as? Map<*, *>
+        val street       = addrObj?.get("street")       as? String ?: ""
+        val number       = addrObj?.get("number")       as? String ?: ""
+        val neighborhood = addrObj?.get("neighborhood") as? String ?: ""
+        val address = buildString {
+            append(street)
+            if (number.isNotEmpty()) append(", $number")
+            if (neighborhood.isNotEmpty()) append(" — $neighborhood")
+        }
+
+        // coordinates{} nested
+        val coordsObj = get("coordinates") as? Map<*, *>
+        val latitude  = (coordsObj?.get("latitude")  as? Number)?.toDouble() ?: 0.0
+        val longitude = (coordsObj?.get("longitude") as? Number)?.toDouble() ?: 0.0
+
+        // schedule{} nested
+        val scheduleObj      = get("schedule") as? Map<*, *>
+        val scheduleWeekdays = scheduleObj?.get("weekdays") as? String ?: ""
+        val scheduleSaturday = scheduleObj?.get("saturday") as? String ?: ""
+        val scheduleSunday   = scheduleObj?.get("sunday")   as? String ?: ""
+
+        // campos diretos
+        val materials = (get("materials") as? List<*>)
+            ?.filterIsInstance<String>() ?: emptyList()
+        val benefits  = (get("benefits")  as? List<*>)
+            ?.filterIsInstance<String>() ?: emptyList()
+
+        val type = getString("type")
+            ?.let { runCatching { PointType.valueOf(it) }.getOrDefault(PointType.PEV) }
+            ?: PointType.PEV
+
+        return RecyclingPoint(
+            id               = id,
+            name             = getString("name")             ?: "",
+            subtitle         = getString("subtitle")         ?: "",
+            address          = address,
+            reference        = getString("reference")        ?: "",
+            latitude         = latitude,
+            longitude        = longitude,
+            materials        = materials,
+            type             = type,
+            scheduleWeekdays = scheduleWeekdays,
+            scheduleSaturday = scheduleSaturday,
+            scheduleSunday   = scheduleSunday,
+            benefitsProgram  = getString("benefitsProgram")  ?: "",
+            benefits         = benefits,
+        )
+    }
+
     // ── Persistência last-known ───────────────────────────────────────────────
 
     private fun saveLastKnown(points: List<RecyclingPoint>, timestamp: String?) {
         try {
             val array = JSONArray()
-            points.forEach { point ->
+            points.forEach { p ->
                 array.put(JSONObject().apply {
-                    put("id",        point.id)
-                    put("name",      point.name)
-                    put("subtitle",  point.subtitle)
-                    put("address",   point.address)
-                    put("lat",       point.latitude)
-                    put("lng",       point.longitude)
-                    put("type",      point.type.name)
-                    put("materials", JSONArray(point.materials))
-                    put("schedule",  point.schedule)
-                    put("benefit",   point.benefit)
+                    put("id",               p.id)
+                    put("name",             p.name)
+                    put("subtitle",         p.subtitle)
+                    put("address",          p.address)
+                    put("reference",        p.reference)
+                    put("lat",              p.latitude)
+                    put("lng",              p.longitude)
+                    put("type",             p.type.name)
+                    put("materials",        JSONArray(p.materials))
+                    put("scheduleWeekdays", p.scheduleWeekdays)
+                    put("scheduleSaturday", p.scheduleSaturday)
+                    put("scheduleSunday",   p.scheduleSunday)
+                    put("benefitsProgram",  p.benefitsProgram)
+                    put("benefits",         JSONArray(p.benefits))
                 })
             }
             prefs.edit {
@@ -160,62 +211,40 @@ class FirestorePointsSource(private val context: Context) {
             (0 until array.length()).mapNotNull { i ->
                 runCatching {
                     val obj = array.getJSONObject(i)
+
                     val materials = obj.optJSONArray("materials")?.let { arr ->
                         (0 until arr.length()).map { arr.getString(it) }
                     } ?: emptyList()
 
+                    val benefits = obj.optJSONArray("benefits")?.let { arr ->
+                        (0 until arr.length()).map { arr.getString(it) }
+                    } ?: emptyList()
+
+                    val type = runCatching {
+                        PointType.valueOf(obj.optString("type", PointType.PEV.name))
+                    }.getOrDefault(PointType.PEV)
+
                     RecyclingPoint(
-                        id        = obj.getString("id"),
-                        name      = obj.getString("name"),
-                        subtitle  = obj.optString("subtitle", ""),
-                        address   = obj.getString("address"),
-                        latitude  = obj.getDouble("lat"),
-                        longitude = obj.getDouble("lng"),
-                        materials = materials,
-                        type      = parsePointType(obj.optString("type", "")),
-                        schedule  = obj.optString("schedule", ""),
-                        benefit   = obj.optString("benefit",  "")
+                        id               = obj.getString("id"),
+                        name             = obj.getString("name"),
+                        subtitle         = obj.optString("subtitle",         ""),
+                        address          = obj.getString("address"),
+                        reference        = obj.optString("reference",        ""),
+                        latitude         = obj.getDouble("lat"),
+                        longitude        = obj.getDouble("lng"),
+                        materials        = materials,
+                        type             = type,
+                        scheduleWeekdays = obj.optString("scheduleWeekdays", ""),
+                        scheduleSaturday = obj.optString("scheduleSaturday", ""),
+                        scheduleSunday   = obj.optString("scheduleSunday",   ""),
+                        benefitsProgram  = obj.optString("benefitsProgram",  ""),
+                        benefits         = benefits,
                     )
                 }.getOrNull()
             }
         } catch (_: Exception) {
             emptyList()
         }
-    }
-
-    // ── Mapeamento Firestore → domínio ────────────────────────────────────────
-
-    private fun com.google.firebase.firestore.DocumentSnapshot.toRecyclingPoint(): RecyclingPoint {
-        @Suppress("UNCHECKED_CAST")
-        val materials = (get("materials") as? List<*>)
-            ?.filterIsInstance<String>()
-            ?: emptyList()
-
-        return RecyclingPoint(
-            id        = id,
-            name      = getString("name")      ?: "",
-            subtitle  = getString("subtitle")  ?: "",
-            address   = getString("address")   ?: "",
-            latitude  = getDouble("latitude")  ?: 0.0,
-            longitude = getDouble("longitude") ?: 0.0,
-            materials = materials,
-            type      = parsePointType(getString("type") ?: ""),
-            schedule  = getString("schedule")  ?: "",
-            benefit   = getString("benefit")   ?: ""
-        )
-    }
-
-    /**
-     * Mapeia a string do campo `type` para o enum [PointType].
-     *
-     * Aceita tanto os valores novos (PEV_COMLURB, ECOPONTO_COMLURB) quanto os
-     * legados (PEV, ECOPONTO) para garantir compatibilidade durante a migração.
-     */
-    private fun parsePointType(raw: String): PointType = when (raw.uppercase().trim()) {
-        "PEV_COMLURB", "PEV"                     -> PointType.PEV_COMLURB
-        "ECOPONTO_COMLURB", "ECOPONTO"            -> PointType.ECOPONTO_COMLURB
-        "ECOPONTO_LIGHT"                          -> PointType.ECOPONTO_LIGHT
-        else                                      -> PointType.PEV_COMLURB
     }
 
     // ── Constantes ────────────────────────────────────────────────────────────
