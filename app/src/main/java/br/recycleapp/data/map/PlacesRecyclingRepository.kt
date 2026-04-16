@@ -145,15 +145,22 @@ class PlacesRecyclingRepository(
 
     private fun serializePointsToJson(points: List<RecyclingPoint>): String {
         val array = JSONArray()
-        points.forEach { point ->
+        points.forEach { p ->
             array.put(JSONObject().apply {
-                put("id",        point.id)
-                put("name",      point.name)
-                put("address",   point.address)
-                put("lat",       point.latitude)
-                put("lng",       point.longitude)
-                put("type",      point.type.name)
-                put("materials", JSONArray(point.materials))
+                put("id",               p.id)
+                put("name",             p.name)
+                put("subtitle",         p.subtitle)
+                put("address",          p.address)
+                put("reference",        p.reference)
+                put("lat",              p.latitude)
+                put("lng",              p.longitude)
+                put("type",             p.type.name)
+                put("materials",        JSONArray(p.materials))
+                put("scheduleWeekdays", p.scheduleWeekdays)
+                put("scheduleSaturday", p.scheduleSaturday)
+                put("scheduleSunday",   p.scheduleSunday)
+                put("benefitsProgram",  p.benefitsProgram)
+                put("benefits",         JSONArray(p.benefits))
             })
         }
         return array.toString()
@@ -162,27 +169,39 @@ class PlacesRecyclingRepository(
     private fun parsePointsFromJson(json: String): List<RecyclingPoint> {
         return try {
             val array = JSONArray(json)
-            (0 until array.length()).map { i ->
-                val obj       = array.getJSONObject(i)
-                val materials = obj.optJSONArray("materials")?.let { arr ->
-                    (0 until arr.length()).map { arr.getString(it) }
-                } ?: emptyList()
-                val type = runCatching {
-                    PointType.valueOf(obj.optString("type", PointType.PEV_COMLURB.name))
-                }.getOrDefault(PointType.PEV_COMLURB)
+            (0 until array.length()).mapNotNull { i ->
+                runCatching {
+                    val obj = array.getJSONObject(i)
 
-                RecyclingPoint(
-                    id        = obj.getString("id"),
-                    name      = obj.getString("name"),
-                    subtitle  = obj.optString("subtitle", ""),
-                    address   = obj.getString("address"),
-                    latitude  = obj.getDouble("lat"),
-                    longitude = obj.getDouble("lng"),
-                    materials = materials,
-                    type      = type,
-                    schedule  = obj.optString("schedule", ""),
-                    benefit   = obj.optString("benefit",  "")
-                )
+                    val materials = obj.optJSONArray("materials")?.let { arr ->
+                        (0 until arr.length()).map { arr.getString(it) }
+                    } ?: emptyList()
+
+                    val benefits = obj.optJSONArray("benefits")?.let { arr ->
+                        (0 until arr.length()).map { arr.getString(it) }
+                    } ?: emptyList()
+
+                    val type = runCatching {
+                        PointType.valueOf(obj.optString("type", PointType.PEV.name))
+                    }.getOrDefault(PointType.PEV)
+
+                    RecyclingPoint(
+                        id               = obj.getString("id"),
+                        name             = obj.getString("name"),
+                        subtitle         = obj.optString("subtitle",         ""),
+                        address          = obj.getString("address"),
+                        reference        = obj.optString("reference",        ""),
+                        latitude         = obj.getDouble("lat"),
+                        longitude        = obj.getDouble("lng"),
+                        materials        = materials,
+                        type             = type,
+                        scheduleWeekdays = obj.optString("scheduleWeekdays", ""),
+                        scheduleSaturday = obj.optString("scheduleSaturday", ""),
+                        scheduleSunday   = obj.optString("scheduleSunday",   ""),
+                        benefitsProgram  = obj.optString("benefitsProgram",  ""),
+                        benefits         = benefits,
+                    )
+                }.getOrNull()
             }
         } catch (_: Exception) {
             emptyList()
