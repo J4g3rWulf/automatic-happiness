@@ -57,7 +57,7 @@ private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
  * @param toneColor     cor temática do material atual — usada nos clusters
- * @param onMarkerClick callback chamado quando o usuário toca num marcador
+ * @param onMarkerClick callback chamado quando o usuário toca em um marcador
  */
 @Composable
 fun OsmMapView(
@@ -204,7 +204,6 @@ private fun OsmMapContent(
 
         filteredPoints.forEach { point ->
             val pointIcon = when (point.type) {
-                PointType.PEV,
                 PointType.PEV_COMLURB,
                 PointType.PEV_NITEROI,
                 PointType.PEV_ANGRA_DOS_REIS   -> iconPev

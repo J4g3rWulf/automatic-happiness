@@ -30,7 +30,7 @@ data class RecyclingPoint(
     val latitude: Double,
     val longitude: Double,
     val materials: List<String> = emptyList(),
-    val type: PointType = PointType.PEV,
+    val type: PointType = PointType.UNKNOWN,
     val scheduleWeekdays: String = "",
     val scheduleSaturday: String = "",
     val scheduleSunday: String = "",
@@ -41,9 +41,8 @@ data class RecyclingPoint(
 /**
  * Tipo do ponto de coleta.
  *
- * Tipos legados mantidos para compatibilidade:
- * [PEV]      — fallback genérico para resultados da Places API.
- * [ECOPONTO] — será removido na refatoração do BottomSheet.
+ * Tipo Fallback:
+ * [UNKNOWN]                  resultados genéricos da Places API sem tipo definido.
  *
  * Tipos explícitos (schema v2):
  * [PEV_COMLURB]              Ponto de Entrega Voluntária da Comlurb.
@@ -57,9 +56,8 @@ data class RecyclingPoint(
  * [ECOPONTO_ANGRA_DOS_REIS]  Ecoponto de Angra dos Reis.
  */
 enum class PointType {
-    // Legados
-    PEV,
-    ECOPONTO,
+    // Fallback para resultados genéricos da Places API sem tipo definido
+    UNKNOWN,
     // Explícitos
     PEV_COMLURB,
     ECOPONTO_COMLURB,
@@ -77,9 +75,8 @@ enum class PointType {
  * Tipos legados compartilham label com seus equivalentes explícitos.
  */
 fun PointType.toFilterLabel(): String = when (this) {
-    PointType.PEV,
+    PointType.UNKNOWN                  -> "Outros"
     PointType.PEV_COMLURB              -> "PEVs Comlurb"
-    PointType.ECOPONTO,
     PointType.ECOPONTO_COMLURB         -> "Ecopontos Comlurb"
     PointType.ECOPONTO_LIGHT           -> "Ecopontos Light Recicla"
     PointType.PEV_NITEROI              -> "PEVs Niterói"
@@ -96,9 +93,8 @@ fun PointType.toFilterLabel(): String = when (this) {
  */
 @DrawableRes
 fun PointType.toPinDrawable(): Int = when (this) {
-    PointType.PEV,
+    PointType.UNKNOWN                  -> R.drawable.pin_unknown
     PointType.PEV_COMLURB              -> R.drawable.pin_pev_comlurb
-    PointType.ECOPONTO,
     PointType.ECOPONTO_COMLURB         -> R.drawable.pin_ecoponto_comlurb
     PointType.ECOPONTO_LIGHT           -> R.drawable.pin_ecoponto_light
     PointType.ECOPONTO_NITEROI         -> R.drawable.pin_ecoponto_clin_niteroi
