@@ -1,46 +1,41 @@
 package br.recycleapp.ui.components
 
 import android.content.Intent
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
-import br.recycleapp.ui.mapper.MaterialDrawableMapper
 
 /**
  * Bottom sheet exibido quando o usuário toca num marcador do mapa.
  *
- * Layout dinâmico: cada linha de informação (subtítulo, endereço, horário, benefício)
- * é exibida apenas quando o campo correspondente não está vazio. Não sobra espaço vazio
- * quando um campo está ausente no Firestore.
- *
- * Os materiais aceitos são exibidos em carrossel horizontal com imagem individual
- * por material, mapeada via [MaterialDrawableMapper].
+ * Exibe nome, subtítulo, endereço, referência, horários, benefícios
+ * e os ícones individuais dos materiais aceitos pelo ponto.
  *
  * @param point      ponto de coleta selecionado
- * @param sheetColor cor de fundo do sheet — vem do material classificado na tela de resultado
+ * @param sheetColor cor de fundo — deve corresponder ao material da tela
  * @param onDismiss  callback para fechar o sheet
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,11 +67,12 @@ fun RecyclingPointBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
         ) {
 
-            // ── Nome do local ─────────────────────────────────────────────────
+            // ── Nome ──────────────────────────────────────────────────
             Text(
                 text       = point.name,
                 fontSize   = 20.sp,
@@ -84,7 +80,7 @@ fun RecyclingPointBottomSheet(
                 color      = Color.White
             )
 
-            // ── Subtítulo — campo livre por pin, oculto se vazio ──────────────
+            // ── Subtítulo ─────────────────────────────────────────────
             if (point.subtitle.isNotEmpty()) {
                 Text(
                     text     = point.subtitle,
@@ -93,64 +89,155 @@ fun RecyclingPointBottomSheet(
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
-            // ── Endereço — oculto se vazio ────────────────────────────────────
+            // ── Endereço + referência ─────────────────────────────────
             if (point.address.isNotEmpty()) {
-                InfoRow(icon = Icons.Filled.LocationOn, text = point.address)
-                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(
+                        imageVector        = Icons.Filled.LocationOn,
+                        contentDescription = null,
+                        tint               = Color.White.copy(alpha = 0.85f),
+                        modifier           = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Column {
+                        Text(
+                            text     = point.address,
+                            fontSize = 13.sp,
+                            color    = Color.White.copy(alpha = 0.85f)
+                        )
+                        if (point.reference.isNotEmpty()) {
+                            Text(
+                                text     = point.reference,
+                                fontSize = 12.sp,
+                                color    = Color.White.copy(alpha = 0.65f)
+                            )
+                        }
+                    }
+                }
             }
 
-            // ── Horário de funcionamento — oculto se vazio ────────────────────
-            if (point.schedule.isNotEmpty()) {
-                InfoRow(icon = Icons.Filled.Schedule, text = point.schedule)
+            // ── Horário ───────────────────────────────────────────────
+            val hasSchedule = point.scheduleWeekdays.isNotEmpty() ||
+                    point.scheduleSaturday.isNotEmpty() ||
+                    point.scheduleSunday.isNotEmpty()
+            if (hasSchedule) {
                 Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(
+                        imageVector        = Icons.Filled.AccessTime,
+                        contentDescription = null,
+                        tint               = Color.White.copy(alpha = 0.85f),
+                        modifier           = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Column {
+                        if (point.scheduleWeekdays.isNotEmpty()) {
+                            Text(
+                                text     = point.scheduleWeekdays,
+                                fontSize = 13.sp,
+                                color    = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                        if (point.scheduleSaturday.isNotEmpty()) {
+                            Text(
+                                text     = point.scheduleSaturday,
+                                fontSize = 13.sp,
+                                color    = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                        if (point.scheduleSunday.isNotEmpty()) {
+                            Text(
+                                text     = point.scheduleSunday,
+                                fontSize = 13.sp,
+                                color    = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                    }
+                }
             }
 
-            // ── Benefício — oculto se vazio ───────────────────────────────────
-            if (point.benefit.isNotEmpty()) {
-                InfoRow(icon = Icons.Filled.Autorenew, text = point.benefit)
+            // ── Benefícios ────────────────────────────────────────────
+            val hasBenefits = point.benefitsProgram.isNotEmpty() ||
+                    point.benefits.isNotEmpty()
+            if (hasBenefits) {
                 Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(
+                        imageVector        = Icons.Filled.Redeem,
+                        contentDescription = null,
+                        tint               = Color.White.copy(alpha = 0.85f),
+                        modifier           = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Column {
+                        if (point.benefitsProgram.isNotEmpty()) {
+                            Text(
+                                text       = "Benefício: ${point.benefitsProgram}",
+                                fontSize   = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color      = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                        point.benefits.forEach { benefit ->
+                            Row {
+                                Text(
+                                    text     = "• ",
+                                    fontSize = 13.sp,
+                                    color    = Color.White.copy(alpha = 0.75f)
+                                )
+                                Text(
+                                    text     = benefit,
+                                    fontSize = 13.sp,
+                                    color    = Color.White.copy(alpha = 0.75f)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(16.dp))
             HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
             Spacer(Modifier.height(16.dp))
 
-            // ── Materiais aceitos — carrossel dinâmico ────────────────────────
-            if (point.materials.isNotEmpty()) {
-                Text(
-                    text       = "Materiais aceitos",
-                    fontSize   = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = Color.White
-                )
+            // ── Materiais aceitos ─────────────────────────────────────
+            Text(
+                text       = "Materiais aceitos",
+                fontSize   = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color      = Color.White
+            )
 
-                Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding        = PaddingValues(end = 4.dp)
-                ) {
-                    items(point.materials) { material ->
-                        MaterialChipCard(material = material)
-                    }
+            val materialIcons = point.materials
+                .map { it.toMaterialDrawable() }
+                .ifEmpty { listOf(R.drawable.ic_material_unknown) }
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(materialIcons) { res ->
+                    Image(
+                        painter            = painterResource(res),
+                        contentDescription = null,
+                        contentScale       = ContentScale.Fit,
+                        modifier           = Modifier.size(72.dp)
+                    )
                 }
-
-                Spacer(Modifier.height(24.dp))
             }
 
-            // ── Botão abrir no Google Maps ─────────────────────────────────────
+            Spacer(Modifier.height(24.dp))
+
+            // ── Botão Google Maps ─────────────────────────────────────
             Button(
                 onClick = {
-                    val uri = ("geo:${point.latitude},${point.longitude}" +
-                            "?q=${point.latitude},${point.longitude}(${point.name})").toUri()
+                    val uri = "geo:${point.latitude},${point.longitude}?q=${point.latitude},${point.longitude}(${point.name})".toUri()
                     val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                         setPackage("com.google.android.apps.maps")
                     }
                     runCatching { context.startActivity(intent) }.onFailure {
-                        val webUri = ("https://www.google.com/maps/search/" +
-                                "?api=1&query=${point.latitude},${point.longitude}").toUri()
+                        val webUri = "https://www.google.com/maps/search/?api=1&query=${point.latitude},${point.longitude}".toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
                     }
                 },
@@ -170,70 +257,22 @@ fun RecyclingPointBottomSheet(
     }
 }
 
-// ── Componentes privados ──────────────────────────────────────────────────────
+// ── Mapeamento material → drawable ────────────────────────────────────────────
 
-/**
- * Linha de informação com ícone alinhado ao topo do texto.
- * Funciona corretamente mesmo quando o texto quebra em múltiplas linhas.
- */
-@Composable
-private fun InfoRow(
-    icon: ImageVector,
-    text: String
-) {
-    Row(verticalAlignment = Alignment.Top) {
-        Icon(
-            imageVector        = icon,
-            contentDescription = null,
-            tint               = Color.White.copy(alpha = 0.85f),
-            modifier           = Modifier
-                .size(16.dp)
-                .padding(top = 1.dp)
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text     = text,
-            fontSize = 13.sp,
-            color    = Color.White.copy(alpha = 0.85f)
-        )
-    }
-}
-
-/**
- * Card individual do carrossel de materiais.
- * Exibe a imagem do material e seu nome centralizado abaixo.
- */
-@Composable
-private fun MaterialChipCard(material: String) {
-    val drawable = MaterialDrawableMapper.fromName(material)
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier            = Modifier.width(72.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(10.dp))
-        ) {
-            Image(
-                painter            = painterResource(drawable),
-                contentDescription = material,
-                contentScale       = ContentScale.Crop,
-                modifier           = Modifier.fillMaxSize()
-            )
-        }
-
-        Spacer(Modifier.height(6.dp))
-
-        Text(
-            text       = material,
-            fontSize   = 10.sp,
-            color      = Color.White.copy(alpha = 0.9f),
-            textAlign  = TextAlign.Center,
-            maxLines   = 2,
-            overflow   = TextOverflow.Ellipsis,
-            lineHeight = 13.sp
-        )
-    }
+@DrawableRes
+private fun String.toMaterialDrawable(): Int = when (this) {
+    "Vidro"             -> R.drawable.ic_material_vidro
+    "Plástico"          -> R.drawable.ic_material_plastico
+    "Papel"             -> R.drawable.ic_material_papel
+    "Metal"             -> R.drawable.ic_material_metal
+    "Óleo vegetal"      -> R.drawable.ic_material_oleo_vegetal
+    "Pilhas e baterias" -> R.drawable.ic_material_pilhas_baterias
+    "Eletrônicos"       -> R.drawable.ic_material_eletronicos
+    "Lixo domiciliar"   -> R.drawable.ic_material_lixo_domiciliar
+    "Orgânico"          -> R.drawable.ic_material_organico
+    "Bens inservíveis"  -> R.drawable.ic_material_bens_inserviveis
+    "Entulho"           -> R.drawable.ic_material_entulho
+    "Pneus"             -> R.drawable.ic_material_pneus
+    "Galhadas"          -> R.drawable.ic_material_galhadas
+    else                -> R.drawable.ic_material_unknown
 }
