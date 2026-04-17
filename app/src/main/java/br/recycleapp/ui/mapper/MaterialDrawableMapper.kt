@@ -17,7 +17,7 @@ object MaterialDrawableMapper {
         "Metal"             -> R.drawable.ic_material_metal
         "Óleo vegetal"      -> R.drawable.ic_material_oleo_vegetal
         "Pilhas e baterias" -> R.drawable.ic_material_pilhas_baterias
-        "Eletrônicos"           -> R.drawable.ic_material_eletronicos
+        "Eletrônicos"       -> R.drawable.ic_material_eletronicos
         "Bens inservíveis"  -> R.drawable.ic_material_bens_inserviveis
         "Entulho"           -> R.drawable.ic_material_entulho
         "Pneus"             -> R.drawable.ic_material_pneus
