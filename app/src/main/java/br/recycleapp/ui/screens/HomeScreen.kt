@@ -91,7 +91,7 @@ fun HomeScreen(
 
     // ── Arte decorativa inferior ──────────────────────────────────────
     illustrationHeight: Dp  = 200.dp, // altura fixa da arte (ignora espaço transparente do PNG)
-    illustrationOffsetY: Dp = 52.dp,  // desloca a arte para baixo (valores maiores = mais abaixo)
+    illustrationOffsetY: Dp = 0.dp,  // desloca a arte para baixo (valores maiores = mais abaixo)
 
     // ── Layout geral ──────────────────────────────────────────────────
     horizontalPadding: Dp = 20.dp    // padding lateral do conteúdo
@@ -149,7 +149,7 @@ fun HomeScreen(
             // A altura fixa evita que o espaço transparente do PNG
             // interfira no posicionamento dos elementos acima.
             Image(
-                painter            = painterResource(id = R.drawable.art_bottom_v1),
+                painter            = painterResource(id = R.drawable.art_bottom_home),
                 contentDescription = null,
                 modifier           = Modifier
                     .align(Alignment.BottomCenter)
