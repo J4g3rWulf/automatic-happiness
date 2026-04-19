@@ -232,7 +232,14 @@ fun RecyclingPointBottomSheet(
 
             Spacer(Modifier.height(10.dp))
 
+            val priorityOrder = listOf(
+                "Vidro", "Plástico", "Papel", "Metal",
+                "Óleo vegetal", "Pilhas e baterias", "Eletrônicos",
+                "Pneus", "Orgânicos", "Galhadas", "Lixo domiciliar",
+                "Entulho", "Bens inservíveis"
+            )
             val materialIcons = point.materials
+                .sortedBy { mat -> val i = priorityOrder.indexOf(mat); if (i >= 0) i else Int.MAX_VALUE }
                 .map { it.toMaterialDrawable() }
                 .ifEmpty { listOf(R.drawable.ic_material_unknown) }
 

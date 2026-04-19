@@ -37,6 +37,17 @@ import kotlinx.coroutines.withTimeoutOrNull
 private val RIO_CENTER_GOOGLE = LatLng(-22.9068, -43.1729)
 
 /**
+ * Ordem de exibição dos materiais no filtro e no carrossel do bottom sheet.
+ * Materiais não listados aqui aparecem ao final, em ordem de inserção.
+ */
+private val MATERIAL_PRIORITY_ORDER = listOf(
+    "Vidro", "Plástico", "Papel", "Metal",
+    "Óleo vegetal", "Pilhas e baterias", "Eletrônicos",
+    "Pneus", "Orgânicos", "Galhadas", "Lixo domiciliar",
+    "Entulho", "Bens inservíveis"
+)
+
+/**
  * Mapa Google Maps com a localização do usuário e os pontos de coleta
  * buscados via Places API (com cache geográfico).
  *
@@ -110,10 +121,18 @@ fun GoogleMapView(
 }
 
 /**
- * Renderiza o GoogleMap com clustering automático e filtros individuais por tipo.
+ * Renderiza o GoogleMap com clustering automático e filtros duplos:
+ * por tipo de ponto e por material aceito.
  *
- * O estado de visibilidade é um Map<PointType, Boolean> — novos tipos adicionados
- * ao enum aparecem automaticamente no filtro como visíveis sem alterar este arquivo.
+ * O estado de visibilidade de tipos é um Map<PointType, Boolean> — novos tipos
+ * aparecem automaticamente no filtro sem alterar este arquivo.
+ *
+ * O estado de visibilidade de materiais é derivado dinamicamente dos pontos
+ * carregados: apenas materiais presentes em ao menos um ponto aparecem no filtro,
+ * ordenados conforme [MATERIAL_PRIORITY_ORDER].
+ *
+ * Lógica de filtro: um ponto é exibido se seu tipo está visível E (não declara
+ * materiais OU ao menos um de seus materiais está visível).
  */
 @OptIn(MapsComposeExperimentalApi::class)
 @Composable
@@ -127,16 +146,39 @@ private fun GoogleMapContent(
         position = CameraPosition.fromLatLngZoom(center, 12f)
     }
 
-    // Visibilidade por tipo: todos visíveis por padrão.
-    // Tipos não presentes no mapa retornam true (visível) via ?: true.
+    // ── Filtro por tipo ───────────────────────────────────────────────────
+    // Todos os tipos visíveis por padrão. Tipos ausentes retornam true via ?: true.
     var typeVisibility by remember {
         mutableStateOf(PointType.entries.associateWith { true })
     }
 
+    // ── Filtro por material ───────────────────────────────────────────────
+    // Derivado dinamicamente dos pontos: apenas materiais presentes em pelo
+    // menos 1 ponto aparecem no filtro. Todos visíveis por padrão.
+    val allMaterials = remember(points) {
+        points.flatMap { it.materials }
+            .toSortedSet(compareBy { mat ->
+                val idx = MATERIAL_PRIORITY_ORDER.indexOf(mat)
+                if (idx >= 0) idx else Int.MAX_VALUE  // desconhecidos vão pro final
+            })
+    }
+    var materialVisibility by remember(allMaterials) {
+        mutableStateOf(allMaterials.associateWith { true })
+    }
+
     var showFilterSheet by remember { mutableStateOf(false) }
 
-    val filteredPoints = remember(points, typeVisibility) {
-        points.filter { point -> typeVisibility[point.type] != false }
+    // ── Filtragem combinada ───────────────────────────────────────────────
+    // Tipo: deve estar visível.
+    // Material: se o ponto não declara materiais, passa livre; caso contrário,
+    // ao menos um de seus materiais deve estar visível.
+    val filteredPoints = remember(points, typeVisibility, materialVisibility) {
+        points.filter { point ->
+            val typeOk     = typeVisibility[point.type] != false
+            val materialOk = point.materials.isEmpty() ||
+                    point.materials.any { materialVisibility[it] != false }
+            typeOk && materialOk
+        }
     }
 
     val clusterItems = remember(filteredPoints) {
@@ -197,14 +239,20 @@ private fun GoogleMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                typeVisibility = typeVisibility,
-                onToggle       = { type ->
+                typeVisibility     = typeVisibility,
+                onToggle           = { type ->
                     typeVisibility = typeVisibility.toMutableMap().apply {
                         this[type] = !(this[type] ?: true)
                     }
                 },
-                toneColor      = toneColor,
-                onDismiss      = { showFilterSheet = false }
+                materialVisibility = materialVisibility,
+                onMaterialToggle   = { mat ->
+                    materialVisibility = materialVisibility.toMutableMap().apply {
+                        this[mat] = !(this[mat] ?: true)
+                    }
+                },
+                toneColor          = toneColor,
+                onDismiss          = { showFilterSheet = false }
             )
         }
     }

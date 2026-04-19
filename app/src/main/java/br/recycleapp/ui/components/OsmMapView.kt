@@ -48,6 +48,17 @@ import java.io.File
 private val RIO_CENTER = GeoPoint(-22.9068, -43.1729)
 
 /**
+ * Ordem de exibição dos materiais no filtro e no carrossel do bottom sheet.
+ * Materiais não listados aqui aparecem ao final, em ordem de inserção.
+ */
+private val MATERIAL_PRIORITY_ORDER = listOf(
+    "Vidro", "Plástico", "Papel", "Metal",
+    "Óleo vegetal", "Pilhas e baterias", "Eletrônicos",
+    "Pneus", "Orgânicos", "Galhadas", "Lixo domiciliar",
+    "Entulho", "Bens inservíveis"
+)
+
+/**
  * Mapa OpenStreetMap com a localização do usuário e os pontos de coleta
  * buscados via repositório (mesmo cache do GoogleMapView).
  *
@@ -107,14 +118,16 @@ fun OsmMapView(
 }
 
 /**
- * Renderiza o MapView OSM com clustering via [RadiusMarkerClusterer] e filtros por tipo.
+ * Renderiza o MapView OSM com clustering via [RadiusMarkerClusterer] e filtros duplos:
+ * por tipo de ponto e por material aceito.
  *
- * O OSM carrega 3 bitmaps de pin (PEV, Ecoponto, Light) compartilhados entre
- * todos os tipos do mesmo grupo — pins específicos por município aparecem
- * apenas no Google Maps via PointType.toPinDrawable().
+ * O OSM carrega 3 bitmaps de pin compartilhados por grupo de tipo (PEV, Ecoponto,
+ * Light) — pins individuais por município são exclusivos do Google Maps.
  *
- * O estado de visibilidade é um Map<PointType, Boolean> — novos tipos adicionados
- * ao enum aparecem automaticamente no filtro como visíveis sem alterar este arquivo.
+ * Materiais ordenados conforme [MATERIAL_PRIORITY_ORDER].
+ *
+ * Lógica de filtro: um ponto é exibido se seu tipo está visível E (não declara
+ * materiais OU ao menos um de seus materiais está visível).
  */
 @Composable
 private fun OsmMapContent(
@@ -149,15 +162,38 @@ private fun OsmMapContent(
         }
     }
 
-    // Visibilidade por tipo: todos visíveis por padrão.
-    // Tipos não presentes no mapa retornam true (visível) via ?: true.
+    // ── Filtro por tipo ───────────────────────────────────────────────────
     var typeVisibility by remember {
         mutableStateOf(PointType.entries.associateWith { true })
     }
+
+    // ── Filtro por material ───────────────────────────────────────────────
+    // Derivado dinamicamente dos pontos: apenas materiais presentes em pelo
+    // menos 1 ponto aparecem no filtro. Todos visíveis por padrão.
+    val allMaterials = remember(points) {
+        points.flatMap { it.materials }
+            .toSortedSet(compareBy { mat ->
+                val idx = MATERIAL_PRIORITY_ORDER.indexOf(mat)
+                if (idx >= 0) idx else Int.MAX_VALUE  // desconhecidos vão pro final
+            })
+    }
+    var materialVisibility by remember(allMaterials) {
+        mutableStateOf(allMaterials.associateWith { true })
+    }
+
     var showFilterSheet by remember { mutableStateOf(false) }
 
-    val filteredPoints = remember(points, typeVisibility) {
-        points.filter { point -> typeVisibility[point.type] != false }
+    // ── Filtragem combinada ───────────────────────────────────────────────
+    // Tipo: deve estar visível.
+    // Material: se o ponto não declara materiais, passa livre; caso contrário,
+    // ao menos um de seus materiais deve estar visível.
+    val filteredPoints = remember(points, typeVisibility, materialVisibility) {
+        points.filter { point ->
+            val typeOk     = typeVisibility[point.type] != false
+            val materialOk = point.materials.isEmpty() ||
+                    point.materials.any { materialVisibility[it] != false }
+            typeOk && materialOk
+        }
     }
 
     LaunchedEffect(mapView, filteredPoints) {
@@ -244,14 +280,20 @@ private fun OsmMapContent(
 
         if (showFilterSheet) {
             MapFilterBottomSheet(
-                typeVisibility = typeVisibility,
-                onToggle       = { type ->
+                typeVisibility     = typeVisibility,
+                onToggle           = { type ->
                     typeVisibility = typeVisibility.toMutableMap().apply {
                         this[type] = !(this[type] ?: true)
                     }
                 },
-                toneColor      = toneColor,
-                onDismiss      = { showFilterSheet = false }
+                materialVisibility = materialVisibility,
+                onMaterialToggle   = { mat ->
+                    materialVisibility = materialVisibility.toMutableMap().apply {
+                        this[mat] = !(this[mat] ?: true)
+                    }
+                },
+                toneColor          = toneColor,
+                onDismiss          = { showFilterSheet = false }
             )
         }
     }

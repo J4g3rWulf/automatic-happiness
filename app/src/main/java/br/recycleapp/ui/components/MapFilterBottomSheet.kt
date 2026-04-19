@@ -1,12 +1,20 @@
 package br.recycleapp.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,37 +25,50 @@ import androidx.compose.ui.unit.sp
 import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.toFilterLabel
 import br.recycleapp.domain.map.toPinDrawable
+import br.recycleapp.ui.mapper.MaterialDrawableMapper
 
 /**
  * Bottom sheet de filtros do mapa.
  *
- * Exibe um toggle individual para cada [PointType] presente em [typeVisibility].
- * A ordem dos tipos segue a declaração do enum, garantindo consistência visual.
+ * Exibe duas seções colapsáveis independentemente, ambas iniciando fechadas:
+ *  - **Tipos de ponto** — toggle por [PointType]
+ *  - **Materiais aceitos** — toggle por nome de material (derivado dinamicamente
+ *    dos pontos carregados; só aparece se ao menos um ponto declara o material)
  *
- * Para adicionar um novo tipo ao filtro, basta adicioná-lo ao enum [PointType]
- * — ele aparecerá automaticamente aqui, visível por padrão.
+ * Cada seção possui seu próprio toggle "Habilitar todos" independente.
  *
- * @param typeVisibility mapa de visibilidade por tipo — chave: tipo, valor: visível
- * @param onToggle       callback ao alternar um tipo específico
- * @param toneColor      cor temática do material atual
- * @param onDismiss      callback para fechar o sheet
+ * @param typeVisibility     mapa de visibilidade por tipo de ponto
+ * @param onToggle           callback ao alternar um tipo específico
+ * @param materialVisibility mapa de visibilidade por material (chave = nome do material)
+ * @param onMaterialToggle   callback ao alternar um material específico
+ * @param toneColor          cor temática do material atual
+ * @param onDismiss          callback para fechar o sheet
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapFilterBottomSheet(
     typeVisibility: Map<PointType, Boolean>,
     onToggle: (PointType) -> Unit,
+    materialVisibility: Map<String, Boolean>,
+    onMaterialToggle: (String) -> Unit,
     toneColor: Color,
     onDismiss: () -> Unit
 ) {
-    // Tipos exibidos no filtro — exclui UNKNOWN, usado internamente como
-    // fallback para resultados da Places API sem tipo definido
-    val displayedTypes = PointType.entries.filter { type ->
-        type != PointType.UNKNOWN
-    }
+    // Tipos exibidos no filtro — exclui UNKNOWN, usado internamente como fallback
+    val displayedTypes = PointType.entries.filter { it != PointType.UNKNOWN }
 
-    val allEnabled = displayedTypes.all { typeVisibility[it] != false }
+    // Materiais ordenados conforme lista de prioridade definida no repositório
+    val displayedMaterials = materialVisibility.keys.toList()
+
+    // Estado de "habilitar todos" calculado por seção independentemente
+    val allTypesEnabled     = displayedTypes.all { typeVisibility[it] != false }
+    val allMaterialsEnabled = displayedMaterials.all { materialVisibility[it] != false }
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Estado de colapso de cada seção — ambas iniciam fechadas
+    var typeSectionExpanded     by remember { mutableStateOf(false) }
+    var materialSectionExpanded by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -75,6 +96,7 @@ fun MapFilterBottomSheet(
                 .padding(bottom = 32.dp)
         ) {
 
+            // ── Título ────────────────────────────────────────────────────
             Text(
                 text       = "Filtros",
                 fontSize   = 20.sp,
@@ -83,55 +105,147 @@ fun MapFilterBottomSheet(
             )
 
             Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
 
-            // ── Habilitar todos ───────────────────────────────────────
-            FilterToggleRow(
-                label     = "Habilitar todos",
-                checked   = allEnabled,
-                bold      = true,
-                toneColor = toneColor,
-                onCheckedChange = {
+            // ── Seção: Tipos de ponto ─────────────────────────────────────
+            CollapsibleSectionHeader(
+                label    = "TIPOS DE PONTO",
+                expanded = typeSectionExpanded,
+                onToggle = { typeSectionExpanded = !typeSectionExpanded }
+            )
+
+            AnimatedVisibility(
+                visible = typeSectionExpanded,
+                enter   = expandVertically(),
+                exit    = shrinkVertically()
+            ) {
+                Column {
+                    FilterToggleRow(
+                        label     = "Habilitar todos",
+                        checked   = allTypesEnabled,
+                        bold      = true,
+                        toneColor = toneColor,
+                        onCheckedChange = {
+                            displayedTypes.forEach { type ->
+                                val isVisible = typeVisibility[type] != false
+                                if (allTypesEnabled && isVisible) onToggle(type)
+                                else if (!allTypesEnabled && !isVisible) onToggle(type)
+                            }
+                        }
+                    )
+                    Spacer(Modifier.height(4.dp))
                     displayedTypes.forEach { type ->
-                        val isVisible = typeVisibility[type] != false
-                        // Se todos estão ligados, desliga todos. Senão, liga os que estão desligados.
-                        if (allEnabled && isVisible) onToggle(type)
-                        else if (!allEnabled && !isVisible) onToggle(type)
+                        FilterToggleRow(
+                            label     = type.toFilterLabel(),
+                            checked   = typeVisibility[type] != false,
+                            toneColor = toneColor,
+                            leadingContent = {
+                                Image(
+                                    painter            = painterResource(type.toPinDrawable()),
+                                    contentDescription = null,
+                                    modifier           = Modifier.size(width = 20.dp, height = 30.dp)
+                                )
+                            },
+                            onCheckedChange = { onToggle(type) }
+                        )
+                        Spacer(Modifier.height(4.dp))
                     }
                 }
-            )
+            }
 
-            Spacer(Modifier.height(12.dp))
-            HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
-            Spacer(Modifier.height(4.dp))
+            // ── Seção: Materiais aceitos ──────────────────────────────────
+            // Só renderiza se ao menos um ponto declara materiais
+            if (displayedMaterials.isNotEmpty()) {
+                HorizontalDivider(color = Color.White.copy(alpha = 0.25f))
 
-            Text(
-                text     = "TIPOS DE PONTO",
-                fontSize = 11.sp,
-                color    = Color.White.copy(alpha = 0.6f),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            // ── Toggle por tipo ───────────────────────────────────────
-            // Gerado automaticamente a partir do enum — novos tipos aparecem aqui
-            displayedTypes.forEach { type ->
-                FilterToggleRow(
-                    label     = type.toFilterLabel(),
-                    checked   = typeVisibility[type] != false,
-                    toneColor = toneColor,
-                    leadingContent = {
-                        Image(
-                            painter            = painterResource(type.toPinDrawable()),
-                            contentDescription = null,
-                            modifier           = Modifier.size(width = 20.dp, height = 30.dp)
-                        )
-                    },
-                    onCheckedChange = { onToggle(type) }
+                CollapsibleSectionHeader(
+                    label    = "MATERIAIS ACEITOS",
+                    expanded = materialSectionExpanded,
+                    onToggle = { materialSectionExpanded = !materialSectionExpanded }
                 )
-                Spacer(Modifier.height(4.dp))
+
+                AnimatedVisibility(
+                    visible = materialSectionExpanded,
+                    enter   = expandVertically(),
+                    exit    = shrinkVertically()
+                ) {
+                    Column {
+                        FilterToggleRow(
+                            label     = "Habilitar todos",
+                            checked   = allMaterialsEnabled,
+                            bold      = true,
+                            toneColor = toneColor,
+                            onCheckedChange = {
+                                displayedMaterials.forEach { mat ->
+                                    val isVisible = materialVisibility[mat] != false
+                                    if (allMaterialsEnabled && isVisible) onMaterialToggle(mat)
+                                    else if (!allMaterialsEnabled && !isVisible) onMaterialToggle(mat)
+                                }
+                            }
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        displayedMaterials.forEach { material ->
+                            FilterToggleRow(
+                                label     = material,
+                                checked   = materialVisibility[material] != false,
+                                toneColor = toneColor,
+                                leadingContent = {
+                                    Image(
+                                        painter            = painterResource(
+                                            MaterialDrawableMapper.fromName(material)
+                                        ),
+                                        contentDescription = null,
+                                        modifier           = Modifier.size(28.dp)
+                                    )
+                                },
+                                onCheckedChange = { onMaterialToggle(material) }
+                            )
+                            Spacer(Modifier.height(4.dp))
+                        }
+                    }
+                }
             }
         }
     }
 }
+
+// ── Cabeçalho de seção colapsável ────────────────────────────────────────────
+
+@Composable
+private fun CollapsibleSectionHeader(
+    label: String,
+    expanded: Boolean,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication        = null,
+                onClick           = onToggle
+            )
+            .padding(vertical = 10.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text       = label,
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color      = Color.White.copy(alpha = 0.9f)
+        )
+        Icon(
+            imageVector        = if (expanded) Icons.Filled.KeyboardArrowUp
+            else          Icons.Filled.KeyboardArrowDown,
+            contentDescription = if (expanded) "Recolher" else "Expandir",
+            tint               = Color.White.copy(alpha = 0.9f),
+            modifier           = Modifier.size(18.dp)
+        )
+    }
+}
+
+// ── Linha de toggle genérica ──────────────────────────────────────────────────
 
 @Composable
 private fun FilterToggleRow(

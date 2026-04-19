@@ -5,11 +5,17 @@ import androidx.compose.ui.graphics.Color
 // ═══════════════════════════════════════════════════════════
 // BRAND COLORS — identidade visual do app
 // ═══════════════════════════════════════════════════════════
-val GreenPrimary = Color(0xFF60AE1D)   // fundo principal
-val GreenLight   = Color(0xFF9DD549)   // ícone câmera / destaques
-val GreenDark    = Color(0xFF297B19)   // ícone galeria / títulos
-val GreenInk     = Color(0xFF287C1C)   // ícones pequenos
-val WhiteText    = Color(0xFFFBF8FB)   // textos sobre verde
+val GreenPrimary    = Color(0xFF60AE1D)   // fundo principal
+val GreenLight      = Color(0xFF9DD549)   // destaques / ícones menores
+val GreenDark       = Color(0xFF297B19)   // títulos / textos escuros
+val GreenInk        = Color(0xFF287C1C)   // ícones pequenos
+val WhiteText       = Color(0xFFFBF8FB)   // textos sobre verde
+
+// ═══════════════════════════════════════════════════════════
+// HOME ACTION BUTTONS — botões de ação da tela inicial
+// ═══════════════════════════════════════════════════════════
+val GreenButton     = Color(0xFF297B19)   // fundo dos botões câmera e galeria
+val GreenButtonIcon = Color(0xFFFFFFFF)   // ícone dos botões câmera e galeria
 
 // ═══════════════════════════════════════════════════════════
 // SURFACE COLORS — fundos e superfícies
@@ -30,11 +36,11 @@ val PlaceholderLight = Color(0xFFEFEFEF)   // fundo placeholder light
 // ═══════════════════════════════════════════════════════════
 // MATERIAL: VIDRO
 // ═══════════════════════════════════════════════════════════
-val GlassBg        = Color(0xFF3DAF3F)   // fundo da tela
-val GlassTone      = Color(0xFF1E6B20)   // textos / bullet points
-val GlassCardTitle = Color(0xFF297B19)   // título do card
-val GlassBtnLight  = Color(0xFF86BF54)   // botão esquerdo
-val GlassBtnDark   = Color(0xFF1B6216)   // botão direito
+val GlassBg        = Color(0xFF3DAF3F)
+val GlassTone      = Color(0xFF1E6B20)
+val GlassCardTitle = Color(0xFF297B19)
+val GlassBtnLight  = Color(0xFF86BF54)
+val GlassBtnDark   = Color(0xFF1B6216)
 
 // ═══════════════════════════════════════════════════════════
 // MATERIAL: PLÁSTICO
