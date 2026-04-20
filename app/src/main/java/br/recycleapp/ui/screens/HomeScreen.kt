@@ -1,6 +1,5 @@
 package br.recycleapp.ui.screens
 
-import android.app.Activity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -19,7 +18,6 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -41,8 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
@@ -96,14 +91,6 @@ fun HomeScreen(
     // ── Layout geral ──────────────────────────────────────────────────
     horizontalPadding: Dp = 20.dp    // padding lateral do conteúdo
 ) {
-    val view = LocalView.current
-
-    SideEffect {
-        val window = (view.context as Activity).window
-        WindowCompat.getInsetsController(window, view).apply {
-            show(WindowInsetsCompat.Type.navigationBars())
-        }
-    }
 
     // ── Escala de largura via WindowSizeClass ─────────────────────────
     // Aplicada a botões e título para aproveitar melhor telas maiores
@@ -136,7 +123,10 @@ fun HomeScreen(
     val warningAlpha    by animateFloatAsState(if (visible) 1f else 0f, tween(600, 450),  label = "wa")
     val warningOffsetY  by animateFloatAsState(if (visible) 0f else 60f, tween(600, 450), label = "wo")
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { inner ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0)
+    ) { inner ->
         Box(
             modifier = Modifier
                 .fillMaxSize()

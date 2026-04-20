@@ -24,7 +24,7 @@ import br.recycleapp.ui.theme.PlaceholderDark
 import br.recycleapp.ui.theme.TextSecondary
 
 /**
- * Dados visuais de um material - cores, recursos e strings.
+ * Dados visuais de um material — cores, recursos e strings.
  * Movido de ResultScreen para permitir reuso em outros contextos.
  */
 data class MaterialCardData(
@@ -37,8 +37,11 @@ data class MaterialCardData(
 )
 
 /**
- * Card branco com título, duas dicas de descarte e placeholder de mapa.
+ * Card branco com título, duas dicas de descarte e mapa de pontos próximos.
  * Usado na ResultScreen para materiais identificados.
+ *
+ * O [RecycleMapCard] é chamado com sizing explícito (height + clip) —
+ * seguindo o padrão onde o caller define as dimensões do mapa.
  */
 @Composable
 fun MaterialCard(
@@ -81,11 +84,16 @@ fun MaterialCard(
 
             Spacer(Modifier.height(10.dp))
 
+            // Sizing e clip são definidos aqui pelo caller — RecycleMapCard
+            // não impõe dimensões próprias (ver KDoc de RecycleMapCard).
             RecycleMapCard(
                 toneColor     = data.mapColor,
+                modifier      = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 onMarkerClick = onMarkerClick
             )
-
         }
     }
 }
@@ -170,7 +178,7 @@ fun UnknownCard(
 
 /**
  * Linha de texto com bullet point à esquerda.
- * Componente interno - usado por MaterialCard e UnknownCard.
+ * Componente interno — usado por [MaterialCard] e [UnknownCard].
  */
 @Composable
 internal fun BulletText(

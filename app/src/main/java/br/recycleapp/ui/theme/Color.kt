@@ -10,6 +10,7 @@ val GreenLight      = Color(0xFF9DD549)   // destaques / ícones menores
 val GreenDark       = Color(0xFF297B19)   // títulos / textos escuros
 val GreenInk        = Color(0xFF287C1C)   // ícones pequenos
 val WhiteText       = Color(0xFFFBF8FB)   // textos sobre verde
+val GreenNavIndicator = Color(0xFFCDE1BC)
 
 // ═══════════════════════════════════════════════════════════
 // HOME ACTION BUTTONS — botões de ação da tela inicial

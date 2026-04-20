@@ -65,13 +65,7 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 800)
         )
 
-        // Restaura a barra ANTES de navegar para a Home
-        WindowCompat.getInsetsController(
-            (view.context as Activity).window,
-            view
-        ).show(WindowInsetsCompat.Type.navigationBars())
-
-        delay(100)  // tempo entre a barra aparecer e a Home abrir
+        delay(100)
 
         onSplashFinished()
     }

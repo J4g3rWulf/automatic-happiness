@@ -45,14 +45,19 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 
 /**
- * Card com mapa exibindo a localização do usuário
- * e os pontos de coleta seletiva próximos.
+ * Componente de mapa exibindo a localização do usuário e os pontos de coleta seletiva.
  *
- * Usa o Google Maps como mapa principal e OpenStreetMap como mapa reserva.
- * A troca é feita automaticamente via [br.recycleapp.data.map.MapAvailabilityChecker].
+ * Usa Google Maps como mapa principal e OpenStreetMap como fallback automático.
+ * A troca é feita via [br.recycleapp.data.map.MapAvailabilityChecker].
  *
- * @param toneColor     cor temática do material atual (usada no placeholder)
- * @param onMarkerClick callback chamado quando o usuário toca num marcador
+ * **Sizing:** o componente não impõe altura ou clip próprios — o caller é
+ * responsável por definir dimensões via [modifier]. Isso permite reutilizar o
+ * mesmo componente tanto no card compacto da ResultScreen quanto em tela cheia
+ * na MapScreen.
+ *
+ * @param toneColor     cor temática (usada no placeholder e nos clusters)
+ * @param modifier      controla tamanho, forma e clip — ver MaterialCard e MapScreen
+ * @param onMarkerClick callback ao tocar num marcador
  */
 @Composable
 fun RecycleMapCard(
@@ -114,12 +119,9 @@ fun RecycleMapCard(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .clip(RoundedCornerShape(12.dp))
-    ) {
+    // O modifier é aplicado diretamente — sem height ou clip internos.
+    // Sizing e forma são responsabilidade do caller (ver KDoc).
+    Box(modifier = modifier) {
         if (permissionGranted) {
             MapWithFallback(
                 toneColor     = toneColor,
@@ -195,7 +197,7 @@ private fun MapWithFallback(
                     toneColor     = toneColor,
                     onMarkerClick = onMarkerClick)
                 MapFallbackBanner(
-                    modifier  = Modifier.align(Alignment.BottomCenter)
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -205,9 +207,7 @@ private fun MapWithFallback(
 // ── Banner de fallback ────────────────────────────────────────────────────────
 
 @Composable
-private fun MapFallbackBanner(
-    modifier: Modifier = Modifier
-) {
+private fun MapFallbackBanner(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()

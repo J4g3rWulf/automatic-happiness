@@ -57,8 +57,8 @@ fun rememberHomeScreenDimensions(
         // ── Escala vertical baseada na altura disponível ──────────────
         // Telas muito baixas recebem escala reduzida para não cortar conteúdo
         val hScale: Float = when {
-            boxMaxH < 630.dp -> 0.80f   // telas muito baixas (ex: dobradiça fechada)
-            boxMaxH < 700.dp -> 0.90f   // telas moderadamente baixas
+            boxMaxH < 670.dp -> 0.80f   // Ajustado (era 630)
+            boxMaxH < 740.dp -> 0.90f   // Ajustado (era 700)
             else             -> 1.00f   // altura normal — sem redução
         }
         val isSmallH = hScale < 1f
