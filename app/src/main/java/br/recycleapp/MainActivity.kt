@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             RecycleAppTheme {
+                // Sem passar o navController aqui, pois ele é criado lá dentro
                 AppNavHost(windowSizeClass = windowSizeClass)
             }
         }
