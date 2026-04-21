@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
@@ -62,7 +63,7 @@ fun LearnScreen(
 
         // ── Arte decorativa inferior ──────────────────────────────────────
         Image(
-            painter            = painterResource(R.drawable.art_bottom_home),
+            painter            = painterResource(R.drawable.art_botton_learn_screen),
             contentDescription = null,
             contentScale       = ContentScale.FillWidth,
             alignment          = Alignment.BottomCenter,
@@ -70,7 +71,6 @@ fun LearnScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(200.dp)
-                .offset(y = 24.dp)
         )
 
         // ── Conteúdo principal ────────────────────────────────────────────
@@ -82,28 +82,34 @@ fun LearnScreen(
                 .padding(horizontal = 24.dp)
         ) {
 
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(66.dp))
 
             // Título
             Text(
                 text       = "Aprenda sobre os\nresíduos recicláveis",
-                fontSize   = 32.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize   = 29.sp,
+                fontWeight = FontWeight.SemiBold,
                 color      = Color.White,
-                lineHeight = 38.sp,
+                lineHeight = 36.sp,
+                textAlign  = TextAlign.Center,
+                modifier   = Modifier.fillMaxWidth(),
                 style      = MaterialTheme.typography.headlineLarge
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(32.dp))
 
             // Botões de categoria
-            LearnCategoryButton(label = "Cores e significados",  onClick = onOpenColors)
-            Spacer(Modifier.height(16.dp))
-            LearnCategoryButton(label = "O que descartar?",       onClick = onOpenWhatToDiscard)
-            Spacer(Modifier.height(16.dp))
-            LearnCategoryButton(label = "Como descartar?",        onClick = onOpenHowToDiscard)
-            Spacer(Modifier.height(16.dp))
-            LearnCategoryButton(label = "Termos e definições",   onClick = onOpenTerms)
+            // Botão 1:
+            LearnCategoryButton(label = "Cores e significados",   onClick = onOpenColors)
+            Spacer(Modifier.height(40.dp))
+            // Botão 2:
+            LearnCategoryButton(label = "O que descartar ?",      onClick = onOpenWhatToDiscard)
+            Spacer(Modifier.height(40.dp))
+            // Botão 3:
+            LearnCategoryButton(label = "Como descartar ?",       onClick = onOpenHowToDiscard)
+            Spacer(Modifier.height(40.dp))
+            // Botão 4:
+            LearnCategoryButton(label = "Termos e definições",    onClick = onOpenTerms)
 
             // Espaço para não sobrepor a ilustração
             Spacer(Modifier.height(200.dp))
@@ -126,19 +132,19 @@ private fun LearnCategoryButton(
                 indication        = ripple(color = GreenPrimary.copy(alpha = 0.15f)),
                 onClick           = onClick
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(11.dp),
         color = Color.White,
         shadowElevation = 4.dp
     ) {
         Box(
             modifier         = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 22.dp, horizontal = 24.dp),
+                .padding(vertical = 14.dp, horizontal = 24.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text       = label,
-                fontSize   = 18.sp,
+                fontSize   = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color      = GreenDark
             )
