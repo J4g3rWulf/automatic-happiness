@@ -31,32 +31,32 @@ import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
 
-// ── Modelo de dados e Lista estática ────────────────────────────────────────
+// ── Modelo de dados e Lista estática ────
 
-private data class ColorCard(
-    val colorName: String,
+private data class DiscardCard(
+    val name: String,
     val cardColor: Color,
     val imageRes: Int
 )
 
-private val COLOR_CARDS = listOf(
-    ColorCard("Preto", Color.Transparent, R.drawable.card_black),
-    ColorCard("Verde", Color.Transparent, R.drawable.card_green),
-    ColorCard("Vermelho", Color.Transparent, R.drawable.card_red),
-    ColorCard("Azul", Color.Transparent, R.drawable.card_blue),
-    ColorCard("Amarelo", Color.Transparent, R.drawable.card_yellow),
-    ColorCard("Laranja", Color.Transparent, R.drawable.card_orange),
-    ColorCard("Marrom", Color.Transparent, R.drawable.card_brown),
-    ColorCard("Cinza", Color.Transparent, R.drawable.card_grey)
+private val DISCARD_CARDS = listOf(
+    DiscardCard("Madeira", Color.Transparent, R.drawable.card_descarte_madeira),
+    DiscardCard("Vidro", Color.Transparent, R.drawable.card_descarte_vidro),
+    DiscardCard("Plástico", Color.Transparent, R.drawable.card_descarte_plastico),
+    DiscardCard("Papel", Color.Transparent, R.drawable.card_descarte_papel),
+    DiscardCard("Metal", Color.Transparent, R.drawable.card_descarte_metal),
+    DiscardCard("Perigosos", Color.Transparent, R.drawable.card_descarte_perigosos),
+    DiscardCard("Orgânico", Color.Transparent, R.drawable.card_descarte_organico),
+    DiscardCard("Rejeito", Color.Transparent, R.drawable.card_descarte_rejeito)
 )
 
-// ── Tela Principal ────────────────────────────────────────────────────────────
+// ── Tela Principal ────
 
 @Composable
-fun ColorsScreen(
+fun WhatToDiscardScreen(
     onBack: () -> Unit
 ) {
-    val startIndex = (COLOR_CARDS.size * 1000) + 1
+    val startIndex = (DISCARD_CARDS.size * 1000) + 1
     val pagerState = rememberPagerState(
         initialPage = startIndex,
         pageCount = { Int.MAX_VALUE }
@@ -103,7 +103,6 @@ fun ColorsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             ) {
-                // Box clicável
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -114,10 +113,10 @@ fun ColorsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        tint               = Color.White,
+                        modifier           = Modifier.size(20.dp)
                     )
                 }
             }
@@ -130,13 +129,13 @@ fun ColorsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Surface(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+                    modifier        = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
                     shape           = RoundedCornerShape(11.dp),
                     color           = Color.White,
                     shadowElevation = 4.dp
                 ) {
                     Text(
-                        text       = "Cores e significados",
+                        text       = "O que descartar",
                         fontSize   = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color      = GreenDark,
@@ -155,38 +154,37 @@ fun ColorsScreen(
                 pageSpacing    = 16.dp,
                 modifier       = Modifier.weight(1f)
             ) { page ->
-                val actualIndex = page % COLOR_CARDS.size
-                ColorCardItem(card = COLOR_CARDS[actualIndex])
+                val actualIndex = page % DISCARD_CARDS.size
+                DiscardCardItem(card = DISCARD_CARDS[actualIndex])
             }
 
-            // Espaço para não encostar nos personagens
             Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }
 
-// ── Card do carrossel ─────────────────────────────────────────────────────────
+// ── Card do carrossel ────
 
 @Composable
-private fun ColorCardItem(card: ColorCard) {
+private fun DiscardCardItem(card: DiscardCard) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier         = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         Card(
-            modifier = Modifier
+            modifier  = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.75f),
-            shape    = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = card.cardColor),
+            shape     = RoundedCornerShape(10.dp),
+            colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = 8.dp, // Sombra padrão
-                pressedElevation = 12.dp // Sombra maior se for clicado
+                defaultElevation = 8.dp,
+                pressedElevation = 12.dp
             )
         ) {
             Image(
                 painter            = painterResource(id = card.imageRes),
-                contentDescription = card.colorName,
+                contentDescription = card.name,
                 modifier           = Modifier.fillMaxSize(),
                 contentScale       = ContentScale.Fit
             )

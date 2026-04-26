@@ -43,6 +43,7 @@ import br.recycleapp.ui.screens.MapScreen
 import br.recycleapp.ui.screens.ProgramsScreen
 import br.recycleapp.ui.screens.ResultScreen
 import br.recycleapp.ui.screens.SplashScreen
+import br.recycleapp.ui.screens.WhatToDiscardScreen
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 
@@ -53,6 +54,7 @@ sealed class Screen(val route: String) {
     data object Learn    : Screen("learn")
     data object Programs : Screen("programs")
     data object Colors   : Screen("colors")
+    data object WhatToDiscard : Screen("what_to_discard")
     data object Camera  : Screen("camera")
     data object Gallery : Screen("gallery")
     data object ConfirmPhoto : Screen("confirm_photo/{photoUri}/{fromCamera}") {
@@ -74,11 +76,15 @@ private fun String?.isClassificationFlow() =
     this == Screen.ConfirmPhoto.route || this == Screen.Result.route
 
 private fun String?.showBottomNav() =
-    this in BOTTOM_NAV_ROUTES || this == Screen.Colors.route || this.isClassificationFlow()
+    this in BOTTOM_NAV_ROUTES
+            || this == Screen.Colors.route
+            || this == Screen.WhatToDiscard.route
+            || this.isClassificationFlow()
 
 private fun String?.activeNavRoute(): String? = when {
     this in BOTTOM_NAV_ROUTES   -> this
     this == Screen.Colors.route -> Screen.Learn.route
+    this == Screen.WhatToDiscard.route -> Screen.Learn.route
     this.isClassificationFlow() -> Screen.Home.route
     else                        -> null
 }
@@ -167,11 +173,17 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             }
             composable(Screen.MapTab.route) { MapScreen() }
             composable(Screen.Learn.route) {
-                LearnScreen(onOpenColors = { nav.navigate(Screen.Colors.route) })
+                LearnScreen(
+                    onOpenColors       = { nav.navigate(Screen.Colors.route) },
+                    onOpenWhatToDiscard = { nav.navigate(Screen.WhatToDiscard.route) }
+                )
             }
             composable(Screen.Programs.route) { ProgramsScreen() }
             composable(Screen.Colors.route) {
                 ColorsScreen(onBack = { nav.navigateUp() })
+            }
+            composable(Screen.WhatToDiscard.route) {
+                WhatToDiscardScreen(onBack = { nav.navigateUp() })
             }
             composable(Screen.Camera.route) {
                 CameraCaptureScreen(onBack = { nav.navigateUp() }, onPhotoTaken = { uri -> nav.navigate(Screen.ConfirmPhoto.build(uri, fromCamera = true)) })
