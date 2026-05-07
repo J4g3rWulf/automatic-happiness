@@ -37,6 +37,7 @@ import br.recycleapp.ui.screens.ColorsScreen
 import br.recycleapp.ui.screens.ConfirmPhotoScreen
 import br.recycleapp.ui.screens.GalleryPickerScreen
 import br.recycleapp.ui.screens.HomeScreen
+import br.recycleapp.ui.screens.HowToDiscardScreen
 import br.recycleapp.ui.screens.LearnScreen
 import br.recycleapp.ui.screens.LoadingScreen
 import br.recycleapp.ui.screens.MapScreen
@@ -64,6 +65,7 @@ sealed class Screen(val route: String) {
     // ── Sub-telas da aba Aprender ──
     data object Colors        : Screen("colors")
     data object WhatToDiscard : Screen("what_to_discard")
+    data object HowToDiscard  : Screen("how_to_discard")
 
     // ── Fluxo de classificação de resíduos ──
     data object Camera  : Screen("camera")
@@ -97,6 +99,7 @@ private fun String?.showBottomNav() =
     this in BOTTOM_NAV_ROUTES
             || this == Screen.Colors.route
             || this == Screen.WhatToDiscard.route
+            || this == Screen.HowToDiscard.route
             || this.isClassificationFlow()
 
 /**
@@ -108,6 +111,7 @@ private fun String?.activeNavRoute(): String? = when {
     this in BOTTOM_NAV_ROUTES          -> this
     this == Screen.Colors.route        -> Screen.Learn.route
     this == Screen.WhatToDiscard.route -> Screen.Learn.route
+    this == Screen.HowToDiscard.route  -> Screen.Learn.route
     this.isClassificationFlow()        -> Screen.Home.route
     else                               -> null
 }
@@ -183,9 +187,11 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                                     nav.popBackStack(Screen.Home.route, inclusive = false)
                                 } else {
                                     nav.navigate(route) {
-                                        popUpTo(Screen.Home.route) { saveState = true }
+                                        popUpTo(Screen.Home.route) {
+                                            saveState = false  // não salva sub-telas no histórico
+                                        }
                                         launchSingleTop = true
-                                        restoreState    = true
+                                        restoreState    = false  // não restaura histórico anterior da aba
                                     }
                                 }
                             }
@@ -223,8 +229,9 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             composable(Screen.MapTab.route) { MapScreen() }
             composable(Screen.Learn.route) {
                 LearnScreen(
-                    onOpenColors        = { nav.navigate(Screen.Colors.route) },
-                    onOpenWhatToDiscard = { nav.navigate(Screen.WhatToDiscard.route) }
+                    onOpenColors       = { nav.navigate(Screen.Colors.route) },
+                    onOpenWhatToDiscard = { nav.navigate(Screen.WhatToDiscard.route) },
+                    onOpenHowToDiscard  = { nav.navigate(Screen.HowToDiscard.route) }
                 )
             }
             composable(Screen.Programs.route) { ProgramsScreen() }
@@ -236,11 +243,14 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             composable(Screen.WhatToDiscard.route) {
                 WhatToDiscardScreen(onBack = { nav.navigateUp() })
             }
+            composable(Screen.HowToDiscard.route) {
+                HowToDiscardScreen(onBack = { nav.navigateUp() })
+            }
 
             // ── Fluxo de classificação de resíduos ──
             composable(Screen.Camera.route) {
                 CameraCaptureScreen(
-                    onBack      = { nav.navigateUp() },
+                    onBack       = { nav.navigateUp() },
                     onPhotoTaken = { uri ->
                         nav.navigate(Screen.ConfirmPhoto.build(uri, fromCamera = true))
                     }
@@ -257,8 +267,8 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             composable(
                 route     = Screen.ConfirmPhoto.route,
                 arguments = listOf(
-                    navArgument("photoUri")    { type = NavType.StringType },
-                    navArgument("fromCamera")  { type = NavType.BoolType }
+                    navArgument("photoUri")   { type = NavType.StringType },
+                    navArgument("fromCamera") { type = NavType.BoolType }
                 )
             ) { backStackEntry ->
                 val encoded    = backStackEntry.arguments?.getString("photoUri").orEmpty()
@@ -296,9 +306,9 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                         r.materialType.toLabelPt() else "Indefinido"
                 }
                 ResultScreen(
-                    photoUri      = viewModel.imageUri.toString(),
-                    label         = cachedLabel,
-                    onBackToHome  = {
+                    photoUri     = viewModel.imageUri.toString(),
+                    label        = cachedLabel,
+                    onBackToHome = {
                         nav.popBackStack(Screen.Home.route, inclusive = false)
                         viewModel.reset()
                     }
