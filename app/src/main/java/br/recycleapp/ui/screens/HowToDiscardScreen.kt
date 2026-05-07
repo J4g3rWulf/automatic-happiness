@@ -33,30 +33,30 @@ import br.recycleapp.ui.theme.GreenPrimary
 
 // ── Modelo de dados e Lista estática ────
 
-private data class DiscardCard(
+private data class HowToDiscardCard(
     val name: String,
     val cardColor: Color,
     val imageRes: Int
 )
 
-private val DISCARD_CARDS = listOf(
-    DiscardCard("Madeira", Color.Transparent, R.drawable.card_descarte_madeira),
-    DiscardCard("Vidro", Color.Transparent, R.drawable.card_descarte_vidro),
-    DiscardCard("Plástico", Color.Transparent, R.drawable.card_descarte_plastico),
-    DiscardCard("Papel", Color.Transparent, R.drawable.card_descarte_papel),
-    DiscardCard("Metal", Color.Transparent, R.drawable.card_descarte_metal),
-    DiscardCard("Perigosos", Color.Transparent, R.drawable.card_descarte_perigosos),
-    DiscardCard("Orgânico", Color.Transparent, R.drawable.card_descarte_organico),
-    DiscardCard("Rejeito", Color.Transparent, R.drawable.card_descarte_rejeito)
+private val HOW_TO_DISCARD_CARDS = listOf(
+    HowToDiscardCard("Madeira",    Color.Transparent, R.drawable.card_separar_madeira),
+    HowToDiscardCard("Vidro",      Color.Transparent, R.drawable.card_separar_vidro),
+    HowToDiscardCard("Plástico",   Color.Transparent, R.drawable.card_separar_plastico),
+    HowToDiscardCard("Papel",      Color.Transparent, R.drawable.card_separar_papel),
+    HowToDiscardCard("Metal",      Color.Transparent, R.drawable.card_separar_metal),
+    HowToDiscardCard("Perigosos",  Color.Transparent, R.drawable.card_separar_perigosos),
+    HowToDiscardCard("Orgânico",   Color.Transparent, R.drawable.card_separar_organico),
+    HowToDiscardCard("Rejeito",    Color.Transparent, R.drawable.card_separar_rejeito)
 )
 
 // ── Tela Principal ────
 
 @Composable
-fun WhatToDiscardScreen(
+fun HowToDiscardScreen(
     onBack: () -> Unit
 ) {
-    val startIndex = (DISCARD_CARDS.size * 1000) + 1
+    val startIndex = (HOW_TO_DISCARD_CARDS.size * 1000) + 1
     val pagerState = rememberPagerState(
         initialPage = startIndex,
         pageCount = { Int.MAX_VALUE }
@@ -135,7 +135,7 @@ fun WhatToDiscardScreen(
                     shadowElevation = 4.dp
                 ) {
                     Text(
-                        text       = "O que descartar ?",
+                        text       = "Como descartar ?",
                         fontSize   = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color      = GreenDark,
@@ -154,8 +154,8 @@ fun WhatToDiscardScreen(
                 pageSpacing    = 16.dp,
                 modifier       = Modifier.weight(1f)
             ) { page ->
-                val actualIndex = page % DISCARD_CARDS.size
-                DiscardCardItem(card = DISCARD_CARDS[actualIndex])
+                val actualIndex = page % HOW_TO_DISCARD_CARDS.size
+                HowToDiscardCardItem(card = HOW_TO_DISCARD_CARDS[actualIndex])
             }
 
             Spacer(modifier = Modifier.height(60.dp))
@@ -166,7 +166,7 @@ fun WhatToDiscardScreen(
 // ── Card do carrossel ────
 
 @Composable
-private fun DiscardCardItem(card: DiscardCard) {
+private fun HowToDiscardCardItem(card: HowToDiscardCard) {
     Box(
         modifier         = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
