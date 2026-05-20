@@ -43,6 +43,7 @@ import br.recycleapp.ui.screens.LoadingScreen
 import br.recycleapp.ui.screens.MapScreen
 import br.recycleapp.ui.screens.ProgramsScreen
 import br.recycleapp.ui.screens.ResultScreen
+import br.recycleapp.ui.screens.TermsScreen
 import br.recycleapp.ui.screens.SplashScreen
 import br.recycleapp.ui.screens.WhatToDiscardScreen
 import br.recycleapp.ui.viewmodel.ClassificationViewModel
@@ -66,6 +67,7 @@ sealed class Screen(val route: String) {
     data object Colors        : Screen("colors")
     data object WhatToDiscard : Screen("what_to_discard")
     data object HowToDiscard  : Screen("how_to_discard")
+    data object Terms : Screen("terms")
 
     // ── Fluxo de classificação de resíduos ──
     data object Camera  : Screen("camera")
@@ -100,6 +102,7 @@ private fun String?.showBottomNav() =
             || this == Screen.Colors.route
             || this == Screen.WhatToDiscard.route
             || this == Screen.HowToDiscard.route
+            || this == Screen.Terms.route
             || this.isClassificationFlow()
 
 /**
@@ -112,6 +115,7 @@ private fun String?.activeNavRoute(): String? = when {
     this == Screen.Colors.route        -> Screen.Learn.route
     this == Screen.WhatToDiscard.route -> Screen.Learn.route
     this == Screen.HowToDiscard.route  -> Screen.Learn.route
+    this == Screen.Terms.route -> Screen.Learn.route
     this.isClassificationFlow()        -> Screen.Home.route
     else                               -> null
 }
@@ -227,11 +231,13 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                 )
             }
             composable(Screen.MapTab.route) { MapScreen() }
+
             composable(Screen.Learn.route) {
                 LearnScreen(
                     onOpenColors       = { nav.navigate(Screen.Colors.route) },
                     onOpenWhatToDiscard = { nav.navigate(Screen.WhatToDiscard.route) },
-                    onOpenHowToDiscard  = { nav.navigate(Screen.HowToDiscard.route) }
+                    onOpenHowToDiscard  = { nav.navigate(Screen.HowToDiscard.route) },
+                    onOpenTerms         = { nav.navigate(Screen.Terms.route) }
                 )
             }
             composable(Screen.Programs.route) { ProgramsScreen() }
@@ -245,6 +251,9 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             }
             composable(Screen.HowToDiscard.route) {
                 HowToDiscardScreen(onBack = { nav.navigateUp() })
+            }
+            composable(Screen.Terms.route) {
+                TermsScreen(onBack = { nav.navigateUp() })
             }
 
             // ── Fluxo de classificação de resíduos ──
