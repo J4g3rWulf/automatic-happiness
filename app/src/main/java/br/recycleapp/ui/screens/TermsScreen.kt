@@ -9,6 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,12 +24,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
@@ -90,6 +94,39 @@ private val RECYCLING_CONCEPTS = listOf(
     )
 )
 
+private val PACKAGING_SYMBOLS = listOf(
+    TermItem(
+        buttonImageRes     = R.drawable.btn_terms_reciclagem_universal,
+        contentDescription = "Reciclagem Universal",
+        popupTitle         = "Símbolos de Embalagens",
+        popupCards         = listOf(R.drawable.card_info_embalagem_1)
+    ),
+    TermItem(
+        buttonImageRes     = R.drawable.btn_terms_aluminio_reciclavel,
+        contentDescription = "Alumínio",
+        popupTitle         = "Símbolos de Embalagens",
+        popupCards         = listOf(R.drawable.card_info_embalagem_2)
+    ),
+    TermItem(
+        buttonImageRes     = R.drawable.btn_terms_aco_reciclavel,
+        contentDescription = "Aço",
+        popupTitle         = "Símbolos de Embalagens",
+        popupCards         = listOf(R.drawable.card_info_embalagem_3)
+    ),
+    TermItem(
+        buttonImageRes     = R.drawable.btn_terms_lixo_eletronico,
+        contentDescription = "Lixo Eletrônico",
+        popupTitle         = "Símbolos de Embalagens",
+        popupCards         = listOf(R.drawable.card_info_embalagem_4)
+    ),
+    TermItem(
+        buttonImageRes     = R.drawable.btn_terms_ponto_verde,
+        contentDescription = "Ponto Verde",
+        popupTitle         = "Símbolos de Embalagens",
+        popupCards         = listOf(R.drawable.card_info_embalagem_5)
+    )
+)
+
 private val PLASTIC_NUMBERS = listOf(
     TermItem(
         buttonImageRes     = R.drawable.btn_plastic_pet,
@@ -118,7 +155,7 @@ private val PLASTIC_NUMBERS = listOf(
     TermItem(
         buttonImageRes     = R.drawable.btn_plastic_pp,
         contentDescription = "PP",
-        popupTitle         = "PP",
+        popupTitle         = "Números do Plástico",
         popupCards         = listOf(R.drawable.card_info_plastic_5_pp)
     ),
     TermItem(
@@ -225,7 +262,6 @@ private fun TermsScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp)
         ) {
@@ -255,7 +291,7 @@ private fun TermsScreenContent(
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
             // ── Título ──
             Surface(
@@ -274,30 +310,43 @@ private fun TermsScreenContent(
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(18.dp))
 
-            // ── Card de seção verde — Conceitos de Reciclagem ──
+            // ── Card verde — Conceitos de Reciclagem (grid fixo, sem scroll) ──
             TermsSectionCard(
                 backgroundImageRes = R.drawable.bg_section_terms_green,
                 title              = "Conceitos de Reciclagem",
                 items              = RECYCLING_CONCEPTS,
+                bottomPadding      = 12.dp,
                 popupVisible       = popupVisible,
                 onTermSelected     = onTermSelected
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // ── Card de seção vermelho — Guia de plásticos ──
+            // ── Card azul — Símbolos de Embalagens (scroll horizontal) ──
             TermsSectionCard(
-                backgroundImageRes = R.drawable.bg_section_terms_red,
-                title              = "Números de reciclagem do plástico",
-                items              = PLASTIC_NUMBERS,
-                useCustomLayout    = true,
-                popupVisible       = popupVisible,
-                onTermSelected     = onTermSelected
+                backgroundImageRes  = R.drawable.bg_section_terms_blue,
+                title               = "Símbolos de Embalagens",
+                items               = PACKAGING_SYMBOLS,
+                useHorizontalScroll = true,
+                bottomPadding       = 22.dp,
+                popupVisible        = popupVisible,
+                onTermSelected      = onTermSelected
             )
 
-            Spacer(Modifier.height(200.dp))
+            Spacer(Modifier.height(10.dp))
+
+            // ── Card vermelho — Números do Plástico (scroll horizontal) ──
+            TermsSectionCard(
+                backgroundImageRes  = R.drawable.bg_section_terms_red,
+                title               = "Números de reciclagem do plástico",
+                items               = PLASTIC_NUMBERS,
+                useHorizontalScroll = true,
+                bottomPadding       = 15.dp,
+                popupVisible        = popupVisible,
+                onTermSelected      = onTermSelected
+            )
         }
     }
 }
@@ -309,7 +358,8 @@ private fun TermsSectionCard(
     backgroundImageRes : Int,
     title              : String,
     items              : List<TermItem>,
-    useCustomLayout    : Boolean = false,
+    useHorizontalScroll: Boolean = false,
+    bottomPadding      : Dp      = 10.dp,
     popupVisible       : Boolean,
     onTermSelected     : (TermItem) -> Unit
 ) {
@@ -317,20 +367,21 @@ private fun TermsSectionCard(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
     ) {
+        // Imagem de fundo
         Image(
             painter            = painterResource(backgroundImageRes),
             contentDescription = null,
             contentScale       = ContentScale.FillBounds,
-            modifier           = Modifier
-                .matchParentSize()
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(16.dp))
+            modifier           = Modifier.matchParentSize()
         )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(top = 10.dp, bottom = bottomPadding)
         ) {
             // Título do card
             Text(
@@ -339,31 +390,33 @@ private fun TermsSectionCard(
                 fontWeight = FontWeight.SemiBold,
                 color      = Color.White,
                 textAlign  = TextAlign.Center,
-                modifier   = Modifier.fillMaxWidth()
+                modifier   = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            if (useCustomLayout) {
-                // ── Layout 4+3 para o card vermelho ──
-                val firstRow  = items.take(4)
-                val secondRow = items.drop(4)
-
-                Column(
-                    modifier            = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            if (useHorizontalScroll) {
+                // ── Scroll horizontal com fade nas bordas ──
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp)
                 ) {
-                    // Linha 1 - 4 botões
-                    Row(
+
+                    LazyRow(
                         modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding        = PaddingValues(horizontal = 10.dp),
+                        verticalAlignment     = Alignment.CenterVertically
                     ) {
-                        firstRow.forEach { term ->
+                        items(items) { term ->
                             Image(
                                 painter            = painterResource(term.buttonImageRes),
                                 contentDescription = term.contentDescription,
                                 modifier           = Modifier
-                                    .size(72.dp)
+                                    .size(64.dp)
                                     .clickable(
                                         enabled           = !popupVisible,
                                         interactionSource = remember { MutableInteractionSource() },
@@ -372,43 +425,23 @@ private fun TermsSectionCard(
                             )
                         }
                     }
-
-                    // Linha 2 - 3 botões centralizados
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        secondRow.forEach { term ->
-                            Box(modifier = Modifier.padding(horizontal = 4.dp)) {
-                                Image(
-                                    painter            = painterResource(term.buttonImageRes),
-                                    contentDescription = term.contentDescription,
-                                    modifier           = Modifier
-                                        .size(72.dp)
-                                        .clickable(
-                                            enabled           = !popupVisible,
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication        = null
-                                        ) { onTermSelected(term) }
-                                )
-                            }
-                        }
-                    }
                 }
             } else {
-                // ── Grid fixo de botões (4 por linha) ──
+                // ── Grid fixo de botões (4 por linha, sem scroll) ──
                 val rows = items.chunked(GRID_COLUMNS)
                 rows.forEach { rowItems ->
                     Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        modifier              = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
                     ) {
                         rowItems.forEach { term ->
                             Image(
                                 painter            = painterResource(term.buttonImageRes),
                                 contentDescription = term.contentDescription,
                                 modifier           = Modifier
-                                    .size(65.dp)
+                                    .size(64.dp)
                                     .clickable(
                                         enabled           = !popupVisible,
                                         interactionSource = remember { MutableInteractionSource() },
@@ -416,15 +449,14 @@ private fun TermsSectionCard(
                                     ) { onTermSelected(term) }
                             )
                         }
+                        // Spacers para manter o alinhamento na última linha incompleta
                         repeat(GRID_COLUMNS - rowItems.size) {
-                            Spacer(Modifier.size(70.dp))
+                            Spacer(Modifier.size(64.dp))
                         }
                     }
                     Spacer(Modifier.height(8.dp))
                 }
             }
-
-            Spacer(Modifier.height(4.dp))
         }
     }
 }
@@ -442,11 +474,10 @@ private fun TermPopup(
         modifier = Modifier
             .fillMaxWidth(0.88f)
             .then(if (isSingleCard) Modifier.fillMaxHeight().statusBarsPadding() else Modifier.fillMaxHeight(0.85f))
-            // Consome cliques dentro do popup para não fechar ao clicar nele
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication        = null
-            ) { /* consome o clique */ },
+            ) { /* consome o clique para não fechar ao tocar no popup */ },
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -476,9 +507,8 @@ private fun TermPopup(
 
             Spacer(Modifier.height(12.dp))
 
-
-            // ── Área dos cards (Centralizado se for único, Scroll se forem vários) ──
-            if (term.popupCards.size == 1) {
+            // ── Área dos cards ──
+            if (isSingleCard) {
                 Box(
                     modifier         = Modifier
                         .fillMaxWidth()
@@ -516,7 +546,7 @@ private fun TermPopup(
 
             // ── Botão Fechar circular com seta ──
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier         = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
@@ -526,7 +556,6 @@ private fun TermPopup(
                         .background(color = Color.White, shape = CircleShape)
                         .border(width = 2.dp, color = GreenDark, shape = CircleShape)
                         .clickable(
-                            enabled           = true,
                             interactionSource = remember { MutableInteractionSource() },
                             indication        = null
                         ) { onClose() },
