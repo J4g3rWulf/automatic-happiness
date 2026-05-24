@@ -21,12 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.components.MaterialCard
@@ -156,6 +160,18 @@ fun ResultScreen(
 ) {
     val ctx  = LocalContext.current
     val data = remember(label) { dataForLabel(label) }
+    val view    = LocalView.current
+    val density = LocalDensity.current
+
+    // Captura os insets de navegação UMA vez via View system (não é estado Compose).
+    // remember sem chave não reavalia mesmo que o Dialog altere os insets reportados.
+    val stableNavBarBottom = remember {
+        ViewCompat.getRootWindowInsets(view)
+            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+            ?.bottom
+            ?.let { with(density) { it.toDp() } }
+            ?: 0.dp
+    }
 
     val isUnknown = label.trim().lowercase().let {
         it == "desconhecido" || it == "indefinido" || it == "unknown"
@@ -193,8 +209,8 @@ fun ResultScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
                 .padding(horizontal = 20.dp)
+                .padding(bottom = stableNavBarBottom)
         ) {
 
             // ── Conteúdo superior - animado ───────────────────────────
