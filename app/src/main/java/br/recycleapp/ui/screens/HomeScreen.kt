@@ -4,6 +4,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -364,15 +366,26 @@ private fun ActionSquareOnlyIcon(
     iconSize: Dp,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed         by interactionSource.collectIsPressedAsState()
+    val scale             by animateFloatAsState(
+        targetValue   = if (isPressed) 0.93f else 1f,
+        animationSpec = tween(if (isPressed) 80 else 160),
+        label         = "btn_press_scale"
+    )
+
     ElevatedCard(
-        onClick   = onClick,
-        shape     = RoundedCornerShape(corner),
-        colors    = CardDefaults.elevatedCardColors(containerColor = container),
-        elevation = CardDefaults.elevatedCardElevation(
+        onClick           = onClick,
+        interactionSource = interactionSource,
+        shape             = RoundedCornerShape(corner),
+        colors            = CardDefaults.elevatedCardColors(containerColor = container),
+        elevation         = CardDefaults.elevatedCardElevation(
             defaultElevation = 8.dp,
-            pressedElevation = 12.dp
+            pressedElevation = 2.dp    
         ),
-        modifier  = Modifier.size(size)
+        modifier = Modifier
+            .size(size)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(
