@@ -2,6 +2,10 @@ package br.recycleapp.ui.navigation
 
 import android.app.Activity
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -103,6 +107,7 @@ private fun String?.showBottomNav() =
             || this == Screen.WhatToDiscard.route
             || this == Screen.HowToDiscard.route
             || this == Screen.Terms.route
+            || this == Screen.Gallery.route
             || this.isClassificationFlow()
 
 /**
@@ -116,6 +121,7 @@ private fun String?.activeNavRoute(): String? = when {
     this == Screen.WhatToDiscard.route -> Screen.Learn.route
     this == Screen.HowToDiscard.route  -> Screen.Learn.route
     this == Screen.Terms.route -> Screen.Learn.route
+    this == Screen.Gallery.route       -> Screen.Home.route
     this.isClassificationFlow()        -> Screen.Home.route
     else                               -> null
 }
@@ -153,7 +159,11 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
         containerColor      = Color.Transparent,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            if (currentRoute.showBottomNav()) {
+            AnimatedVisibility(
+                visible = currentRoute.showBottomNav(),
+                enter   = slideInVertically(animationSpec = tween(200))  { it },
+                exit    = slideOutVertically(animationSpec = tween(150)) { it }
+            ) {
                 BottomNavBar(
                     currentRoute = currentRoute.activeNavRoute(),
                     onNavigate   = { route ->
