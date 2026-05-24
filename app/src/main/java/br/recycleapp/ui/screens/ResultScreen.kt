@@ -151,7 +151,8 @@ private fun dataForLabel(label: String): MaterialData =
 fun ResultScreen(
     photoUri: String,
     label: String,
-    onBackToHome: () -> Unit
+    onBackToHome: () -> Unit,
+    onNavigateToLearn: () -> Unit
 ) {
     val ctx  = LocalContext.current
     val data = remember(label) { dataForLabel(label) }
@@ -163,6 +164,11 @@ fun ResultScreen(
     fun clearAndBack() {
         photoUri.tryDeleteCapturedCacheFile(ctx)
         onBackToHome()
+    }
+
+    fun clearAndGoLearn() {
+        photoUri.tryDeleteCapturedCacheFile(ctx)
+        onNavigateToLearn()
     }
 
     BackHandler { clearAndBack() }
@@ -259,7 +265,7 @@ fun ResultScreen(
                 ) {
                     ResultButton(
                         text           = stringResource(R.string.result_btn_tips),
-                        onClick        = { /* futuro */ },
+                        onClick        = { clearAndGoLearn() },
                         containerColor = data.btnLeft,
                         modifier       = Modifier.weight(0.45f)
                     )
@@ -290,29 +296,29 @@ fun ResultScreen(
 @Preview(showBackground = true, name = "Resultado - Vidro")
 @Composable
 private fun ResultScreenPreviewGlass() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}) }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}, onNavigateToLearn = {}) }
 }
 
 @Preview(showBackground = true, name = "Resultado - Plástico")
 @Composable
 private fun ResultScreenPreviewPlastic() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Plástico", onBackToHome = {}) }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Plástico", onBackToHome = {}, onNavigateToLearn = {}) }
 }
 
 @Preview(showBackground = true, name = "Resultado - Papel")
 @Composable
 private fun ResultScreenPreviewPaper() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Papel", onBackToHome = {}) }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Papel", onBackToHome = {}, onNavigateToLearn = {}) }
 }
 
 @Preview(showBackground = true, name = "Resultado - Metal")
 @Composable
 private fun ResultScreenPreviewMetal() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Metal", onBackToHome = {}) }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Metal", onBackToHome = {}, onNavigateToLearn = {}) }
 }
 
 @Preview(showBackground = true, name = "Resultado - Desconhecido")
 @Composable
 private fun ResultScreenPreviewUnknown() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}) }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}, onNavigateToLearn = {}) }
 }

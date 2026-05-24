@@ -315,11 +315,20 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
                         r.materialType.toLabelPt() else "Indefinido"
                 }
                 ResultScreen(
-                    photoUri     = viewModel.imageUri.toString(),
-                    label        = cachedLabel,
-                    onBackToHome = {
+                    photoUri          = viewModel.imageUri.toString(),
+                    label             = cachedLabel,
+                    onBackToHome      = {
                         nav.popBackStack(Screen.Home.route, inclusive = false)
                         viewModel.reset()
+                    },
+                    onNavigateToLearn = {
+                        viewModel.reset()
+                        nav.popBackStack(Screen.Home.route, inclusive = false)
+                        nav.navigate(Screen.Learn.route) {
+                            popUpTo(Screen.Home.route) { saveState = false }
+                            launchSingleTop = true
+                            restoreState    = false
+                        }
                     }
                 )
             }
