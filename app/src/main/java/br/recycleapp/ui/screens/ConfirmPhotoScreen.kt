@@ -2,8 +2,12 @@ package br.recycleapp.ui.screens
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,9 +31,12 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -196,59 +203,71 @@ fun ConfirmPhotoScreen(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     // Botão esquerdo - "Tirar outra" ou "Escolher outra"
-                    Button(
-                        onClick = {
-                            photoUri.tryDeleteCapturedCacheFile(ctx)
-                            onBack()
-                        },
-                        modifier       = Modifier
-                            .weight(retakeButtonWeight)  // proporção definida no AppNav
-                            .height(buttonHeight),
-                        shape          = RoundedCornerShape(102.dp),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = GlassBtnLight,
-                            contentColor   = WhiteText
-                        ),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                        elevation      = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                    ) {
-                        Text(
-                            text       = retakeLabel,
-                            fontSize   = 14.sp,
-                            maxLines   = 1,
-                            overflow   = TextOverflow.Ellipsis,
-                            color      = WhiteText
-                        )
-                    }
+                    ConfirmButton(
+                        text             = retakeLabel,
+                        onClick          = { photoUri.tryDeleteCapturedCacheFile(ctx); onBack() },
+                        containerColor   = GlassBtnLight,
+                        modifier         = Modifier.weight(retakeButtonWeight),
+                        buttonHeight     = buttonHeight,
+                        defaultElevation = 4.dp
+                    )
 
-                    // Botão direito - "Enviar para análise"
-                    Button(
-                        onClick        = { onSend(photoUri) },
-                        modifier       = Modifier
-                            .weight(sendButtonWeight)  // proporção definida no AppNav
-                            .height(buttonHeight),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = GlassBtnDark ,
-                            contentColor   = WhiteText
-                        ),
-                        shape          = RoundedCornerShape(102.dp),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                        elevation      = ButtonDefaults.buttonElevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp
-                        )
-                    ) {
-                        Text(
-                            text       = stringResource(R.string.confirm_send),
-                            fontSize   = 14.sp,
-                            maxLines   = 1,
-                            overflow   = TextOverflow.Ellipsis,
-                            color      = WhiteText
-                        )
-                    }
+// Botão direito - "Enviar para análise"
+                    ConfirmButton(
+                        text             = stringResource(R.string.confirm_send),
+                        onClick          = { onSend(photoUri) },
+                        containerColor   = GlassBtnDark,
+                        modifier         = Modifier.weight(sendButtonWeight),
+                        buttonHeight     = buttonHeight,
+                        defaultElevation = 6.dp
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ConfirmButton(
+    text: String,
+    onClick: () -> Unit,
+    containerColor: Color,
+    modifier: Modifier = Modifier,
+    buttonHeight: Dp,
+    defaultElevation: Dp = 4.dp
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed         by interactionSource.collectIsPressedAsState()
+    val scale             by animateFloatAsState(
+        targetValue   = if (isPressed) 0.96f else 1f,
+        animationSpec = tween(if (isPressed) 80 else 160),
+        label         = "confirm_btn_scale"
+    )
+
+    Button(
+        onClick           = onClick,
+        interactionSource = interactionSource,
+        modifier          = modifier
+            .height(buttonHeight)
+            .graphicsLayer { scaleX = scale; scaleY = scale },
+        shape             = RoundedCornerShape(102.dp),
+        colors            = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor   = WhiteText
+        ),
+        contentPadding    = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+        elevation         = ButtonDefaults.buttonElevation(
+            defaultElevation = defaultElevation,
+            pressedElevation = 2.dp    // ← corrigido em ambos
+        )
+    ) {
+        Text(
+            text     = text,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color    = WhiteText
+        )
     }
 }
 

@@ -381,7 +381,7 @@ private fun ActionSquareOnlyIcon(
         colors            = CardDefaults.elevatedCardColors(containerColor = container),
         elevation         = CardDefaults.elevatedCardElevation(
             defaultElevation = 8.dp,
-            pressedElevation = 2.dp    
+            pressedElevation = 2.dp
         ),
         modifier = Modifier
             .size(size)
