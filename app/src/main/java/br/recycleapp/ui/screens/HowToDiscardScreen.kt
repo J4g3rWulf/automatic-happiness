@@ -49,14 +49,14 @@ private data class HowToDiscardCard(
 )
 
 private val HOW_TO_DISCARD_CARDS = listOf(
-    HowToDiscardCard("Madeira",    Color.Transparent, R.drawable.card_separar_madeira),
-    HowToDiscardCard("Vidro",      Color.Transparent, R.drawable.card_separar_vidro),
-    HowToDiscardCard("Plástico",   Color.Transparent, R.drawable.card_separar_plastico),
-    HowToDiscardCard("Papel",      Color.Transparent, R.drawable.card_separar_papel),
-    HowToDiscardCard("Metal",      Color.Transparent, R.drawable.card_separar_metal),
-    HowToDiscardCard("Perigosos",  Color.Transparent, R.drawable.card_separar_perigosos),
-    HowToDiscardCard("Orgânico",   Color.Transparent, R.drawable.card_separar_organico),
-    HowToDiscardCard("Rejeito",    Color.Transparent, R.drawable.card_separar_rejeito)
+    HowToDiscardCard("Madeira",    Color.Transparent, R.drawable.how_card_wood),
+    HowToDiscardCard("Vidro",      Color.Transparent, R.drawable.how_card_glass),
+    HowToDiscardCard("Plástico",   Color.Transparent, R.drawable.how_card_plastic),
+    HowToDiscardCard("Papel",      Color.Transparent, R.drawable.how_card_paper),
+    HowToDiscardCard("Metal",      Color.Transparent, R.drawable.how_card_metal),
+    HowToDiscardCard("Perigosos",  Color.Transparent, R.drawable.how_card_dangerous),
+    HowToDiscardCard("Orgânico",   Color.Transparent, R.drawable.how_card_organic),
+    HowToDiscardCard("Rejeito",    Color.Transparent, R.drawable.how_card_unrecyclable)
 )
 
 // ── Tela Principal ────
