@@ -1,9 +1,14 @@
 package br.recycleapp.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,10 +18,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -124,16 +132,39 @@ private fun LearnCategoryButton(
     label: String,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed         by interactionSource.collectIsPressedAsState()
+    val scale             by animateFloatAsState(
+        targetValue   = if (isPressed) 0.97f else 1f,
+        animationSpec = tween(if (isPressed) 80 else 160),
+        label         = "learn_btn_scale"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication        = ripple(color = GreenPrimary.copy(alpha = 0.15f)),
-                onClick           = onClick
-            ),
-        shape = RoundedCornerShape(11.dp),
-        color = Color.White,
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .indication(
+                interactionSource = interactionSource,
+                indication        = ripple(color = GreenPrimary.copy(alpha = 0.15f))
+            )
+            .pointerInput(onClick) {
+                detectTapGestures(
+                    onPress = { offset ->
+                        val press = PressInteraction.Press(offset)
+                        interactionSource.emit(press)
+                        val released = tryAwaitRelease()
+                        if (released) {
+                            interactionSource.emit(PressInteraction.Release(press))
+                            onClick()
+                        } else {
+                            interactionSource.emit(PressInteraction.Cancel(press))
+                        }
+                    }
+                )
+            },
+        shape           = RoundedCornerShape(11.dp),
+        color           = Color.White,
         shadowElevation = 4.dp
     ) {
         Box(
