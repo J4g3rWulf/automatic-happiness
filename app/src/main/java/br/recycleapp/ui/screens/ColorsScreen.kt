@@ -1,9 +1,14 @@
 package br.recycleapp.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -17,10 +22,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -98,26 +107,48 @@ fun ColorsScreen(
             Spacer(Modifier.height(22.dp))
 
             // ── 1. Botão de Voltar ──
+            val backInteraction = remember { MutableInteractionSource() }
+            val backPressed     by backInteraction.collectIsPressedAsState()
+            val backScale       by animateFloatAsState(
+                targetValue   = if (backPressed) 0.88f else 1f,
+                animationSpec = tween(if (backPressed) 80 else 160),
+                label         = "back_btn_scale"
+            )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             ) {
-                // Box clicável
                 Box(
                     modifier = Modifier
                         .size(40.dp)
+                        .graphicsLayer { scaleX = backScale; scaleY = backScale }
                         .shadow(elevation = 6.dp, shape = CircleShape)
                         .background(color = GreenDark, shape = CircleShape)
                         .border(width = 2.dp, color = Color.White, shape = CircleShape)
-                        .clickable { onBack() },
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = { offset ->
+                                    val press = PressInteraction.Press(offset)
+                                    backInteraction.emit(press)
+                                    val released = tryAwaitRelease()
+                                    if (released) {
+                                        backInteraction.emit(PressInteraction.Release(press))
+                                        onBack()
+                                    } else {
+                                        backInteraction.emit(PressInteraction.Cancel(press))
+                                    }
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Voltar",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        tint               = Color.White,
+                        modifier           = Modifier.size(20.dp)
                     )
                 }
             }

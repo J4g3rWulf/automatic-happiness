@@ -1,13 +1,18 @@
 package br.recycleapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -27,6 +32,8 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -268,27 +275,45 @@ private fun TermsScreenContent(
             Spacer(Modifier.height(22.dp))
 
             // ── Botão Voltar ──
+            val backInteraction = remember { MutableInteractionSource() }
+            val backPressed     by backInteraction.collectIsPressedAsState()
+            val backScale       by animateFloatAsState(
+                targetValue   = if (backPressed) 0.88f else 1f,
+                animationSpec = tween(if (backPressed) 80 else 160),
+                label         = "back_btn_scale"
+            )
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
+                    .size(40.dp)
+                    .graphicsLayer { scaleX = backScale; scaleY = backScale }
+                    .shadow(elevation = 6.dp, shape = CircleShape)
+                    .background(color = GreenDark, shape = CircleShape)
+                    .border(width = 2.dp, color = Color.White, shape = CircleShape)
+                    .pointerInput(popupVisible) {
+                        detectTapGestures(
+                            onPress = { offset ->
+                                if (popupVisible) return@detectTapGestures
+                                val press = PressInteraction.Press(offset)
+                                backInteraction.emit(press)
+                                val released = tryAwaitRelease()
+                                if (released) {
+                                    backInteraction.emit(PressInteraction.Release(press))
+                                    onBack()
+                                } else {
+                                    backInteraction.emit(PressInteraction.Cancel(press))
+                                }
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape)
-                        .background(color = GreenDark, shape = CircleShape)
-                        .border(width = 2.dp, color = Color.White, shape = CircleShape)
-                        .clickable(enabled = !popupVisible) { onBack() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint               = Color.White,
-                        modifier           = Modifier.size(20.dp)
-                    )
-                }
+                Icon(
+                    imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Voltar",
+                    tint               = Color.White,
+                    modifier           = Modifier.size(20.dp)
+                )
             }
 
             Spacer(Modifier.height(18.dp))
@@ -398,13 +423,12 @@ private fun TermsSectionCard(
             Spacer(Modifier.height(10.dp))
 
             if (useHorizontalScroll) {
-                // ── Scroll horizontal com fade nas bordas ──
+                // ── Scroll horizontal ──
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 6.dp)
                 ) {
-
                     LazyRow(
                         modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -412,16 +436,10 @@ private fun TermsSectionCard(
                         verticalAlignment     = Alignment.CenterVertically
                     ) {
                         items(items) { term ->
-                            Image(
-                                painter            = painterResource(term.buttonImageRes),
-                                contentDescription = term.contentDescription,
-                                modifier           = Modifier
-                                    .size(64.dp)
-                                    .clickable(
-                                        enabled           = !popupVisible,
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication        = null
-                                    ) { onTermSelected(term) }
+                            TermImageButton(
+                                term           = term,
+                                enabled        = !popupVisible,
+                                onTermSelected = onTermSelected
                             )
                         }
                     }
@@ -437,16 +455,10 @@ private fun TermsSectionCard(
                         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
                     ) {
                         rowItems.forEach { term ->
-                            Image(
-                                painter            = painterResource(term.buttonImageRes),
-                                contentDescription = term.contentDescription,
-                                modifier           = Modifier
-                                    .size(64.dp)
-                                    .clickable(
-                                        enabled           = !popupVisible,
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication        = null
-                                    ) { onTermSelected(term) }
+                            TermImageButton(
+                                term           = term,
+                                enabled        = !popupVisible,
+                                onTermSelected = onTermSelected
                             )
                         }
                         // Spacers para manter o alinhamento na última linha incompleta
@@ -459,6 +471,47 @@ private fun TermsSectionCard(
             }
         }
     }
+}
+
+// ── Botão de imagem com efeito de pressionamento ────
+
+@Composable
+private fun TermImageButton(
+    term           : TermItem,
+    enabled        : Boolean,
+    onTermSelected : (TermItem) -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed         by interactionSource.collectIsPressedAsState()
+    val scale             by animateFloatAsState(
+        targetValue   = if (isPressed) 0.88f else 1f,
+        animationSpec = tween(if (isPressed) 80 else 160),
+        label         = "term_img_btn_scale"
+    )
+
+    Image(
+        painter            = painterResource(term.buttonImageRes),
+        contentDescription = term.contentDescription,
+        modifier           = Modifier
+            .size(64.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .pointerInput(term, enabled) {
+                if (!enabled) return@pointerInput
+                detectTapGestures(
+                    onPress = { offset ->
+                        val press = PressInteraction.Press(offset)
+                        interactionSource.emit(press)
+                        val released = tryAwaitRelease()
+                        if (released) {
+                            interactionSource.emit(PressInteraction.Release(press))
+                            onTermSelected(term)
+                        } else {
+                            interactionSource.emit(PressInteraction.Cancel(press))
+                        }
+                    }
+                )
+            }
+    )
 }
 
 // ── PopUp informativo ────
@@ -549,16 +602,36 @@ private fun TermPopup(
                 modifier         = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
+                val closeInteraction = remember { MutableInteractionSource() }
+                val closePressed     by closeInteraction.collectIsPressedAsState()
+                val closeScale       by animateFloatAsState(
+                    targetValue   = if (closePressed) 0.88f else 1f,
+                    animationSpec = tween(if (closePressed) 80 else 160),
+                    label         = "close_btn_scale"
+                )
+
                 Box(
                     modifier = Modifier
                         .size(48.dp)
+                        .graphicsLayer { scaleX = closeScale; scaleY = closeScale }
                         .shadow(elevation = 6.dp, shape = CircleShape)
                         .background(color = Color.White, shape = CircleShape)
                         .border(width = 2.dp, color = GreenDark, shape = CircleShape)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication        = null
-                        ) { onClose() },
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = { offset ->
+                                    val press = PressInteraction.Press(offset)
+                                    closeInteraction.emit(press)
+                                    val released = tryAwaitRelease()
+                                    if (released) {
+                                        closeInteraction.emit(PressInteraction.Release(press))
+                                        onClose()
+                                    } else {
+                                        closeInteraction.emit(PressInteraction.Cancel(press))
+                                    }
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
