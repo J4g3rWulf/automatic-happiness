@@ -49,14 +49,14 @@ private data class DiscardCard(
 )
 
 private val DISCARD_CARDS = listOf(
-    DiscardCard("Madeira", Color.Transparent, R.drawable.card_descarte_madeira),
-    DiscardCard("Vidro", Color.Transparent, R.drawable.card_descarte_vidro),
-    DiscardCard("Plástico", Color.Transparent, R.drawable.card_descarte_plastico),
-    DiscardCard("Papel", Color.Transparent, R.drawable.card_descarte_papel),
-    DiscardCard("Metal", Color.Transparent, R.drawable.card_descarte_metal),
-    DiscardCard("Perigosos", Color.Transparent, R.drawable.card_descarte_perigosos),
-    DiscardCard("Orgânico", Color.Transparent, R.drawable.card_descarte_organico),
-    DiscardCard("Rejeito", Color.Transparent, R.drawable.card_descarte_rejeito)
+    DiscardCard("Madeira", Color.Transparent, R.drawable.what_card_wood),
+    DiscardCard("Vidro", Color.Transparent, R.drawable.what_card_glass),
+    DiscardCard("Plástico", Color.Transparent, R.drawable.what_card_plastic),
+    DiscardCard("Papel", Color.Transparent, R.drawable.what_card_paper),
+    DiscardCard("Metal", Color.Transparent, R.drawable.what_card_metal),
+    DiscardCard("Perigosos", Color.Transparent, R.drawable.what_card_dangerous),
+    DiscardCard("Orgânico", Color.Transparent, R.drawable.what_card_organic),
+    DiscardCard("Rejeito", Color.Transparent, R.drawable.what_card_unrecyclable)
 )
 
 // ── Tela Principal ────
