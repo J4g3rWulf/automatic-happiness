@@ -155,7 +155,7 @@ fun UnknownCard(
                 )
                 Spacer(Modifier.height(12.dp))
                 Image(
-                    painter            = painterResource(R.drawable.card_unknown_result),
+                    painter            = painterResource(R.drawable.result_card_unknown),
                     contentDescription = null,
                     contentScale       = ContentScale.FillWidth,
                     modifier           = Modifier
