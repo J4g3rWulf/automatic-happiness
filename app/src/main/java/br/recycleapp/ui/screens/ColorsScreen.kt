@@ -49,14 +49,14 @@ private data class ColorCard(
 )
 
 private val COLOR_CARDS = listOf(
-    ColorCard("Preto", Color.Transparent, R.drawable.card_black),
-    ColorCard("Verde", Color.Transparent, R.drawable.card_green),
-    ColorCard("Vermelho", Color.Transparent, R.drawable.card_red),
-    ColorCard("Azul", Color.Transparent, R.drawable.card_blue),
-    ColorCard("Amarelo", Color.Transparent, R.drawable.card_yellow),
-    ColorCard("Laranja", Color.Transparent, R.drawable.card_orange),
-    ColorCard("Marrom", Color.Transparent, R.drawable.card_brown),
-    ColorCard("Cinza", Color.Transparent, R.drawable.card_grey)
+    ColorCard("Preto", Color.Transparent, R.drawable.colors_card_black),
+    ColorCard("Verde", Color.Transparent, R.drawable.colors_card_green),
+    ColorCard("Vermelho", Color.Transparent, R.drawable.colors_card_red),
+    ColorCard("Azul", Color.Transparent, R.drawable.colors_card_blue),
+    ColorCard("Amarelo", Color.Transparent, R.drawable.colors_card_yellow),
+    ColorCard("Laranja", Color.Transparent, R.drawable.colors_card_orange),
+    ColorCard("Marrom", Color.Transparent, R.drawable.colors_card_brown),
+    ColorCard("Cinza", Color.Transparent, R.drawable.colors_card_grey)
 )
 
 // ── Tela Principal ────────────────────────────────────────────────────────────
