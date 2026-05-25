@@ -2,13 +2,19 @@ package br.recycleapp.ui.screens
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,6 +37,8 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -479,16 +487,39 @@ private fun ProgramCard(
     program : Program,
     onClick : () -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed         by interactionSource.collectIsPressedAsState()
+    val scale             by animateFloatAsState(
+        targetValue   = if (isPressed) 0.94f else 1f,
+        animationSpec = tween(if (isPressed) 80 else 160),
+        label         = "program_card_scale"
+    )
+
     Box(
         modifier = Modifier
             .size(width = 130.dp, height = 90.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(elevation = 0.dp, shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication        = ripple(color = Color.Black.copy(alpha = 0.1f)),
-                onClick           = onClick
+            .indication(
+                interactionSource = interactionSource,
+                indication        = ripple(color = Color.Black.copy(alpha = 0.1f))
             )
+            .pointerInput(onClick) {
+                detectTapGestures(
+                    onPress = { offset ->
+                        val press = PressInteraction.Press(offset)
+                        interactionSource.emit(press)
+                        val released = tryAwaitRelease()
+                        if (released) {
+                            interactionSource.emit(PressInteraction.Release(press))
+                            onClick()
+                        } else {
+                            interactionSource.emit(PressInteraction.Cancel(press))
+                        }
+                    }
+                )
+            }
     ) {
         Image(
             painter            = painterResource(program.cardDrawable),
@@ -585,23 +616,43 @@ private fun ProgramPopup(
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Botões: Voltar + Saiba mais ───────────────────────────────
+            // ── Botões: Fechar + Saiba mais ──────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
 
+                val closeInteraction = remember { MutableInteractionSource() }
+                val closePressed     by closeInteraction.collectIsPressedAsState()
+                val closeScale       by animateFloatAsState(
+                    targetValue   = if (closePressed) 0.88f else 1f,
+                    animationSpec = tween(if (closePressed) 80 else 160),
+                    label         = "close_btn_scale"
+                )
+
                 Box(
                     modifier = Modifier
                         .size(48.dp)
+                        .graphicsLayer { scaleX = closeScale; scaleY = closeScale }
                         .shadow(elevation = 6.dp, shape = CircleShape)
                         .background(color = Color.White, shape = CircleShape)
                         .border(width = 2.dp, color = GreenDark, shape = CircleShape)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication        = null
-                        ) { onClose() },
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = { offset ->
+                                    val press = PressInteraction.Press(offset)
+                                    closeInteraction.emit(press)
+                                    val released = tryAwaitRelease()
+                                    if (released) {
+                                        closeInteraction.emit(PressInteraction.Release(press))
+                                        onClose()
+                                    } else {
+                                        closeInteraction.emit(PressInteraction.Cancel(press))
+                                    }
+                                }
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -614,16 +665,38 @@ private fun ProgramPopup(
 
                 Spacer(Modifier.width(16.dp))
 
+                val learnInteraction = remember { MutableInteractionSource() }
+                val learnPressed     by learnInteraction.collectIsPressedAsState()
+                val learnScale       by animateFloatAsState(
+                    targetValue   = if (learnPressed) 0.96f else 1f,
+                    animationSpec = tween(if (learnPressed) 80 else 160),
+                    label         = "learn_more_btn_scale"
+                )
+
                 Surface(
                     modifier = Modifier
                         .height(48.dp)
+                        .graphicsLayer { scaleX = learnScale; scaleY = learnScale }
                         .border(width = 2.dp, color = GreenDark, shape = RoundedCornerShape(24.dp))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
+                        .indication(
+                            interactionSource = learnInteraction,
                             indication        = ripple(color = GreenDark.copy(alpha = 0.1f))
-                        ) {
-                            val intent = Intent(Intent.ACTION_VIEW, program.url.toUri())
-                            context.startActivity(intent)
+                        )
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = { offset ->
+                                    val press = PressInteraction.Press(offset)
+                                    learnInteraction.emit(press)
+                                    val released = tryAwaitRelease()
+                                    if (released) {
+                                        learnInteraction.emit(PressInteraction.Release(press))
+                                        val intent = Intent(Intent.ACTION_VIEW, program.url.toUri())
+                                        context.startActivity(intent)
+                                    } else {
+                                        learnInteraction.emit(PressInteraction.Cancel(press))
+                                    }
+                                }
+                            )
                         },
                     shape           = RoundedCornerShape(24.dp),
                     color           = Color.White,
