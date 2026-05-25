@@ -1,8 +1,12 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.location.Location
+import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
@@ -204,21 +208,21 @@ private fun OsmMapContent(
         // OSM usa 3 bitmaps agrupados por categoria — um por grupo de tipo.
         // Pins específicos por município são exclusivos do Google Maps.
         val iconPev = withContext(Dispatchers.IO) {
-            android.graphics.BitmapFactory
+            BitmapFactory
                 .decodeResource(context.resources, R.drawable.map_pin_pev_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
 
         val iconEcoponto = withContext(Dispatchers.IO) {
-            android.graphics.BitmapFactory
+            BitmapFactory
                 .decodeResource(context.resources, R.drawable.map_pin_ecoponto_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
 
         val iconEcopontoLight = withContext(Dispatchers.IO) {
-            android.graphics.BitmapFactory
+            BitmapFactory
                 .decodeResource(context.resources, R.drawable.map_pin_ecoponto_light)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
@@ -323,12 +327,12 @@ private fun OsmMapContent(
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-@android.annotation.SuppressLint("MissingPermission")
-private suspend fun getUserLocation(context: Context): android.location.Location? {
+@SuppressLint("MissingPermission")
+private suspend fun getUserLocation(context: Context): Location? {
     if (!context.hasLocationPermission()) return null
     return try {
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-        val deferred    = CompletableDeferred<android.location.Location?>()
+        val deferred    = CompletableDeferred<Location?>()
 
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
             .setMaxUpdates(1)
@@ -344,7 +348,7 @@ private suspend fun getUserLocation(context: Context): android.location.Location
         fusedClient.requestLocationUpdates(
             request,
             callback,
-            android.os.Looper.getMainLooper()
+            Looper.getMainLooper()
         )
 
         val location = withTimeoutOrNull(10_000) { deferred.await() }

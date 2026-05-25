@@ -1,4 +1,4 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem

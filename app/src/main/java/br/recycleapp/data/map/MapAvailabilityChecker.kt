@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import br.recycleapp.BuildConfig
 import br.recycleapp.domain.map.IMapAvailabilityChecker
-import br.recycleapp.domain.map.MapProvider
+import br.recycleapp.data.map.MapProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection

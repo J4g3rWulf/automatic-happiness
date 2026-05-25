@@ -1,4 +1,4 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
 import android.content.Intent
 import androidx.annotation.DrawableRes

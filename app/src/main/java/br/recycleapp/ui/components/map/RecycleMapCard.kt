@@ -1,4 +1,4 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
 import android.Manifest
 import android.content.Context
@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -34,7 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.recycleapp.di.AppModule
-import br.recycleapp.domain.map.MapProvider
+import br.recycleapp.data.map.MapProvider
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.theme.PlaceholderLight
 import br.recycleapp.ui.theme.TextSecondary
@@ -306,7 +307,7 @@ private fun MapPermissionPlaceholder(
 
 private fun requestEnableGps(
     context: Context,
-    launcher: androidx.activity.result.ActivityResultLauncher<IntentSenderRequest>
+    launcher: ActivityResultLauncher<IntentSenderRequest>
 ) {
     val request = LocationSettingsRequest.Builder()
         .addLocationRequest(

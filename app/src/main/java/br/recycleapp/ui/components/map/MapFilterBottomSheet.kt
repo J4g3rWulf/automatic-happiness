@@ -1,4 +1,4 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically

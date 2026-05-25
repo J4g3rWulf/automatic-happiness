@@ -1,17 +1,16 @@
-package br.recycleapp.data.repository
+package br.recycleapp.data.classifier
 
 import android.content.Context
-import br.recycleapp.data.classifier.TrashClassifier
-import br.recycleapp.domain.model.ClassificationResult   // ← ALTERADO: agora vem do domain
-import br.recycleapp.domain.model.MaterialType           // ← NOVO
-import br.recycleapp.domain.repository.ITrashClassifier  // ← NOVO: implementa a interface
+import br.recycleapp.domain.model.ClassificationResult
+import br.recycleapp.domain.model.MaterialType
+import br.recycleapp.domain.repository.ITrashClassifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Implementação concreta do classificador.
  * Depende do Context e do modelo TFLite - por isso fica na camada data.
- * Implementa [ITrashClassifier] definido no domínio.
+ * Implementa [br.recycleapp.domain.repository.ITrashClassifier] definido no domínio.
  */
 class ClassifierRepository(
     context: Context
@@ -29,7 +28,7 @@ class ClassifierRepository(
                     return@withContext ClassificationResult.Indefinido
                 }
 
-                val materialType = MaterialType.fromMaterialKey(rawResult.materialKey)
+                val materialType = MaterialType.Companion.fromMaterialKey(rawResult.materialKey)
 
                 if (materialType == MaterialType.UNKNOWN) {
                     return@withContext ClassificationResult.Indefinido
@@ -37,8 +36,8 @@ class ClassifierRepository(
 
                 ClassificationResult.Success(
                     materialType = materialType,
-                    confidence   = rawResult.confidence,
-                    fineLabel    = rawResult.fineLabel
+                    confidence = rawResult.confidence,
+                    fineLabel = rawResult.fineLabel
                 )
             } catch (e: Exception) {
                 ClassificationResult.Error(e)
