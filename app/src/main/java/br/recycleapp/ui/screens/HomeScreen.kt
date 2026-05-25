@@ -156,7 +156,7 @@ fun HomeScreen(
             // Fica atrás do título, criando o padrão visual de ondas
             // no topo da tela. Não tem offset — sempre no topo.
             Image(
-                painter            = painterResource(id = R.drawable.art_top_v1),
+                painter            = painterResource(id = R.drawable.learn_art_top),
                 contentDescription = null,
                 modifier           = Modifier
                     .align(Alignment.TopCenter)

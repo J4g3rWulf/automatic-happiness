@@ -391,7 +391,7 @@ private fun ProgramsScreenContent(
     ) {
 
         Image(
-            painter            = painterResource(R.drawable.art_top_v1),
+            painter            = painterResource(R.drawable.learn_art_top),
             contentDescription = null,
             contentScale       = ContentScale.FillWidth,
             alignment          = Alignment.TopCenter,

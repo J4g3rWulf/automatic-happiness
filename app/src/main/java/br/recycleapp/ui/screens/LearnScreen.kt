@@ -60,7 +60,7 @@ fun LearnScreen(
 
         // ── Arte decorativa superior ──────────────────────────────────────
         Image(
-            painter            = painterResource(R.drawable.art_top_v1),
+            painter            = painterResource(R.drawable.learn_art_top),
             contentDescription = null,
             contentScale       = ContentScale.FillWidth,
             alignment          = Alignment.TopCenter,
@@ -71,7 +71,7 @@ fun LearnScreen(
 
         // ── Arte decorativa inferior ──────────────────────────────────────
         Image(
-            painter            = painterResource(R.drawable.art_botton_learn_screen),
+            painter            = painterResource(R.drawable.learn_art_bottom),
             contentDescription = null,
             contentScale       = ContentScale.FillWidth,
             alignment          = Alignment.BottomCenter,
