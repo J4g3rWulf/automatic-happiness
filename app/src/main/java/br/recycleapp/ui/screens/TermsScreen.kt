@@ -60,122 +60,122 @@ private data class TermItem(
 
 private val RECYCLING_CONCEPTS = listOf(
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_fundamentos,
+        buttonImageRes     = R.drawable.terms_btn_fundamentals,
         contentDescription = "Fundamentos",
         popupTitle         = "Fundamentos",
         popupCards         = listOf(
-            R.drawable.card_verde_1,
-            R.drawable.card_verde_2,
-            R.drawable.card_verde_3
+            R.drawable.terms_card_concepts_1,
+            R.drawable.terms_card_concepts_2,
+            R.drawable.terms_card_concepts_3
         )
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_acoes_praticas,
+        buttonImageRes     = R.drawable.terms_btn_practical_actions,
         contentDescription = "Ações Práticas",
         popupTitle         = "Ações Práticas",
         popupCards         = listOf(
-            R.drawable.card_azul_1,
-            R.drawable.card_azul_2,
-            R.drawable.card_azul_3
+            R.drawable.terms_card_actions_1,
+            R.drawable.terms_card_actions_2,
+            R.drawable.terms_card_actions_3
         )
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_infraestrutura,
+        buttonImageRes     = R.drawable.terms_btn_infrastructure,
         contentDescription = "Infraestrutura",
         popupTitle         = "Infraestrutura",
         popupCards         = listOf(
-            R.drawable.card_laranja_1,
-            R.drawable.card_laranja_2,
-            R.drawable.card_laranja_3
+            R.drawable.terms_card_infrastructure_1,
+            R.drawable.terms_card_infrastructure_2,
+            R.drawable.terms_card_infrastructure_3
         )
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_sistema,
+        buttonImageRes     = R.drawable.terms_btn_system,
         contentDescription = "Sistema",
         popupTitle         = "Sistema",
         popupCards         = listOf(
-            R.drawable.card_roxo_1,
-            R.drawable.card_roxo_2,
-            R.drawable.card_roxo_3
+            R.drawable.terms_card_system_1,
+            R.drawable.terms_card_system_2,
+            R.drawable.terms_card_system_3
         )
     )
 )
 
 private val PACKAGING_SYMBOLS = listOf(
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_reciclagem_universal,
+        buttonImageRes     = R.drawable.terms_btn_universal_recycling,
         contentDescription = "Reciclagem Universal",
         popupTitle         = "Símbolos de Embalagens",
-        popupCards         = listOf(R.drawable.card_info_embalagem_1)
+        popupCards         = listOf(R.drawable.terms_card_packaging_1)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_aluminio_reciclavel,
+        buttonImageRes     = R.drawable.terms_btn_recyclable_aluminum,
         contentDescription = "Alumínio",
         popupTitle         = "Símbolos de Embalagens",
-        popupCards         = listOf(R.drawable.card_info_embalagem_2)
+        popupCards         = listOf(R.drawable.terms_card_packaging_2)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_aco_reciclavel,
+        buttonImageRes     = R.drawable.terms_btn_recyclable_steel,
         contentDescription = "Aço",
         popupTitle         = "Símbolos de Embalagens",
-        popupCards         = listOf(R.drawable.card_info_embalagem_3)
+        popupCards         = listOf(R.drawable.terms_card_packaging_3)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_lixo_eletronico,
+        buttonImageRes     = R.drawable.terms_btn_electronic_waste,
         contentDescription = "Lixo Eletrônico",
         popupTitle         = "Símbolos de Embalagens",
-        popupCards         = listOf(R.drawable.card_info_embalagem_4)
+        popupCards         = listOf(R.drawable.terms_card_packaging_4)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_terms_ponto_verde,
+        buttonImageRes     = R.drawable.terms_btn_green_dot,
         contentDescription = "Ponto Verde",
         popupTitle         = "Símbolos de Embalagens",
-        popupCards         = listOf(R.drawable.card_info_embalagem_5)
+        popupCards         = listOf(R.drawable.terms_card_packaging_5)
     )
 )
 
 private val PLASTIC_NUMBERS = listOf(
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_pet,
+        buttonImageRes     = R.drawable.terms_btn_plastic_pet,
         contentDescription = "PET",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_1_pet)
+        popupCards         = listOf(R.drawable.terms_card_plastic_1_pet)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_pead,
+        buttonImageRes     = R.drawable.terms_btn_plastic_pead,
         contentDescription = "PEAD",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_2_pead)
+        popupCards         = listOf(R.drawable.terms_card_plastic_2_pead)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_pvc,
+        buttonImageRes     = R.drawable.terms_btn_plastic_pvc,
         contentDescription = "PVC",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_3_pvc)
+        popupCards         = listOf(R.drawable.terms_card_plastic_3_pvc)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_pebd,
+        buttonImageRes     = R.drawable.terms_btn_plastic_pebd,
         contentDescription = "PEBD",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_4_pebd)
+        popupCards         = listOf(R.drawable.terms_card_plastic_4_pebd)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_pp,
+        buttonImageRes     = R.drawable.terms_btn_plastic_pp,
         contentDescription = "PP",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_5_pp)
+        popupCards         = listOf(R.drawable.terms_card_plastic_5_pp)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_ps,
+        buttonImageRes     = R.drawable.terms_btn_plastic_ps,
         contentDescription = "PS",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_6_ps)
+        popupCards         = listOf(R.drawable.terms_card_plastic_6_ps)
     ),
     TermItem(
-        buttonImageRes     = R.drawable.btn_plastic_outros,
+        buttonImageRes     = R.drawable.terms_btn_plastic_others,
         contentDescription = "Outros",
         popupTitle         = "Números do Plástico",
-        popupCards         = listOf(R.drawable.card_info_plastic_7_outros)
+        popupCards         = listOf(R.drawable.terms_card_plastic_7_others)
     )
 )
 
@@ -339,7 +339,7 @@ private fun TermsScreenContent(
 
             // ── Card verde — Conceitos de Reciclagem (grid fixo, sem scroll) ──
             TermsSectionCard(
-                backgroundImageRes = R.drawable.bg_section_terms_green,
+                backgroundImageRes = R.drawable.terms_bg_green,
                 title              = "Conceitos de Reciclagem",
                 items              = RECYCLING_CONCEPTS,
                 bottomPadding      = 12.dp,
@@ -351,7 +351,7 @@ private fun TermsScreenContent(
 
             // ── Card azul — Símbolos de Embalagens (scroll horizontal) ──
             TermsSectionCard(
-                backgroundImageRes  = R.drawable.bg_section_terms_blue,
+                backgroundImageRes  = R.drawable.terms_bg_blue,
                 title               = "Símbolos de Embalagens",
                 items               = PACKAGING_SYMBOLS,
                 useHorizontalScroll = true,
@@ -364,7 +364,7 @@ private fun TermsScreenContent(
 
             // ── Card vermelho — Números do Plástico (scroll horizontal) ──
             TermsSectionCard(
-                backgroundImageRes  = R.drawable.bg_section_terms_red,
+                backgroundImageRes  = R.drawable.terms_bg_red,
                 title               = "Números de reciclagem do plástico",
                 items               = PLASTIC_NUMBERS,
                 useHorizontalScroll = true,
