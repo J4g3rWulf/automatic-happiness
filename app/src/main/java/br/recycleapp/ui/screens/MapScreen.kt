@@ -65,7 +65,7 @@ fun MapScreen() {
                 ) {
                     // Imagem como fundo — atrás de tudo
                     Image(
-                        painter            = painterResource(R.drawable.art_bottom_map_screen_1),
+                        painter            = painterResource(R.drawable.map_art_bottom_1),
                         contentDescription = null,
                         contentScale       = ContentScale.FillBounds,
                         modifier           = Modifier.fillMaxSize()
@@ -108,7 +108,7 @@ fun MapScreen() {
 
         // ── Camada da Frente: A Menina (Flutuando sobre tudo) ───────────
         Image(
-            painter            = painterResource(R.drawable.art_bottom_map_screen_2),
+            painter            = painterResource(R.drawable.map_art_bottom_2),
             contentDescription = null,
             contentScale       = ContentScale.Fit,
             modifier = Modifier

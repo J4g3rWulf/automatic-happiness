@@ -93,14 +93,14 @@ fun PointType.toFilterLabel(): String = when (this) {
  */
 @DrawableRes
 fun PointType.toPinDrawable(): Int = when (this) {
-    PointType.UNKNOWN                  -> R.drawable.pin_unknown
-    PointType.PEV_COMLURB              -> R.drawable.pin_pev_comlurb
-    PointType.ECOPONTO_COMLURB         -> R.drawable.pin_ecoponto_comlurb
-    PointType.ECOPONTO_LIGHT           -> R.drawable.pin_ecoponto_light
-    PointType.ECOPONTO_NITEROI         -> R.drawable.pin_ecoponto_clin_niteroi
-    PointType.PEV_NITEROI              -> R.drawable.pin_pev_niteroi_puds
-    PointType.ECOPONTO_SAO_GONCALO     -> R.drawable.pin_ecoponto_sao_goncalo
-    PointType.ECOPONTO_DUQUE_DE_CAXIAS -> R.drawable.pin_ecoponto_duque_de_caxias
+    PointType.UNKNOWN                  -> R.drawable.map_pin_unknown
+    PointType.PEV_COMLURB              -> R.drawable.map_pin_pev_comlurb
+    PointType.ECOPONTO_COMLURB         -> R.drawable.map_pin_ecoponto_comlurb
+    PointType.ECOPONTO_LIGHT           -> R.drawable.map_pin_ecoponto_light
+    PointType.ECOPONTO_NITEROI         -> R.drawable.map_pin_ecoponto_clin_niteroi
+    PointType.PEV_NITEROI              -> R.drawable.map_pin_pev_niteroi_puds
+    PointType.ECOPONTO_SAO_GONCALO     -> R.drawable.map_pin_ecoponto_sao_goncalo
+    PointType.ECOPONTO_DUQUE_DE_CAXIAS -> R.drawable.map_pin_ecoponto_duque_de_caxias
     PointType.PEV_ANGRA_DOS_REIS,
-    PointType.ECOPONTO_ANGRA_DOS_REIS  -> R.drawable.pin_ecopontos_pevs_angra
+    PointType.ECOPONTO_ANGRA_DOS_REIS  -> R.drawable.map_pin_ecopontos_pevs_angra
 }

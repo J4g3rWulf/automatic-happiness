@@ -205,21 +205,21 @@ private fun OsmMapContent(
         // Pins específicos por município são exclusivos do Google Maps.
         val iconPev = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
-                .decodeResource(context.resources, R.drawable.pin_pev_comlurb)
+                .decodeResource(context.resources, R.drawable.map_pin_pev_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
 
         val iconEcoponto = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
-                .decodeResource(context.resources, R.drawable.pin_ecoponto_comlurb)
+                .decodeResource(context.resources, R.drawable.map_pin_ecoponto_comlurb)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
 
         val iconEcopontoLight = withContext(Dispatchers.IO) {
             android.graphics.BitmapFactory
-                .decodeResource(context.resources, R.drawable.pin_ecoponto_light)
+                .decodeResource(context.resources, R.drawable.map_pin_ecoponto_light)
                 .scale(widthPx, heightPx)
                 .toDrawable(context.resources)
         }
