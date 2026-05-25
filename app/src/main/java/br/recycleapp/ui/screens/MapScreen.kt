@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
-import br.recycleapp.ui.components.RecycleMapCard
-import br.recycleapp.ui.components.RecyclingPointBottomSheet
+import br.recycleapp.ui.components.map.RecycleMapCard
+import br.recycleapp.ui.components.map.RecyclingPointBottomSheet
 import br.recycleapp.ui.theme.GreenPrimary
 
 @Composable

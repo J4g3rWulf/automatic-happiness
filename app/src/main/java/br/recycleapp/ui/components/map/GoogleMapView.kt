@@ -1,5 +1,8 @@
-package br.recycleapp.ui.components
+package br.recycleapp.ui.components.map
 
+import android.annotation.SuppressLint
+import android.os.Looper
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +63,7 @@ private val MATERIAL_PRIORITY_ORDER = listOf(
  * @param toneColor     cor temática do material atual — usada nos clusters
  * @param onMarkerClick callback chamado quando o usuário toca num marcador individual
  */
-@android.annotation.SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission")
 @Composable
 fun GoogleMapView(
     toneColor: Color = Color(0xFF1565C0),
@@ -86,7 +90,7 @@ fun GoogleMapView(
             }
         }
 
-        fusedClient.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
+        fusedClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
 
         val location    = withTimeoutOrNull(10_000) { deferred.await() }
         fusedClient.removeLocationUpdates(callback)
@@ -218,8 +222,8 @@ private fun GoogleMapContent(
                     }
                 },
                 clusterItemContent = { item ->
-                    androidx.compose.foundation.Image(
-                        painter            = androidx.compose.ui.res.painterResource(
+                    Image(
+                        painter            = painterResource(
                             item.point.type.toPinDrawable()
                         ),
                         contentDescription = item.point.name,

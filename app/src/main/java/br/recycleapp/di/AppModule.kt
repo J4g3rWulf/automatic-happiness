@@ -5,7 +5,7 @@ import br.recycleapp.BuildConfig
 import br.recycleapp.data.map.FirestorePointsSource
 import br.recycleapp.data.map.MapAvailabilityChecker
 import br.recycleapp.data.map.PlacesRecyclingRepository
-import br.recycleapp.data.repository.ClassifierRepository
+import br.recycleapp.data.classifier.ClassifierRepository
 import br.recycleapp.domain.map.IMapAvailabilityChecker
 import br.recycleapp.domain.map.IRecyclingPointRepository
 import br.recycleapp.domain.repository.ITrashClassifier

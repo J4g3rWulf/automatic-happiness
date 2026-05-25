@@ -1,4 +1,4 @@
-package br.recycleapp.domain.map
+package br.recycleapp.data.map
 
 /**
  * Representa o provedor de mapa ativo no momento.

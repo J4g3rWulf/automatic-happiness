@@ -35,7 +35,7 @@ import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.components.MaterialCard
 import br.recycleapp.ui.components.MaterialCardData
-import br.recycleapp.ui.components.RecyclingPointBottomSheet
+import br.recycleapp.ui.components.map.RecyclingPointBottomSheet
 import br.recycleapp.ui.components.ResultButton
 import br.recycleapp.ui.components.UnknownCard
 import br.recycleapp.ui.theme.*

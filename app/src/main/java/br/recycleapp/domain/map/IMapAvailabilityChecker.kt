@@ -1,5 +1,7 @@
 package br.recycleapp.domain.map
 
+import br.recycleapp.data.map.MapProvider
+
 /**
  * Contrato para verificar qual provedor de mapa está disponível.
  *

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
+import br.recycleapp.ui.components.map.RecycleMapCard
 import br.recycleapp.ui.theme.TextSecondary
 
 /**
@@ -40,7 +41,7 @@ data class MaterialCardData(
  * Card branco com título, duas dicas de descarte e mapa de pontos próximos.
  * Usado na ResultScreen para materiais identificados.
  *
- * O [RecycleMapCard] é chamado com sizing explícito (height + clip) —
+ * O [br.recycleapp.ui.components.map.RecycleMapCard] é chamado com sizing explícito (height + clip) —
  * seguindo o padrão onde o caller define as dimensões do mapa.
  */
 @Composable
@@ -87,8 +88,8 @@ fun MaterialCard(
             // Sizing e clip são definidos aqui pelo caller — RecycleMapCard
             // não impõe dimensões próprias (ver KDoc de RecycleMapCard).
             RecycleMapCard(
-                toneColor     = data.mapColor,
-                modifier      = Modifier
+                toneColor = data.mapColor,
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
                     .clip(RoundedCornerShape(12.dp)),
