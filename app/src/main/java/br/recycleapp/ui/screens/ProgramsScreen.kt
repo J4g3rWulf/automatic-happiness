@@ -118,8 +118,8 @@ private val PROGRAMS = listOf(
                 color           = Color(0xFF1A3A7E),
                 titleColor = Color.White,
                 url             = "https://plataformadigital.niteroi.br/",
-                cardDrawable    = R.drawable.button_recicla_niteroi,
-                popupCards      = listOf(R.drawable.card_troque_e_ganhe_1),
+                cardDrawable    = R.drawable.programs_btn_recicla_niteroi,
+                popupCards      = listOf(R.drawable.programs_card_troque_1),
                 showDescription = false,
             ),
 
@@ -137,8 +137,8 @@ private val PROGRAMS = listOf(
                 color           = Color(0xFF1C7B6E),
                 titleColor = Color.White,
                 url             = "https://www.light.com.br",
-                cardDrawable    = R.drawable.button_light_recicla,
-                popupCards      = listOf(R.drawable.card_troque_e_ganhe_2),
+                cardDrawable    = R.drawable.programs_btn_light_recicla,
+                popupCards      = listOf(R.drawable.programs_card_troque_2),
                 showDescription = false,
             ),
 
@@ -156,8 +156,8 @@ private val PROGRAMS = listOf(
                 color           = Color(0xFF1A3A7E),
                 titleColor = Color.White,
                 url             = "https://www.saogoncalo.rj.gov.br",
-                cardDrawable    = R.drawable.button_recicla_sao_goncalo,
-                popupCards      = listOf(R.drawable.card_troque_e_ganhe_3),
+                cardDrawable    = R.drawable.programs_btn_recicla_sao_goncalo,
+                popupCards      = listOf(R.drawable.programs_card_troque_3),
                 showDescription = false,
             ),
         )
@@ -182,8 +182,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFFEE7C2D),
                 titleColor = Color.White,
                 url          = "https://www.clin.rj.gov.br/SiteCLIN/?page_id=575",
-                cardDrawable = R.drawable.button_clin,
-                popupCards   = listOf(R.drawable.card_coleta_seletiva_1),
+                cardDrawable = R.drawable.programs_btn_clin,
+                popupCards   = listOf(R.drawable.programs_card_coleta_1),
                 showDescription = false,
             ),
 
@@ -201,8 +201,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFFEE7C2D),
                 titleColor = Color.White,
                 url          = "https://comlurb.prefeitura.rio/servico/coleta-seletiva/historico/",
-                cardDrawable = R.drawable.button_comlurb,
-                popupCards   = listOf(R.drawable.card_coleta_seletiva_2),
+                cardDrawable = R.drawable.programs_btn_comlurb,
+                popupCards   = listOf(R.drawable.programs_card_coleta_2),
                 showDescription = false,
             ),
 
@@ -218,8 +218,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFF1A3A7E),
                 titleColor = Color.White,
                 url          = "https://duquedecaxias.rj.gov.br/noticia/programa-jogue-limpo-com-duque-de-caxias-e-lancado/6128",
-                cardDrawable = R.drawable.button_jogue_limpo_duque_de_caxias,
-                popupCards   = listOf(R.drawable.card_coleta_seletiva_3),
+                cardDrawable = R.drawable.programs_btn_jogue_limpo_duque_de_caxias,
+                popupCards   = listOf(R.drawable.programs_card_coleta_3),
                 showDescription = false,
             ),
 
@@ -239,8 +239,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFF1A3A7E),
                 titleColor = Color.White,
                 url          = "https://www.angra.rj.gov.br/servicos/ecopontos-pontos-de-entrega-de-residuos-reciclaveis",
-                cardDrawable = R.drawable.button_coleta_seletiva_angra_dos_reis,
-                popupCards   = listOf(R.drawable.card_coleta_seletiva_4),
+                cardDrawable = R.drawable.programs_btn_coleta_seletiva_angra,
+                popupCards   = listOf(R.drawable.programs_card_coleta_4),
                 showDescription = false,
             ),
         )
@@ -264,8 +264,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFFEE7C2D),
                 titleColor = Color.White,
                 url          = "https://www.clin.rj.gov.br/SiteCLIN/",
-                cardDrawable = R.drawable.button_clin,
-                popupCards   = listOf(R.drawable.card_social_1),
+                cardDrawable = R.drawable.programs_btn_clin,
+                popupCards   = listOf(R.drawable.programs_card_social_1),
                 showDescription = false,
             ),
 
@@ -283,8 +283,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFF1C7B6E),
                 titleColor = Color.White,
                 url          = "https://www.avsibrasil.org.br/projeto/light-recicla/",
-                cardDrawable = R.drawable.button_light_recicla,
-                popupCards   = listOf(R.drawable.card_social_2),
+                cardDrawable = R.drawable.programs_btn_light_recicla,
+                popupCards   = listOf(R.drawable.programs_card_social_2),
                 showDescription = false,
             ),
 
@@ -302,8 +302,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFFEE7C2D),
                 titleColor = Color.White,
                 url          = "https://comlurb.prefeitura.rio/servico/coleta-seletiva/cooperativas-de-catadores-cadastradas/",
-                cardDrawable = R.drawable.button_comlurb,
-                popupCards   = listOf(R.drawable.card_social_3),
+                cardDrawable = R.drawable.programs_btn_comlurb,
+                popupCards   = listOf(R.drawable.programs_card_social_3),
                 showDescription = false,
             ),
 
@@ -323,8 +323,8 @@ private val PROGRAMS = listOf(
                 color        = Color(0xFFA88038),
                 titleColor = Color.White,
                 url          = "https://www.oleosustentavel.org.br/ciclo-do-oleo",
-                cardDrawable = R.drawable.button_oleo_sustentavel,
-                popupCards   = listOf(R.drawable.card_social_4),
+                cardDrawable = R.drawable.programs_btn_oleo_sustentavel,
+                popupCards   = listOf(R.drawable.programs_card_social_4),
                 showDescription = false,
             ),
         )
@@ -401,7 +401,7 @@ private fun ProgramsScreenContent(
         )
 
         Image(
-            painter            = painterResource(R.drawable.art_botton_programs),
+            painter            = painterResource(R.drawable.programs_art_bottom),
             contentDescription = null,
             contentScale       = ContentScale.FillWidth,
             alignment          = Alignment.BottomCenter,
