@@ -49,9 +49,8 @@
     <string name="result_btn_retry">Tente novamente</string>
 
     <!-- ResultScreen — tela desconhecido -->
-    <string name="result_unknown_title">Desculpe! Não conseguimos \nter certeza sobre este item</string>
+    <string name="result_unknown_title">Desculpe! Não foi possível \nidentificar o resíduo</string>
     <string name="result_unknown_subtitle">Tente tirar uma foto mais de perto, com mais luz e sem reflexos.</string>
-    <string name="result_unknown_card2_title">Procure por símbolos de reciclagem nos resíduos e embalagens</string>
-    <string name="result_unknown_card2_subtitle">Selecione um deles abaixo para identificar o tipo exato de resíduo e ter mais informações:</string>
-    <string name="result_unknown_placeholder">IMPLEMENTAÇÃO FUTURA:\n\nCarrossel com símbolos clicáveis que \nao serem selecionados, mostram um \npopup informativo</string>
+    <string name="result_unknown_card2_title">Se a câmera não reconheceu o resíduo, consulte o nosso guia</string>
+    <string name="result_unknown_card2_subtitle">Selecione o livrinho na barra de navegação e explore o nosso conteúdo educativo.</string>
 </resources>

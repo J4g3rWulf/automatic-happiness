@@ -1,6 +1,6 @@
 package br.recycleapp.ui.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -11,16 +11,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
-import br.recycleapp.ui.theme.PlaceholderDark
 import br.recycleapp.ui.theme.TextSecondary
 
 /**
@@ -153,24 +153,15 @@ fun UnknownCard(
                     color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
                 )
-                Spacer(Modifier.height(20.dp))
-
-                Box(
-                    modifier         = Modifier
+                Spacer(Modifier.height(12.dp))
+                Image(
+                    painter            = painterResource(R.drawable.card_unknown_result),
+                    contentDescription = null,
+                    contentScale       = ContentScale.FillWidth,
+                    modifier           = Modifier
                         .fillMaxWidth()
-                        .height(190.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(PlaceholderDark),
-                    contentAlignment = Alignment.TopStart
-                ) {
-                    Text(
-                        text      = stringResource(R.string.result_unknown_placeholder),
-                        color     = Color.White,
-                        fontSize  = 11.sp,
-                        textAlign = TextAlign.Start,
-                        modifier  = Modifier.padding(12.dp)
-                    )
-                }
+                )
             }
         }
     }
