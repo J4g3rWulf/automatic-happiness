@@ -34,7 +34,11 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -73,7 +77,7 @@ fun HomeScreen(
     titleTop: Dp          = 74.dp,   // distância do topo até o título
     titleToSubtitle: Dp   = 30.dp,   // espaço entre título e subtítulo
     subtitleToButtons: Dp = 24.dp,   // espaço entre subtítulo e botões
-    warningTop: Dp        = 40.dp,   // espaço entre botões e card de dica
+    warningTop: Dp        = 37.dp,   // espaço entre botões e card de dica
 
     // ── Tipografia ────────────────────────────────────────────────────
     titleMaxWidth: Dp      = 353.dp, // largura máxima do bloco de título
@@ -263,21 +267,30 @@ fun HomeScreen(
 
                     Spacer(Modifier.height(warningTop))
 
-                    // Card de dica - orienta o usuário sobre como tirar a foto
-                    Row(
-                        modifier = Modifier
-                            .padding(start = dims.leftInset)
-                            .width(dims.pairWidth)
-                            .shadow(6.dp, RoundedCornerShape(10.dp))
-                            .background(color = WhiteText, shape = RoundedCornerShape(10.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .graphicsLayer {
-                                alpha        = warningAlpha
-                                translationY = warningOffsetY
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Ícone circular de aviso
+                    val noticeLabel    = stringResource(R.string.notice_label)
+                    val noticeBody     = stringResource(R.string.notice_text)
+                    val coverageLabel  = stringResource(R.string.notice_coverage_label)
+                    val coverageValue  = stringResource(R.string.notice_coverage_value)
+
+                    val noticeAnnotated = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append("$noticeLabel ") }
+                        append(noticeBody)
+                    }
+                    val coverageAnnotated = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append("$coverageLabel ") }
+                        append(coverageValue)
+                    }
+
+                    val cardModifier = Modifier
+                        .padding(start = dims.leftInset)
+                        .width(dims.pairWidth)
+                        .shadow(6.dp, RoundedCornerShape(10.dp))
+                        .background(color = WhiteText, shape = RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .graphicsLayer { alpha = warningAlpha; translationY = warningOffsetY }
+
+// ── Card de dica ──────────────────────────────────────────────────────────
+                    Row(modifier = cardModifier, verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
                                 .size(22.dp)
@@ -287,20 +300,51 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 painter            = painterResource(R.drawable.ic_warning),
-                                contentDescription = "Aviso",
+                                contentDescription = null,
                                 tint               = GreenDark,
                                 modifier           = Modifier.size(14.dp)
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-                        // Texto da dica - máximo 2 linhas
                         Text(
-                            text  = stringResource(R.string.notice_text),
+                            text  = noticeAnnotated,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontSize   = (14f * dims.noticeTextScale).sp,
                                 lineHeight = (20f * dims.noticeTextScale).sp
                             ),
                             maxLines = 2,
+                            color    = GreenDark
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+// ── Card de cobertura ─────────────────────────────────────────────────────
+                    Row(modifier = cardModifier, verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(GreenLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter            = painterResource(R.drawable.ic_pin_coverage),
+                                contentDescription = null,
+                                tint               = GreenDark,
+                                modifier           = Modifier
+                                    .size(14.dp)
+                                    .offset(x = 1.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text     = coverageAnnotated,
+                            style    = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize   = (11f * dims.noticeTextScale).sp,
+                                lineHeight = (20f * dims.noticeTextScale).sp
+                            ),
+                            maxLines = 1,
                             color    = GreenDark
                         )
                     }

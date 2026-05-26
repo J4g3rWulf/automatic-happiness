@@ -6,7 +6,10 @@
     <string name="btn_subtitle_home">Tire uma foto ou escolha da galeria</string>
     <string name="btn_camera">Tirar foto</string>
     <string name="btn_gallery">Galeria</string>
-    <string name="notice_text">Dica: Um objeto por vez, centralizado,\ncom boa luz e fundo simples!</string>
+    <string name="notice_label">Dica:</string>
+    <string name="notice_text">Um objeto por vez, centralizado, com boa luz e fundo simples!</string>
+    <string name="notice_coverage_label">Cobertura de pontos e parcerias:</string>
+    <string name="notice_coverage_value">Rio de Janeiro</string>
 
     <!-- Fluxo de captura / envio -->
     <string name="confirm_title">A foto está boa?</string>
