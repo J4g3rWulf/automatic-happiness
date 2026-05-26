@@ -34,6 +34,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.recycleapp.domain.model.ClassificationResult
+import br.recycleapp.domain.model.MaterialType
 import br.recycleapp.ui.components.BottomNavBar
 import br.recycleapp.ui.mapper.toLabelPt
 import br.recycleapp.ui.screens.CameraCaptureScreen
@@ -318,11 +319,14 @@ fun AppNavHost(windowSizeClass: WindowSizeClass) {
             composable(Screen.Result.route) {
                 val uiState by viewModel.uiState.collectAsState()
                 // Cache do label para evitar recomposição ao resetar o ViewModel
-                var cachedLabel by remember { mutableStateOf("Indefinido") }
+                var cachedLabel by remember { mutableStateOf(MaterialType.UNKNOWN.toLabelPt()) }
                 if (uiState is ClassificationViewModel.UiState.Result) {
                     val r = (uiState as ClassificationViewModel.UiState.Result).result
-                    cachedLabel = if (r is ClassificationResult.Success)
-                        r.materialType.toLabelPt() else "Indefinido"
+                    cachedLabel = when (r) {
+                        is ClassificationResult.Success    -> r.materialType.toLabelPt()
+                        is ClassificationResult.Indefinido -> MaterialType.UNKNOWN.toLabelPt()
+                        is ClassificationResult.Error      -> MaterialType.UNKNOWN.toLabelPt()
+                    }
                 }
                 ResultScreen(
                     photoUri          = viewModel.imageUri.toString(),
