@@ -52,8 +52,20 @@ private val MATERIAL_PRIORITY_ORDER = listOf(
 )
 
 /**
- * Mapa Google Maps com a localização do usuário e os pontos de coleta
- * buscados via Places API (com cache geográfico).
+ * Verifica se o ponto está dentro dos limites aproximados do Estado do Rio de Janeiro.
+ * Usa bounding box retangular — suficiente para distinguir usuários dentro/fora do estado.
+ *
+ * Limites: N -20.76° | S -23.37° | O -44.87° | L -40.96°
+ */
+private fun isWithinRioDeJaneiroState(lat: Double, lng: Double): Boolean =
+    lat in -23.37..-20.76 && lng in -44.87..-40.96
+
+/**
+ * Mapa Google Maps com posição inicial adaptada à localização do usuário.
+ *
+ * Usuários dentro do Estado do Rio de Janeiro veem o mapa centrado na sua
+ * posição real (zoom 13). Usuários fora do estado veem o centro fixo da
+ * região metropolitana (zoom 11), onde todos os pontos de coleta estão.
  *
  * Usa Marker Clustering para agrupar marcadores próximos, evitando
  * sobrecarga de memória ao renderizar 100+ pontos simultaneamente.
@@ -71,7 +83,8 @@ fun GoogleMapView(
 ) {
     val context = LocalContext.current
 
-    var userLocation    by remember { mutableStateOf<LatLng?>(null) }
+    var mapCenter       by remember { mutableStateOf(RIO_CENTER_GOOGLE) }
+    var userInRio       by remember { mutableStateOf(false) }
     var recyclingPoints by remember { mutableStateOf<List<RecyclingPoint>>(emptyList()) }
     var isLoading       by remember { mutableStateOf(true) }
 
@@ -91,14 +104,20 @@ fun GoogleMapView(
         }
 
         fusedClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
-
-        val location    = withTimeoutOrNull(10_000) { deferred.await() }
+        val location = withTimeoutOrNull(10_000) { deferred.await() }
         fusedClient.removeLocationUpdates(callback)
 
-        val center      = location ?: RIO_CENTER_GOOGLE
-        userLocation    = center
+        // Centra na localização do usuário se estiver no Estado do Rio;
+        // caso contrário usa o centro fixo da região metropolitana.
+        val userLatLng = location?.takeIf {
+            isWithinRioDeJaneiroState(it.latitude, it.longitude)
+        }
+
+        mapCenter = userLatLng ?: RIO_CENTER_GOOGLE
+        userInRio = userLatLng != null
+
         val repository  = AppModule.provideRecyclingPointRepository(context)
-        recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
+        recyclingPoints = repository.getNearbyPoints(mapCenter.latitude, mapCenter.longitude)
         isLoading       = false
     }
 
@@ -116,7 +135,8 @@ fun GoogleMapView(
         }
     } else {
         GoogleMapContent(
-            center        = userLocation ?: RIO_CENTER_GOOGLE,
+            center        = mapCenter,
+            userInRio     = userInRio,
             points        = recyclingPoints,
             toneColor     = toneColor,
             onMarkerClick = onMarkerClick
@@ -142,12 +162,17 @@ fun GoogleMapView(
 @Composable
 private fun GoogleMapContent(
     center: LatLng,
+    userInRio: Boolean,
     points: List<RecyclingPoint>,
     toneColor: Color,
     onMarkerClick: (RecyclingPoint) -> Unit
 ) {
+    // Zoom 13 para usuário dentro do RJ (vê seus arredores);
+    // zoom 11 para usuário fora (vê toda a região metropolitana).
+    val initialZoom = if (userInRio) 13f else 11f
+
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(center, 12f)
+        position = CameraPosition.fromLatLngZoom(center, initialZoom)
     }
 
     // ── Filtro por tipo ───────────────────────────────────────────────────
