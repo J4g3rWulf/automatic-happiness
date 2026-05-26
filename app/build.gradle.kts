@@ -63,6 +63,13 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // Impede compressão do modelo TFLite no APK.
+    // Necessário para que o TensorFlow Lite use Memory Mapping (mmap),
+    // lendo o modelo direto do disco sem alocá-lo inteiro na RAM.
+    androidResources {
+        noCompress += "tflite"
+    }
 }
 
 dependencies {
