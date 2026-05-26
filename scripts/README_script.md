@@ -65,10 +65,14 @@ python populate_firestore_v2.py --gen-fallback
 Gera o arquivo `RecyclingPointsData.kt` na pasta do script. Copie-o para:
 `app/src/main/java/br/recycleapp/data/map/`
 
-> **Por que isso existe?** O app busca pontos em três camadas: Firestore (primário),
-> cache local (atualizado automaticamente) e um fallback estático compilado no APK
-> usado apenas no primeiro acesso sem internet. O `--gen-fallback` mantém esse
-> fallback sincronizado com os Excel quando novos pontos são adicionados.
+> **Por que isso existe?** O app busca pontos em três camadas:
+> 1. **Firestore** — fonte primária, atualizada em runtime
+> 2. **Cache local** (SharedPreferences) — atualizado automaticamente sempre que o Firestore responde com sucesso
+> 3. **Fallback estático** (`RecyclingPointsData.kt`) — compilado no APK, usado apenas no primeiro acesso sem internet
+>
+> O `--gen-fallback` mantém esse fallback sincronizado com os Excel quando novos pontos são adicionados.
+> Qualquer usuário que já abriu o app com internet pelo menos uma vez usa o cache local (camada 2)
+> e nunca precisa do fallback. O fallback só importa para novos usuários sem internet na primeira abertura.
 
 #### Usar múltiplas flags juntas
 ```bash
@@ -90,8 +94,10 @@ python populate_firestore_v2.py --dry-run --gen-fallback
     "var_name": "nova_iguacu_ecopontos",
 },
 ```
-3. Adicione o novo `PointType` em `PointType.kt` no projeto Android
-4. Execute o script normalmente
+3. Adicione o novo `PointType` em `RecyclingPoint.kt` no projeto Android e implemente
+   `toFilterLabel()` e `toPinDrawable()` para o novo tipo
+4. Crie o drawable do pin correspondente e adicione-o em `res/drawable/`
+5. Execute o script normalmente — ele detecta e processa o novo arquivo automaticamente
 
 ---
 
@@ -122,17 +128,17 @@ python populate_firestore_v2.py --dry-run --gen-fallback
 
 ### Tipos válidos (`type`)
 
-| Tipo                      | Descrição                              |
-|---------------------------|----------------------------------------|
-| `PEV_COMLURB`             | Ponto de Entrega Voluntária da Comlurb |
-| `ECOPONTO_COMLURB`        | Ecoponto da Comlurb                    |
-| `ECOPONTO_LIGHT`          | Ecoponto Light Recicla                 |
-| `PEV_NITEROI`             | PUD de Niterói                         |
-| `ECOPONTO_NITEROI`        | Ecoponto da CLIN (Niterói)             |
-| `ECOPONTO_SAO_GONCALO`    | Ecoponto de São Gonçalo                |
-| `ECOPONTO_DUQUE_DE_CAXIAS`| Ecoponto de Duque de Caxias            |
-| `PEV_ANGRA_DOS_REIS`      | PEV de Angra dos Reis                  |
-| `ECOPONTO_ANGRA_DOS_REIS` | Ecoponto de Angra dos Reis             |
+| Tipo                       | Descrição                              |
+|----------------------------|----------------------------------------|
+| `PEV_COMLURB`              | Ponto de Entrega Voluntária da Comlurb |
+| `ECOPONTO_COMLURB`         | Ecoponto da Comlurb                    |
+| `ECOPONTO_LIGHT`           | Ecoponto Light Recicla                 |
+| `PEV_NITEROI`              | PUD de Niterói                         |
+| `ECOPONTO_NITEROI`         | Ecoponto da CLIN (Niterói)             |
+| `ECOPONTO_SAO_GONCALO`     | Ecoponto de São Gonçalo                |
+| `ECOPONTO_DUQUE_DE_CAXIAS` | Ecoponto de Duque de Caxias            |
+| `PEV_ANGRA_DOS_REIS`       | PEV de Angra dos Reis                  |
+| `ECOPONTO_ANGRA_DOS_REIS`  | Ecoponto de Angra dos Reis             |
 
 ### Materiais válidos
 
