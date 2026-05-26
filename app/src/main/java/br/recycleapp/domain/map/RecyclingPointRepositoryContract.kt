@@ -5,7 +5,7 @@ package br.recycleapp.domain.map
  *
  * A implementação decide se usa cache local ou chama a Places API.
  */
-interface IRecyclingPointRepository {
+interface RecyclingPointRepositoryContract {
 
     /**
      * Retorna os pontos de coleta próximos à localização informada.

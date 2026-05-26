@@ -3,8 +3,7 @@ package br.recycleapp.data.map
 import android.content.Context
 import androidx.core.content.edit
 import br.recycleapp.BuildConfig
-import br.recycleapp.domain.map.IMapAvailabilityChecker
-import br.recycleapp.data.map.MapProvider
+import br.recycleapp.domain.map.MapAvailabilityCheckerContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -25,7 +24,7 @@ import java.net.URL
  */
 class MapAvailabilityChecker(
     private val context: Context
-) : IMapAvailabilityChecker {
+) : MapAvailabilityCheckerContract {
 
     private val prefs by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

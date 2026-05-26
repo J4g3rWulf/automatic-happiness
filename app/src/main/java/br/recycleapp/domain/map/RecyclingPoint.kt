@@ -39,21 +39,8 @@ data class RecyclingPoint(
 )
 
 /**
- * Tipo do ponto de coleta.
- *
- * Tipo Fallback:
- * [UNKNOWN]                  resultados genéricos da Places API sem tipo definido.
- *
- * Tipos explícitos (schema v2):
- * [PEV_COMLURB]              Ponto de Entrega Voluntária da Comlurb.
- * [ECOPONTO_COMLURB]         Ecoponto da Comlurb (entulho, bens inservíveis).
- * [ECOPONTO_LIGHT]           Ecoponto Light Recicla (recicláveis + óleo vegetal).
- * [PEV_NITEROI]              PUD — Ponto de Entrega Voluntária de Niterói.
- * [ECOPONTO_NITEROI]         Ecoponto da CLIN (Niterói).
- * [ECOPONTO_SAO_GONCALO]     Ecoponto de São Gonçalo.
- * [ECOPONTO_DUQUE_DE_CAXIAS] Ecoponto de Duque de Caxias.
- * [PEV_ANGRA_DOS_REIS]       PEV de Angra dos Reis.
- * [ECOPONTO_ANGRA_DOS_REIS]  Ecoponto de Angra dos Reis.
+ * Tipo de ponto de coleta. UNKNOWN é o fallback para pontos sem
+ * tipo definido. Os demais valores são explícitos por município.
  */
 enum class PointType {
     // Fallback para resultados genéricos da Places API sem tipo definido

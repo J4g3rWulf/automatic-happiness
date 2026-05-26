@@ -3,18 +3,18 @@ package br.recycleapp.data.classifier
 import android.content.Context
 import br.recycleapp.domain.model.ClassificationResult
 import br.recycleapp.domain.model.MaterialType
-import br.recycleapp.domain.repository.ITrashClassifier
+import br.recycleapp.domain.repository.TrashClassifierContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Implementação concreta do classificador.
  * Depende do Context e do modelo TFLite - por isso fica na camada data.
- * Implementa [br.recycleapp.domain.repository.ITrashClassifier] definido no domínio.
+ * Implementa [br.recycleapp.domain.repository.TrashClassifierContract] definido no domínio.
  */
 class ClassifierRepository(
     context: Context
-) : ITrashClassifier {
+) : TrashClassifierContract {
 
     private val classifier = TrashClassifier(context)
 

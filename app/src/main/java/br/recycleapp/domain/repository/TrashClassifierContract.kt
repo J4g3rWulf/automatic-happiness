@@ -6,7 +6,7 @@ import br.recycleapp.domain.model.ClassificationResult
  * Contrato da camada de domínio para classificação de resíduos.
  * A URI é tratada como simples String identificadora - sem import Android.
  */
-interface ITrashClassifier {
+interface TrashClassifierContract {
 
     /**
      * Classifica a imagem apontada por [imageUri].

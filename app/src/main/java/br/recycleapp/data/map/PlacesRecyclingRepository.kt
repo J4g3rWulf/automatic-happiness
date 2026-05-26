@@ -2,7 +2,7 @@ package br.recycleapp.data.map
 
 import android.content.Context
 import androidx.core.content.edit
-import br.recycleapp.domain.map.IRecyclingPointRepository
+import br.recycleapp.domain.map.RecyclingPointRepositoryContract
 import br.recycleapp.domain.map.PointType
 import br.recycleapp.domain.map.RecyclingPoint
 import com.google.android.libraries.places.api.Places
@@ -37,7 +37,7 @@ class PlacesRecyclingRepository(
     private val context: Context,
     private val apiKey: String,
     private val firestoreSource: FirestorePointsSource = FirestorePointsSource(context)
-) : IRecyclingPointRepository {
+) : RecyclingPointRepositoryContract {
 
     private val prefs by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

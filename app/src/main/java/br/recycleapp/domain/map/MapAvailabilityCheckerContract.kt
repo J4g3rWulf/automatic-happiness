@@ -8,7 +8,7 @@ import br.recycleapp.data.map.MapProvider
  * A implementação decide se o Google Maps está acessível
  * ou se o app deve recorrer ao mapa reserva (OSM).
  */
-interface IMapAvailabilityChecker {
+interface MapAvailabilityCheckerContract {
 
     /**
      * Retorna o provedor disponível no momento.

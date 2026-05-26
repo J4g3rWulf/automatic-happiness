@@ -1,4 +1,4 @@
-package br.recycleapp.ui.viewmodel
+package br.recycleapp.ui.state
 
 import java.util.concurrent.atomic.AtomicBoolean
 

@@ -45,7 +45,7 @@ import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenLight
 import br.recycleapp.ui.theme.RecycleAppTheme
 import br.recycleapp.ui.theme.WhiteText
-import br.recycleapp.ui.viewmodel.HomeAnimationState
+import br.recycleapp.ui.state.HomeAnimationState
 import kotlinx.coroutines.delay
 
 /**
@@ -59,7 +59,7 @@ import kotlinx.coroutines.delay
  * de tela ou ajustes de design futuros.
  *
  * A animação de entrada só roda na primeira abertura do app,
- * controlada por [br.recycleapp.ui.viewmodel.HomeAnimationState].
+ * controlada por [HomeAnimationState].
  */
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable

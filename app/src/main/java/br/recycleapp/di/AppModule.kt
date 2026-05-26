@@ -6,9 +6,9 @@ import br.recycleapp.data.map.FirestorePointsSource
 import br.recycleapp.data.map.MapAvailabilityChecker
 import br.recycleapp.data.map.PlacesRecyclingRepository
 import br.recycleapp.data.classifier.ClassifierRepository
-import br.recycleapp.domain.map.IMapAvailabilityChecker
-import br.recycleapp.domain.map.IRecyclingPointRepository
-import br.recycleapp.domain.repository.ITrashClassifier
+import br.recycleapp.domain.map.MapAvailabilityCheckerContract
+import br.recycleapp.domain.map.RecyclingPointRepositoryContract
+import br.recycleapp.domain.repository.TrashClassifierContract
 import br.recycleapp.domain.usecase.ClassifyImageUseCase
 
 /**
@@ -23,19 +23,19 @@ import br.recycleapp.domain.usecase.ClassifyImageUseCase
 object AppModule {
 
     @Volatile
-    private var repository: ITrashClassifier? = null
+    private var repository: TrashClassifierContract? = null
 
     @Volatile
-    private var mapChecker: IMapAvailabilityChecker? = null
+    private var mapChecker: MapAvailabilityCheckerContract? = null
 
     @Volatile
-    private var recyclingPointRepository: IRecyclingPointRepository? = null
+    private var recyclingPointRepository: RecyclingPointRepositoryContract? = null
 
     /**
      * Retorna a instância única do repositório.
      * Thread-safe via double-checked locking.
      */
-    fun provideClassifierRepository(context: Context): ITrashClassifier {
+    fun provideClassifierRepository(context: Context): TrashClassifierContract {
         return repository ?: synchronized(this) {
             repository ?: ClassifierRepository(
                 context.applicationContext
@@ -56,7 +56,7 @@ object AppModule {
      * Retorna a instância única do verificador de disponibilidade do mapa.
      * Thread-safe via double-checked locking.
      */
-    fun provideMapAvailabilityChecker(context: Context): IMapAvailabilityChecker {
+    fun provideMapAvailabilityChecker(context: Context): MapAvailabilityCheckerContract {
         return mapChecker ?: synchronized(this) {
             mapChecker ?: MapAvailabilityChecker(
                 context.applicationContext
@@ -72,7 +72,7 @@ object AppModule {
      * permitindo que o Firestore persista o último fetch bem-sucedido
      * para uso offline futuro.
      */
-    fun provideRecyclingPointRepository(context: Context): IRecyclingPointRepository {
+    fun provideRecyclingPointRepository(context: Context): RecyclingPointRepositoryContract {
         return recyclingPointRepository ?: synchronized(this) {
             recyclingPointRepository ?: PlacesRecyclingRepository(
                 context         = context.applicationContext,
@@ -84,7 +84,7 @@ object AppModule {
 
     /**
      * Libera o repositório e o modelo TFLite.
-     * Chamar no onTerminate() da Application ou quando o app encerrar.
+     * Chamado em RecycleApplication.onTerminate().
      */
     fun clear() {
         repository?.close()
