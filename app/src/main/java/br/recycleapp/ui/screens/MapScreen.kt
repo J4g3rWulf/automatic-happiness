@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
@@ -20,6 +21,7 @@ import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.components.map.RecycleMapCard
 import br.recycleapp.ui.components.map.RecyclingPointBottomSheet
 import br.recycleapp.ui.theme.GreenPrimary
+import br.recycleapp.ui.theme.RecycleAppTheme
 
 @Composable
 fun MapScreen() {
@@ -125,5 +127,15 @@ fun MapScreen() {
             sheetColor = GreenPrimary,
             onDismiss  = { selectedPoint = null }
         )
+    }
+}
+
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@PreviewScreenSizes
+@Composable
+private fun MapScreenPreview() {
+    RecycleAppTheme {
+        MapScreen()
     }
 }

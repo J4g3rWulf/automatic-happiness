@@ -29,11 +29,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
+import br.recycleapp.ui.theme.RecycleAppTheme
 
 /**
  * Tela educativa sobre resíduos recicláveis.
@@ -180,5 +182,15 @@ private fun LearnCategoryButton(
                 color      = GreenDark
             )
         }
+    }
+}
+
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@PreviewScreenSizes
+@Composable
+private fun LearnScreenPreview() {
+    RecycleAppTheme {
+        LearnScreen()
     }
 }

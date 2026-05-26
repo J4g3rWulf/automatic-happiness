@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -309,32 +309,18 @@ fun ResultScreen(
 
 // ── Previews ──────────────────────────────────────────────────────────────────
 
-@Preview(showBackground = true, name = "Resultado - Vidro")
+@PreviewScreenSizes
 @Composable
-private fun ResultScreenPreviewGlass() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}, onNavigateToLearn = {}) }
+private fun ResultScreenPreviewKnown() {
+    RecycleAppTheme {
+        ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}, onNavigateToLearn = {})
+    }
 }
 
-@Preview(showBackground = true, name = "Resultado - Plástico")
-@Composable
-private fun ResultScreenPreviewPlastic() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Plástico", onBackToHome = {}, onNavigateToLearn = {}) }
-}
-
-@Preview(showBackground = true, name = "Resultado - Papel")
-@Composable
-private fun ResultScreenPreviewPaper() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Papel", onBackToHome = {}, onNavigateToLearn = {}) }
-}
-
-@Preview(showBackground = true, name = "Resultado - Metal")
-@Composable
-private fun ResultScreenPreviewMetal() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Metal", onBackToHome = {}, onNavigateToLearn = {}) }
-}
-
-@Preview(showBackground = true, name = "Resultado - Desconhecido")
+@PreviewScreenSizes
 @Composable
 private fun ResultScreenPreviewUnknown() {
-    RecycleAppTheme { ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}, onNavigateToLearn = {}) }
+    RecycleAppTheme {
+        ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}, onNavigateToLearn = {})
+    }
 }

@@ -44,12 +44,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
+import br.recycleapp.ui.theme.RecycleAppTheme
 
 // ── Modelo de dados ───────────────────────────────────────────────────────────
 
@@ -731,4 +733,14 @@ private fun Color.luminance(): Float {
     val g = green.toDouble()
     val b = blue.toDouble()
     return (0.2126 * r + 0.7152 * g + 0.0722 * b).toFloat()
+}
+
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@PreviewScreenSizes
+@Composable
+private fun ProgramsScreenPreview() {
+    RecycleAppTheme {
+        ProgramsScreen()
+    }
 }
