@@ -18,9 +18,9 @@ class ClassificationViewModel(app: Application) : AndroidViewModel(app) {
         AppModule.provideClassifyImageUseCase(app)
 
     sealed class UiState {
-        object Idle    : UiState()
-        object Loading : UiState()
-        data class Result(val result: ClassificationResult) : UiState()
+        data object Idle    : UiState()
+        data object Loading : UiState()
+        data class  Result(val result: ClassificationResult) : UiState()
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
