@@ -8,14 +8,13 @@ package br.recycleapp.domain.model
  * - [Error]: erro durante o processamento
  */
 sealed class ClassificationResult {
-
     data class Success(
         val materialType: MaterialType,
         val confidence: Float,
         val fineLabel: String
     ) : ClassificationResult()
 
-    object Indefinido : ClassificationResult()
+    data object Indefinido : ClassificationResult()
 
     data class Error(val exception: Throwable) : ClassificationResult()
 }
