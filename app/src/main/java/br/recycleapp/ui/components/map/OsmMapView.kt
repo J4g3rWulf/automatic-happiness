@@ -63,11 +63,23 @@ private val MATERIAL_PRIORITY_ORDER = listOf(
 )
 
 /**
- * Mapa OpenStreetMap com a localização do usuário e os pontos de coleta
- * buscados via repositório (mesmo cache do GoogleMapView).
+ * Verifica se o ponto está dentro dos limites aproximados do Estado do Rio de Janeiro.
+ * Usa bounding box retangular — suficiente para distinguir usuários dentro/fora do estado.
  *
- * Usa RadiusMarkerClusterer (OSMBonusPack) para agrupar marcadores próximos,
- * evitando sobrecarga ao renderizar 100+ pontos simultaneamente.
+ * Limites: N -20.76° | S -23.37° | O -44.87° | L -40.96°
+ */
+private fun isWithinRioDeJaneiroState(lat: Double, lng: Double): Boolean =
+    lat in -23.37..-20.76 && lng in -44.87..-40.96
+
+/**
+ * Mapa OpenStreetMap com posição inicial adaptada à localização do usuário.
+ *
+ * Usuários dentro do Estado do Rio de Janeiro veem o mapa centrado na sua
+ * posição real (zoom 13). Usuários fora do estado veem o centro fixo da
+ * região metropolitana (zoom 11), onde todos os pontos de coleta estão.
+ *
+ * Usa RadiusMarkerClusterer (OSMBonusPack) para agrupar marcadores próximos.
+ * O ponto azul do usuário é gerenciado pelo [MyLocationNewOverlay] do OSM.
  *
  * Permissão de localização já garantida pelo [RecycleMapCard] pai.
  *
@@ -83,15 +95,21 @@ fun OsmMapView(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var startCenter     by remember { mutableStateOf<GeoPoint?>(null) }
+    var initialZoom by remember { mutableDoubleStateOf(11.0) }
     var recyclingPoints by remember { mutableStateOf<List<RecyclingPoint>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         val location = getUserLocation(context)
-        val center   = location
-            ?.let { GeoPoint(it.latitude, it.longitude) }
-            ?: RIO_CENTER
 
+        // Centra na localização do usuário se estiver no Estado do Rio;
+        // caso contrário usa o centro fixo da região metropolitana.
+        val userGeoPoint = location
+            ?.takeIf { isWithinRioDeJaneiroState(it.latitude, it.longitude) }
+            ?.let     { GeoPoint(it.latitude, it.longitude) }
+
+        val center  = userGeoPoint ?: RIO_CENTER
         startCenter = center
+        initialZoom = if (userGeoPoint != null) 13.0 else 11.0
 
         val repository  = AppModule.provideRecyclingPointRepository(context)
         recyclingPoints = repository.getNearbyPoints(center.latitude, center.longitude)
@@ -112,6 +130,7 @@ fun OsmMapView(
     } else {
         OsmMapContent(
             startCenter    = startCenter!!,
+            initialZoom    = initialZoom,
             points         = recyclingPoints,
             toneColor      = toneColor,
             context        = context,
@@ -136,6 +155,7 @@ fun OsmMapView(
 @Composable
 private fun OsmMapContent(
     startCenter: GeoPoint,
+    initialZoom: Double,
     points: List<RecyclingPoint>,
     toneColor: Color,
     context: Context,
@@ -155,7 +175,7 @@ private fun OsmMapContent(
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(true)
             isTilesScaledToDpi = true
-            controller.setZoom(14.0)
+            controller.setZoom(initialZoom)
             controller.setCenter(startCenter)
         }
     }
