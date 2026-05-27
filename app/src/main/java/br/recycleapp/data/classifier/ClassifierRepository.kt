@@ -50,6 +50,6 @@ class ClassifierRepository(
     }
 
     companion object {
-        private const val CONFIDENCE_THRESHOLD = 0.40f
+        private const val CONFIDENCE_THRESHOLD = 0.65f
     }
 }

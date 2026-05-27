@@ -63,7 +63,7 @@ class TrashClassifier(private val context: Context) : Closeable {
      * Retorna null se houver erro no carregamento/processamento da imagem.
      *
      * **Nota:** Esta função NÃO aplica threshold de confiança. A camada de Repository
-     * é responsável por decidir se o resultado é confiável o suficiente (≥ 60%).
+     * é responsável por decidir se o resultado é confiável o suficiente (≥ 65%).
      *
      * @param uriString URI da imagem a ser classificada
      * @return Dados brutos da classificação ou null em caso de erro
@@ -140,7 +140,8 @@ class TrashClassifier(private val context: Context) : Closeable {
      * Converte o Bitmap 256x256 em um ByteBuffer de float32,
      * no formato [1, 256, 256, 3], com valores 0–255.
      *
-     * Não normalizamos aqui porque o modelo já tem uma camada Rescaling(1./255).
+     * Não normalizamos aqui porque o modelo inclui pré-processamento interno
+     * via include_preprocessing=True (EfficientNetV2B0).
      */
     private fun convertBitmapToBuffer(bitmap: Bitmap): ByteBuffer {
         val buffer = ByteBuffer.allocateDirect(1 * IMG_SIZE * IMG_SIZE * 3 * 4)
@@ -194,7 +195,7 @@ class TrashClassifier(private val context: Context) : Closeable {
         private const val TAG = "TrashClassifier"
         private const val IMG_SIZE = 256
         private const val NUM_CLASSES = 10
-        private const val MODEL_NAME = "model_v03.tflite"
+        private const val MODEL_NAME = "model_efficientnet_v2.tflite"
 
         private val FINE_LABELS = arrayOf(
             "glass_bottle",           // 0
