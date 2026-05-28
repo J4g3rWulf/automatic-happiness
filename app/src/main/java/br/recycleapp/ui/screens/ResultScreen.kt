@@ -21,16 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import br.recycleapp.R
 import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.components.MaterialCard
@@ -151,6 +147,19 @@ private fun dataForLabel(label: String): MaterialData =
 
 // ── Tela principal ────────────────────────────────────────────────────────────
 
+/**
+ * Tela de resultado da classificação de material pela IA.
+ *
+ * Exibe fundo temático, nome do material identificado, card com dicas de
+ * descarte e dois botões de ação. Adapta cores e assets com base em [label]:
+ * Vidro, Plástico, Papel, Metal ou fallback Desconhecido.
+ *
+ * Apaga automaticamente o arquivo temporário da foto ao sair — tanto pelo
+ * botão físico de voltar quanto pelos botões da tela.
+ *
+ * @param photoUri  URI da foto capturada (será deletada ao sair da tela)
+ * @param label     rótulo retornado pela IA (ex: "Vidro", "Plástico")
+ */
 @Composable
 fun ResultScreen(
     photoUri: String,
@@ -160,18 +169,6 @@ fun ResultScreen(
 ) {
     val ctx  = LocalContext.current
     val data = remember(label) { dataForLabel(label) }
-    val view    = LocalView.current
-    val density = LocalDensity.current
-
-    // Captura os insets de navegação UMA vez via View system (não é estado Compose).
-    // remember sem chave não reavalia mesmo que o Dialog altere os insets reportados.
-    val stableNavBarBottom = remember {
-        ViewCompat.getRootWindowInsets(view)
-            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
-            ?.bottom
-            ?.let { with(density) { it.toDp() } }
-            ?: 0.dp
-    }
 
     val isUnknown = label.trim().lowercase().let {
         it == "desconhecido" || it == "indefinido" || it == "unknown"
@@ -210,7 +207,6 @@ fun ResultScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp)
-                .padding(bottom = stableNavBarBottom)
         ) {
 
             // ── Conteúdo superior - animado ───────────────────────────
@@ -309,18 +305,32 @@ fun ResultScreen(
 
 // ── Previews ──────────────────────────────────────────────────────────────────
 
-@PreviewScreenSizes
+@Preview(showBackground = true, name = "Resultado - Vidro")
 @Composable
-private fun ResultScreenPreviewKnown() {
-    RecycleAppTheme {
-        ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}, onNavigateToLearn = {})
-    }
+private fun ResultScreenPreviewGlass() {
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Vidro", onBackToHome = {}, onNavigateToLearn = {}) }
 }
 
-@PreviewScreenSizes
+@Preview(showBackground = true, name = "Resultado - Plástico")
+@Composable
+private fun ResultScreenPreviewPlastic() {
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Plástico", onBackToHome = {}, onNavigateToLearn = {}) }
+}
+
+@Preview(showBackground = true, name = "Resultado - Papel")
+@Composable
+private fun ResultScreenPreviewPaper() {
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Papel", onBackToHome = {}, onNavigateToLearn = {}) }
+}
+
+@Preview(showBackground = true, name = "Resultado - Metal")
+@Composable
+private fun ResultScreenPreviewMetal() {
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Metal", onBackToHome = {}, onNavigateToLearn = {}) }
+}
+
+@Preview(showBackground = true, name = "Resultado - Desconhecido")
 @Composable
 private fun ResultScreenPreviewUnknown() {
-    RecycleAppTheme {
-        ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}, onNavigateToLearn = {})
-    }
+    RecycleAppTheme { ResultScreen(photoUri = "", label = "Indefinido", onBackToHome = {}, onNavigateToLearn = {}) }
 }

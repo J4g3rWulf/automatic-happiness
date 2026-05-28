@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,10 +44,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -115,7 +115,10 @@ fun ConfirmPhotoScreen(
         }
     }
 
-    Scaffold(containerColor = GreenPrimary) { innerPadding ->
+    Scaffold(
+        containerColor      = GreenPrimary,
+        contentWindowInsets = WindowInsets(0)  // evita deslocamento ao tirar prints
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
@@ -275,31 +278,52 @@ private fun ConfirmButton(
 // ── Previews ──────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@PreviewScreenSizes
+@Preview(name = "Confirm — câmera — Pixel 5", device = Devices.PIXEL_5)
 @Composable
-private fun ConfirmPhotoScreenPreview() {
+private fun ConfirmPhotoScreenPreviewCamera() {
     RecycleAppTheme {
         ConfirmPhotoScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(360.dp, 780.dp)),
-            photoUri        = "",
-            retakeLabel     = "Tirar outra",
-            onBack          = {},
-            onSend          = {}
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri    = "",
+            retakeLabel = "Tirar outra",
+            onBack      = {},
+            onSend      = {}
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(name = "Altura compacta", widthDp = 360, heightDp = 500)
+@Preview(name = "Confirm — galeria — Pixel 5", device = Devices.PIXEL_5)
 @Composable
-private fun ConfirmPhotoScreenPreviewCompactHeight() {
+private fun ConfirmPhotoScreenPreviewGallery() {
     RecycleAppTheme {
         ConfirmPhotoScreen(
-            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(360.dp, 500.dp)),
-            photoUri        = "",
-            retakeLabel     = "Tirar outra",
-            onBack          = {},
-            onSend          = {}
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 780.dp)
+            ),
+            photoUri    = "",
+            retakeLabel = "Escolher outra",
+            onBack      = {},
+            onSend      = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(name = "Confirm — altura compacta", widthDp = 360, heightDp = 500)
+@Composable
+private fun ConfirmPhotoScreenPreviewCompact() {
+    RecycleAppTheme {
+        ConfirmPhotoScreen(
+            windowSizeClass = WindowSizeClass.calculateFromSize(
+                androidx.compose.ui.unit.DpSize(360.dp, 500.dp)
+            ),
+            photoUri    = "",
+            retakeLabel = "Tirar outra",
+            onBack      = {},
+            onSend      = {}
         )
     }
 }
