@@ -29,7 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
@@ -51,6 +52,19 @@ private const val MIN_LOADING_MS = 8000L
 /** Intervalo entre cada troca de mensagem (em ms). */
 private const val MSG_INTERVAL_MS = 2000L
 
+/**
+ * Tela de carregamento exibida enquanto a IA classifica a imagem.
+ *
+ * Exibe animação Lottie e mensagens rotativas trocadas a cada [MSG_INTERVAL_MS].
+ * Garante exibição mínima de [MIN_LOADING_MS] — mesmo que a IA responda antes,
+ * a navegação só ocorre ao atingir esse tempo.
+ *
+ * O botão físico de voltar cancela o processo e retorna para a tela anterior.
+ *
+ * @param uiState  estado atual da classificação, observado via [ClassificationViewModel]
+ * @param onBack   chamado ao pressionar voltar (cancela a classificação)
+ * @param onResult chamado quando a IA termina e o tempo mínimo foi cumprido
+ */
 @Composable
 fun LoadingScreen(
     uiState: ClassificationViewModel.UiState,
@@ -157,9 +171,9 @@ fun LoadingScreen(
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
+// ── Preview ───────────────────────────────────────────────────────────────────
 
-@PreviewScreenSizes
+@Preview(name = "Loading — em andamento", device = Devices.PIXEL_5)
 @Composable
 private fun LoadingScreenPreview() {
     RecycleAppTheme {

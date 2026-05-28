@@ -34,13 +34,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
-import br.recycleapp.ui.theme.RecycleAppTheme
 
 // ── Modelo de dados e Lista estática ────
 
@@ -63,6 +61,17 @@ private val DISCARD_CARDS = listOf(
 
 // ── Tela Principal ────
 
+/**
+ * Sub-tela da LearnScreen: ensina quais materiais podem ser descartados
+ * em cada categoria de coleta seletiva.
+ *
+ * Implementa o mesmo carrossel infinito de [ColorsScreen] com 8 categorias
+ * (Madeira, Vidro, Plástico, Papel, Metal, Perigosos, Orgânico, Rejeito).
+ * Não possui bottom nav — o retorno é feito pelo botão de voltar no canto
+ * superior esquerdo.
+ *
+ * @param onBack chamado ao pressionar o botão de voltar
+ */
 @Composable
 fun WhatToDiscardScreen(
     onBack: () -> Unit
@@ -223,15 +232,5 @@ private fun DiscardCardItem(card: DiscardCard) {
                 contentScale       = ContentScale.Fit
             )
         }
-    }
-}
-
-// ── Previews ──────────────────────────────────────────────────────────────────
-
-@PreviewScreenSizes
-@Composable
-private fun WhatToDiscardScreenPreview() {
-    RecycleAppTheme {
-        WhatToDiscardScreen(onBack = {})
     }
 }

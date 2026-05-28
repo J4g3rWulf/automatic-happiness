@@ -28,6 +28,17 @@ import kotlinx.coroutines.delay
 
 private val SplashBackground = Color(0xFFF6F5FA)
 
+/**
+ * Splash screen customizada com logo animado em três fases:
+ * pausa inicial → fade-in do logo → fade-out → [onSplashFinished].
+ *
+ * Força a cor da barra de navegação para corresponder ao fundo claro da splash
+ * e oculta a barra durante a exibição. A splash nativa do sistema é instalada
+ * em [MainActivity] via `installSplashScreen()`; esta tela é a camada Compose
+ * que a sucede com a animação do logo.
+ *
+ * @param onSplashFinished chamado ao término da animação para navegar para a Home
+ */
 @Composable
 fun SplashScreen(
     onSplashFinished: () -> Unit

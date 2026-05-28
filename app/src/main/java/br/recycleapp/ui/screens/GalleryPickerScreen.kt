@@ -10,6 +10,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 
+/**
+ * Tela sem UI (headless) — abre o seletor de mídia do sistema imediatamente ao entrar.
+ *
+ * Utiliza o Photo Picker moderno (`PickVisualMedia`) para garantir privacidade
+ * sem solicitar permissão de armazenamento. O `Box` vazio evita flicker durante
+ * a transição. Se o usuário escolher uma imagem, chama [onPhotoPicked] com o URI;
+ * se cancelar, chama [onBack].
+ *
+ * @param onBack       chamado ao fechar o seletor sem escolher imagem
+ * @param onPhotoPicked chamado com o URI (String) da imagem selecionada
+ */
 @Composable
 fun GalleryPickerScreen(
     onBack: () -> Unit,

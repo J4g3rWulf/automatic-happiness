@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
@@ -21,8 +20,18 @@ import br.recycleapp.domain.map.RecyclingPoint
 import br.recycleapp.ui.components.map.RecycleMapCard
 import br.recycleapp.ui.components.map.RecyclingPointBottomSheet
 import br.recycleapp.ui.theme.GreenPrimary
-import br.recycleapp.ui.theme.RecycleAppTheme
 
+/**
+ * Tela do mapa de pontos de coleta seletiva na região metropolitana do RJ.
+ *
+ * Integra [RecycleMapCard], que seleciona automaticamente entre Google Maps e
+ * OpenStreetMap via [MapProvider]. A camada inferior exibe o mapa em peso
+ * máximo; a camada inferior fixa exibe um banner verde com arte decorativa.
+ *
+ * Pontos de coleta são carregados pelo [PlacesRecyclingRepository] com
+ * fallback em três camadas: Firestore → cache SharedPreferences → dados
+ * estáticos em [RecyclingPointsData].
+ */
 @Composable
 fun MapScreen() {
     var selectedPoint by remember { mutableStateOf<RecyclingPoint?>(null) }
@@ -127,15 +136,5 @@ fun MapScreen() {
             sheetColor = GreenPrimary,
             onDismiss  = { selectedPoint = null }
         )
-    }
-}
-
-// ── Previews ──────────────────────────────────────────────────────────────────
-
-@PreviewScreenSizes
-@Composable
-private fun MapScreenPreview() {
-    RecycleAppTheme {
-        MapScreen()
     }
 }

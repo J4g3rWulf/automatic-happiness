@@ -38,14 +38,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.recycleapp.R
 import br.recycleapp.ui.theme.GreenDark
 import br.recycleapp.ui.theme.GreenPrimary
-import br.recycleapp.ui.theme.RecycleAppTheme
 
 private const val GRID_COLUMNS = 4
 
@@ -183,6 +181,18 @@ private val PLASTIC_NUMBERS = listOf(
 
 // ── Tela Principal ────
 
+/**
+ * Sub-tela da LearnScreen: glossário visual de termos e símbolos de reciclagem.
+ *
+ * Organiza os termos em quatro categorias (Conceitos, Sistema, Infraestrutura,
+ * Embalagens + Plásticos) exibidas em grade 4×N de botões ilustrados. Ao tocar
+ * num botão, um popup com blur de fundo exibe cards informativos via [LazyRow].
+ *
+ * Não possui bottom nav — o retorno é feito pelo botão de voltar no canto
+ * superior esquerdo ou pelo gesto de voltar do sistema.
+ *
+ * @param onBack chamado ao pressionar o botão de voltar
+ */
 @Composable
 fun TermsScreen(
     onBack: () -> Unit
@@ -649,15 +659,5 @@ private fun TermPopup(
                 Spacer(Modifier.height(48.dp))
             }
         }
-    }
-}
-
-// ── Previews ──────────────────────────────────────────────────────────────────
-
-@PreviewScreenSizes
-@Composable
-private fun TermsScreenPreview() {
-    RecycleAppTheme {
-        TermsScreen(onBack = {})
     }
 }

@@ -23,6 +23,17 @@ import br.recycleapp.util.resolveCapturedCacheFile
 import br.recycleapp.util.tryDeleteCapturedCacheFile
 import java.io.File
 
+/**
+ * Tela sem UI (headless) — abre a câmera do sistema imediatamente ao entrar.
+ *
+ * Gerencia o fluxo completo de permissão de câmera e criação de arquivo
+ * temporário no cache do app (via FileProvider). Se o usuário capturar a foto,
+ * chama [onPhotoTaken] com o URI do arquivo. Se cancelar ou negar a permissão,
+ * apaga o arquivo temporário e chama [onBack].
+ *
+ * @param onBack       chamado ao cancelar ou negar permissão de câmera
+ * @param onPhotoTaken chamado com o URI (String) da foto capturada com sucesso
+ */
 @Composable
 fun CameraCaptureScreen(
     onBack: () -> Unit,
